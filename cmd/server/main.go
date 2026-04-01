@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/dakotalillie/rota/internal/api"
+)
 
 func main() {
-	fmt.Println("Hello world")
+	api := api.New()
+
+	if err := api.Start(); err != nil {
+		fmt.Println("Error starting API:", err)
+	}
 }
