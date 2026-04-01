@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+  dev:
+    desc: Runs the dev server
+    cmds:
+      - go run cmd/server/main.go
+    silent: true
