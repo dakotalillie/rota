@@ -4,7 +4,21 @@ version: '3'
 
 tasks:
   dev:
-    desc: Runs the dev server
+    desc: Runs the dev servers
+    deps:
+      - dev:server
+      - dev:ui
+    silent: true
+
+  dev:server:
+    desc: Runs the Go API server
     cmds:
       - go run cmd/server/main.go
+    silent: true
+
+  dev:ui:
+    desc: Runs the Vite dev server
+    dir: ui
+    cmds:
+      - npm run dev
     silent: true
