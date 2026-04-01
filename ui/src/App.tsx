@@ -11,7 +11,8 @@ type Engineer = {
   email: string
   avatarUrl?: string
   color: string        // tailwind bg class for avatar
-  lightColor: string   // tailwind bg class for row highlight
+  lightColor: string   // tailwind bg class for row highlight (light mode)
+  darkColor: string    // tailwind bg class for row highlight (dark mode)
   textColor: string    // tailwind text class for avatar text
 }
 
@@ -22,11 +23,11 @@ type ScheduleEntry = {
 }
 
 const engineers: Engineer[] = [
-  { name: 'Alex Rivera',   email: 'alex@example.com',   color: 'bg-violet-500',  lightColor: 'bg-violet-50',  textColor: 'text-white' },
-  { name: 'Jordan Kim',    email: 'jordan@example.com', color: 'bg-sky-500',     lightColor: 'bg-sky-50',     textColor: 'text-white' },
-  { name: 'Sam Patel',     email: 'sam@example.com',    color: 'bg-emerald-500', lightColor: 'bg-emerald-50', textColor: 'text-white' },
-  { name: 'Casey Morgan',  email: 'casey@example.com',  color: 'bg-orange-400',  lightColor: 'bg-orange-50',  textColor: 'text-white' },
-  { name: 'Taylor Brooks', email: 'taylor@example.com', color: 'bg-rose-500',    lightColor: 'bg-rose-50',    textColor: 'text-white' },
+  { name: 'Alex Rivera',   email: 'alex@example.com',   color: 'bg-violet-500',  lightColor: 'bg-violet-50',  darkColor: 'dark:bg-violet-950/50',  textColor: 'text-white' },
+  { name: 'Jordan Kim',    email: 'jordan@example.com', color: 'bg-sky-500',     lightColor: 'bg-sky-50',     darkColor: 'dark:bg-sky-950/50',     textColor: 'text-white' },
+  { name: 'Sam Patel',     email: 'sam@example.com',    color: 'bg-emerald-500', lightColor: 'bg-emerald-50', darkColor: 'dark:bg-emerald-950/50', textColor: 'text-white' },
+  { name: 'Casey Morgan',  email: 'casey@example.com',  color: 'bg-orange-400',  lightColor: 'bg-orange-50',  darkColor: 'dark:bg-orange-950/50',  textColor: 'text-white' },
+  { name: 'Taylor Brooks', email: 'taylor@example.com', color: 'bg-rose-500',    lightColor: 'bg-rose-50',    darkColor: 'dark:bg-rose-950/50',    textColor: 'text-white' },
 ]
 
 function mondayOf(date: Date): Date {
@@ -83,8 +84,8 @@ function isCurrentWeek(entry: ScheduleEntry) {
 
 function OnCallHero({ entry }: { entry: ScheduleEntry }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-violet-500 via-indigo-500 to-sky-500 p-px shadow-lg shadow-indigo-200">
-      <div className="relative rounded-[calc(1rem-1px)] bg-linear-to-br from-violet-500 via-indigo-500 to-sky-500 px-6 py-5">
+    <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-violet-500 via-indigo-500 to-sky-500 dark:from-violet-700 dark:via-indigo-700 dark:to-sky-700 p-px shadow-lg shadow-indigo-200 dark:shadow-indigo-950">
+      <div className="relative rounded-[calc(1rem-1px)] bg-linear-to-br from-violet-500 via-indigo-500 to-sky-500 dark:from-violet-700 dark:via-indigo-700 dark:to-sky-700 px-6 py-5">
         {/* Decorative blobs */}
         <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -bottom-8 -left-4 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
@@ -130,7 +131,7 @@ function ScheduleRow({ entry, index }: { entry: ScheduleEntry; index: number }) 
     <div
       className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${
         isCurrent
-          ? `${engineer.lightColor} ring-1 ring-inset ring-current/10`
+          ? `${engineer.lightColor} ${engineer.darkColor} ring-1 ring-inset ring-current/10`
           : index % 2 === 0
           ? 'bg-muted/40'
           : ''
@@ -142,7 +143,7 @@ function ScheduleRow({ entry, index }: { entry: ScheduleEntry; index: number }) 
           {formatRange(entry.weekStart, entry.weekEnd)}
         </p>
         {isCurrent && (
-          <Badge className="mt-0.5 text-xs px-1.5 py-0 bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
+          <Badge className="mt-0.5 text-xs px-1.5 py-0 bg-green-100 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/50 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/50">
             This week
           </Badge>
         )}
@@ -166,14 +167,14 @@ function ScheduleRow({ entry, index }: { entry: ScheduleEntry; index: number }) 
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-indigo-50/40 to-violet-50/30">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
 
         {/* Hero */}
         <OnCallHero entry={currentEntry} />
 
         {/* Upcoming schedule */}
-        <Card className="shadow-sm border-slate-200">
+        <Card className="shadow-sm border-border bg-card">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <CalendarDays className="h-4 w-4 text-indigo-500" />
