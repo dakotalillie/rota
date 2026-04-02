@@ -298,7 +298,7 @@ function HomePage({ timeline, onNavigateEdit }: {
         <h1 className="text-xl font-bold tracking-tight">Rota</h1>
         <Button variant="outline" size="sm" onClick={onNavigateEdit} className="gap-1.5">
           <Settings2 />
-          Edit rotation
+          Settings
         </Button>
       </div>
 
@@ -336,7 +336,7 @@ function HomePage({ timeline, onNavigateEdit }: {
   )
 }
 
-// --- Edit page ---
+// --- Settings page ---
 
 function defaultOverrideStart(): string {
   const d = new Date()
@@ -436,7 +436,7 @@ function EditPage({ engineers, setEngineers, overrides, setOverrides, onNavigate
         <Button variant="ghost" size="icon-sm" onClick={onNavigateHome} aria-label="Back to home">
           <ArrowLeft />
         </Button>
-        <h1 className="text-xl font-bold tracking-tight">Edit Rotation</h1>
+        <h1 className="text-xl font-bold tracking-tight">Settings</h1>
       </div>
 
       {/* Rotation order */}
