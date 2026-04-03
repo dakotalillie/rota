@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -48,7 +48,7 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
   onNavigateHome: () => void
 }) {
   // Rotation order state
-  const dragIndexRef = useRef<number | null>(null)
+
 
   // Override form state
   const [overrideStart, setOverrideStart] = useState('')
@@ -64,25 +64,6 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
   const overrideSelfAssign = formReplacements.some(seg => seg.engineer.id === validEngineerId)
 
   // Rotation order handlers
-  function handleDragStart(index: number) {
-    dragIndexRef.current = index
-  }
-
-  function handleDragOver(e: React.DragEvent, index: number) {
-    e.preventDefault()
-    const from = dragIndexRef.current
-    if (from === null || from === index) return
-    const next = [...engineers]
-    const [item] = next.splice(from, 1)
-    next.splice(index, 0, item)
-    dragIndexRef.current = index
-    setEngineers(next)
-  }
-
-  function handleDragEnd() {
-    dragIndexRef.current = null
-  }
-
   function removeEngineer(id: string) {
     setEngineers(engineers.filter(e => e.id !== id))
     setOverrides(overrides.filter(o => o.engineerId !== id))
@@ -137,14 +118,7 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
         <h1 className="text-xl font-bold tracking-tight">Settings</h1>
       </div>
 
-      <SettingsRotationOrder
-        engineers={engineers}
-        handleDragStart={handleDragStart}
-        handleDragOver={handleDragOver}
-        handleDragEnd={handleDragEnd}
-        removeEngineer={removeEngineer}
-      />
-
+      <SettingsRotationOrder engineers={engineers} setEngineers={setEngineers} removeEngineer={removeEngineer} />
       <SettingsAddPerson engineers={engineers} setEngineers={setEngineers} />
 
       {/* Schedule overrides */}

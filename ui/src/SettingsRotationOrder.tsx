@@ -1,3 +1,4 @@
+import { useRef } from "react"
 import { GripVertical, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
 import type { Engineer } from "./types"
@@ -7,13 +8,32 @@ import { initials } from "./utils"
 
 type SettingsRotationOrderProps = {
   engineers: Engineer[]
-  handleDragStart: (index: number) => void
-  handleDragOver: (e: React.DragEvent, index: number) => void
-  handleDragEnd: () => void
+  setEngineers: (engineers: Engineer[]) => void
   removeEngineer: (id: string) => void
 }
 
-function SettingsRotationOrder({ engineers, handleDragStart, handleDragOver, handleDragEnd, removeEngineer }: SettingsRotationOrderProps) {
+function SettingsRotationOrder({ engineers, setEngineers, removeEngineer }: SettingsRotationOrderProps) {
+    const dragIndexRef = useRef<number | null>(null)
+
+    function handleDragStart(index: number) {
+        dragIndexRef.current = index
+    }
+
+    function handleDragOver(e: React.DragEvent, index: number) {
+        e.preventDefault()
+        const from = dragIndexRef.current
+        if (from === null || from === index) return
+        const next = [...engineers]
+        const [item] = next.splice(from, 1)
+        next.splice(index, 0, item)
+        dragIndexRef.current = index
+        setEngineers(next)
+    }
+
+    function handleDragEnd() {
+        dragIndexRef.current = null
+    }
+
     return (
       <Card className="shadow-sm border-border bg-card">
         <CardHeader className="pb-3">
