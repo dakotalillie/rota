@@ -124,3 +124,16 @@ export function buildTimeline(engineers: Engineer[], overrides: Override[], week
 
   return merged
 }
+
+export const COLOR_PALETTE = [
+  { color: 'bg-violet-500', lightColor: 'bg-violet-50',  darkColor: 'dark:bg-violet-950/50',  textColor: 'text-white' },
+  { color: 'bg-sky-500',    lightColor: 'bg-sky-50',     darkColor: 'dark:bg-sky-950/50',     textColor: 'text-white' },
+  { color: 'bg-emerald-500',lightColor: 'bg-emerald-50', darkColor: 'dark:bg-emerald-950/50', textColor: 'text-white' },
+  { color: 'bg-orange-400', lightColor: 'bg-orange-50',  darkColor: 'dark:bg-orange-950/50',  textColor: 'text-white' },
+  { color: 'bg-rose-500',   lightColor: 'bg-rose-50',    darkColor: 'dark:bg-rose-950/50',    textColor: 'text-white' },
+  { color: 'bg-teal-500',   lightColor: 'bg-teal-50',    darkColor: 'dark:bg-teal-950/50',    textColor: 'text-white' },
+  { color: 'bg-amber-500',  lightColor: 'bg-amber-50',   darkColor: 'dark:bg-amber-950/50',   textColor: 'text-white' },
+  { color: 'bg-pink-500',   lightColor: 'bg-pink-50',    darkColor: 'dark:bg-pink-950/50',    textColor: 'text-white' },
+]
+
+export const inputClass = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-shadow'

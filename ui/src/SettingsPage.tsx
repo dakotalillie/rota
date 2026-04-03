@@ -4,20 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Plus, X, ArrowRight, ChevronDown, Webhook } from 'lucide-react'
 import type { Engineer, Override, TimeSegment, WebhookEntry } from './types'
-import { buildTimeline, formatOverrideRange, formatSegmentRange, initials } from './utils'
+import { buildTimeline, formatOverrideRange, formatSegmentRange, initials, inputClass } from './utils'
 import SettingsRotationOrder from './SettingsRotationOrder'
-
-const COLOR_PALETTE = [
-  { color: 'bg-violet-500', lightColor: 'bg-violet-50',  darkColor: 'dark:bg-violet-950/50',  textColor: 'text-white' },
-  { color: 'bg-sky-500',    lightColor: 'bg-sky-50',     darkColor: 'dark:bg-sky-950/50',     textColor: 'text-white' },
-  { color: 'bg-emerald-500',lightColor: 'bg-emerald-50', darkColor: 'dark:bg-emerald-950/50', textColor: 'text-white' },
-  { color: 'bg-orange-400', lightColor: 'bg-orange-50',  darkColor: 'dark:bg-orange-950/50',  textColor: 'text-white' },
-  { color: 'bg-rose-500',   lightColor: 'bg-rose-50',    darkColor: 'dark:bg-rose-950/50',    textColor: 'text-white' },
-  { color: 'bg-teal-500',   lightColor: 'bg-teal-50',    darkColor: 'dark:bg-teal-950/50',    textColor: 'text-white' },
-  { color: 'bg-amber-500',  lightColor: 'bg-amber-50',   darkColor: 'dark:bg-amber-950/50',   textColor: 'text-white' },
-  { color: 'bg-pink-500',   lightColor: 'bg-pink-50',    darkColor: 'dark:bg-pink-950/50',    textColor: 'text-white' },
-]
-
+import SettingsAddPerson from './SettingsAddPerson'
 
 /**
  * Given a prospective override window [previewStart, previewEnd), compute which
@@ -47,7 +36,6 @@ function computeOverrideReplacements(
 
 // --- Display helpers ---
 const selectClass = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-shadow'
-const inputClass = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-shadow'
 
 
 function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhooks, setWebhooks, onNavigateHome }: {
@@ -60,8 +48,6 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
   onNavigateHome: () => void
 }) {
   // Rotation order state
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
   const dragIndexRef = useRef<number | null>(null)
 
   // Override form state
@@ -100,20 +86,6 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
   function removeEngineer(id: string) {
     setEngineers(engineers.filter(e => e.id !== id))
     setOverrides(overrides.filter(o => o.engineerId !== id))
-  }
-
-  function addEngineer() {
-    const trimmedName = name.trim()
-    if (!trimmedName) return
-    const palette = COLOR_PALETTE[engineers.length % COLOR_PALETTE.length]
-    const newEngineer = { id: crypto.randomUUID(), name: trimmedName, email: email.trim(), ...palette }
-    setEngineers([...engineers, newEngineer])
-    setName('')
-    setEmail('')
-  }
-
-  function handleAddEngineerKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') addEngineer()
   }
 
   // Webhook form state
@@ -173,34 +145,7 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
         removeEngineer={removeEngineer}
       />
 
-      {/* Add person */}
-      <Card className="shadow-sm border-border bg-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Add person</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <input
-            type="text"
-            placeholder="Name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onKeyDown={handleAddEngineerKeyDown}
-            className={inputClass}
-          />
-          <input
-            type="email"
-            placeholder="Email (optional)"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            onKeyDown={handleAddEngineerKeyDown}
-            className={inputClass}
-          />
-          <Button onClick={addEngineer} disabled={!name.trim()} size="sm" className="gap-1.5">
-            <Plus />
-            Add person
-          </Button>
-        </CardContent>
-      </Card>
+      <SettingsAddPerson engineers={engineers} setEngineers={setEngineers} />
 
       {/* Schedule overrides */}
       <Card className="shadow-sm border-border bg-card">
