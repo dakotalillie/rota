@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Plus, X, ArrowRight, ChevronDown, Webhook } from 'lucide-react'
+import { Plus, X, ArrowRight, ChevronDown, Webhook } from 'lucide-react'
 import type { Engineer, Override, TimeSegment, WebhookEntry } from './types'
 import { buildTimeline, formatOverrideRange, formatSegmentRange, initials, inputClass } from './utils'
 import SettingsRotationOrder from './SettingsRotationOrder'
 import SettingsAddPerson from './SettingsAddPerson'
+import SettingsHeader from './SettingsHeader'
 
 /**
  * Given a prospective override window [previewStart, previewEnd), compute which
@@ -110,14 +111,7 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon-sm" onClick={onNavigateHome} aria-label="Back to home">
-          <ArrowLeft />
-        </Button>
-        <h1 className="text-xl font-bold tracking-tight">Settings</h1>
-      </div>
-
+      <SettingsHeader onNavigateHome={onNavigateHome} />
       <SettingsRotationOrder engineers={engineers} setEngineers={setEngineers} removeEngineer={removeEngineer} />
       <SettingsAddPerson engineers={engineers} setEngineers={setEngineers} />
 
