@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Engineer, Override, WebhookEntry } from './types'
 import HomePage from './HomePage'
-import SettingsPage from './SettingsPage'
+import Settings from './Settings'
 import { buildTimeline } from './utils'
 
 const INITIAL_ENGINEERS: Engineer[] = [
@@ -28,7 +28,7 @@ export default function App() {
           onNavigateEdit={() => setPage('edit')}
         />
       ) : (
-        <SettingsPage
+        <Settings
           engineers={engineers}
           setEngineers={setEngineers}
           overrides={overrides}
