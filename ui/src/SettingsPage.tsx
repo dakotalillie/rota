@@ -48,9 +48,6 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
   setWebhooks: (webhooks: WebhookEntry[]) => void
   onNavigateHome: () => void
 }) {
-  // Rotation order state
-
-
   // Override form state
   const [overrideStart, setOverrideStart] = useState('')
   const [overrideEnd, setOverrideEnd] = useState('')
@@ -63,12 +60,6 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
   const overrideValid = overrideStart && overrideEnd && new Date(overrideEnd) > new Date(overrideStart) && validEngineerId
   const formReplacements = overrideValid ? computeOverrideReplacements(engineers, overrides, overrideStart, overrideEnd) : []
   const overrideSelfAssign = formReplacements.some(seg => seg.engineer.id === validEngineerId)
-
-  // Rotation order handlers
-  function removeEngineer(id: string) {
-    setEngineers(engineers.filter(e => e.id !== id))
-    setOverrides(overrides.filter(o => o.engineerId !== id))
-  }
 
   // Webhook form state
   const [webhookUrl, setWebhookUrl] = useState('')
@@ -112,7 +103,12 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
       <SettingsHeader onNavigateHome={onNavigateHome} />
-      <SettingsRotationOrder engineers={engineers} setEngineers={setEngineers} removeEngineer={removeEngineer} />
+      <SettingsRotationOrder
+        engineers={engineers}
+        setEngineers={setEngineers}
+        overrides={overrides}
+        setOverrides={setOverrides}
+      />
       <SettingsAddPerson engineers={engineers} setEngineers={setEngineers} />
 
       {/* Schedule overrides */}

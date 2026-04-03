@@ -1,7 +1,7 @@
 import { useRef } from "react"
 import { GripVertical, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
-import type { Engineer } from "./types"
+import type { Engineer, Override } from "./types"
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar"
 import { Button } from "./components/ui/button"
 import { initials } from "./utils"
@@ -9,10 +9,11 @@ import { initials } from "./utils"
 type SettingsRotationOrderProps = {
   engineers: Engineer[]
   setEngineers: (engineers: Engineer[]) => void
-  removeEngineer: (id: string) => void
+  overrides: Override[]
+  setOverrides: (overrides: Override[]) => void
 }
 
-function SettingsRotationOrder({ engineers, setEngineers, removeEngineer }: SettingsRotationOrderProps) {
+function SettingsRotationOrder({ engineers, setEngineers, overrides, setOverrides }: SettingsRotationOrderProps) {
     const dragIndexRef = useRef<number | null>(null)
 
     function handleDragStart(index: number) {
@@ -33,6 +34,12 @@ function SettingsRotationOrder({ engineers, setEngineers, removeEngineer }: Sett
     function handleDragEnd() {
         dragIndexRef.current = null
     }
+
+    function removeEngineer(id: string) {
+      setEngineers(engineers.filter(e => e.id !== id))
+      setOverrides(overrides.filter(o => o.engineerId !== id))
+    }
+
 
     return (
       <Card className="shadow-sm border-border bg-card">
