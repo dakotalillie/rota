@@ -276,15 +276,10 @@ function ScheduleRow({ segment, index }: { segment: TimeSegment; index: number }
       }`}
     >
       {/* Time range */}
-      <div className="w-64 shrink-0 flex items-center gap-2">
+      <div className="w-64 shrink-0">
         <p className={`text-sm font-medium whitespace-nowrap ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
           {formatSegmentRange(segment.start, segment.end)}
         </p>
-        {segment.isOverride && (
-          <Badge className="text-xs px-1.5 py-0 bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/50">
-            Override
-          </Badge>
-        )}
       </div>
 
       <Separator orientation="vertical" className="h-8" />
@@ -297,7 +292,12 @@ function ScheduleRow({ segment, index }: { segment: TimeSegment; index: number }
             {initials(engineer.name)}
           </AvatarFallback>
         </Avatar>
-        <span className="text-sm font-medium truncate">{engineer.name}</span>
+        <span className="text-sm font-medium truncate flex-1">{engineer.name}</span>
+        {segment.isOverride && (
+          <Badge className="text-xs px-1.5 py-0 shrink-0 bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/50">
+            Override
+          </Badge>
+        )}
       </div>
     </div>
   )
