@@ -2,9 +2,10 @@ import { useState, useRef } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, GripVertical, Plus, X, ArrowRight, ChevronDown, Webhook } from 'lucide-react'
+import { ArrowLeft, Plus, X, ArrowRight, ChevronDown, Webhook } from 'lucide-react'
 import type { Engineer, Override, TimeSegment, WebhookEntry } from './types'
 import { buildTimeline, formatOverrideRange, formatSegmentRange, initials } from './utils'
+import SettingsRotationOrder from './SettingsRotationOrder'
 
 const COLOR_PALETTE = [
   { color: 'bg-violet-500', lightColor: 'bg-violet-50',  darkColor: 'dark:bg-violet-950/50',  textColor: 'text-white' },
@@ -164,49 +165,13 @@ function SettingsPage({ engineers, setEngineers, overrides, setOverrides, webhoo
         <h1 className="text-xl font-bold tracking-tight">Settings</h1>
       </div>
 
-      {/* Rotation order */}
-      <Card className="shadow-sm border-border bg-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Rotation order</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1">
-          {engineers.length > 0 ? engineers.map((engineer, index) => (
-            <div
-              key={engineer.id}
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDragEnd={handleDragEnd}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors bg-muted/40 hover:bg-muted/60 cursor-grab active:cursor-grabbing select-none"
-            >
-              <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarImage src={engineer.avatarUrl} />
-                <AvatarFallback className={`text-xs font-semibold ${engineer.color} ${engineer.textColor}`}>
-                  {initials(engineer.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{engineer.name}</p>
-                {engineer.email && (
-                  <p className="text-xs text-muted-foreground truncate">{engineer.email}</p>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => removeEngineer(engineer.id)}
-                className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                aria-label={`Remove ${engineer.name}`}
-              >
-                <X />
-              </Button>
-            </div>
-          )) : (
-            <p className="text-sm text-muted-foreground px-1 py-1">No engineers yet.</p>
-          )}
-        </CardContent>
-      </Card>
+      <SettingsRotationOrder
+        engineers={engineers}
+        handleDragStart={handleDragStart}
+        handleDragOver={handleDragOver}
+        handleDragEnd={handleDragEnd}
+        removeEngineer={removeEngineer}
+      />
 
       {/* Add person */}
       <Card className="shadow-sm border-border bg-card">
