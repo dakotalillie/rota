@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Phone, Clock, CalendarDays, Settings2, ArrowLeft, GripVertical, Plus, X, ArrowRight, ChevronDown } from 'lucide-react'
+import { Phone, Clock, CalendarDays, Settings2, ArrowLeft, GripVertical, Plus, X, ArrowRight, ChevronDown, Webhook } from 'lucide-react'
 
 // --- Types ---
 
@@ -24,6 +24,12 @@ type Override = {
   start: string      // datetime-local string: "YYYY-MM-DDThh:mm"
   end: string        // datetime-local string: "YYYY-MM-DDThh:mm"
   engineerId: string
+}
+
+type WebhookEntry = {
+  id: string
+  url: string
+  label: string
 }
 
 type TimeSegment = {
@@ -152,6 +158,32 @@ function buildTimeline(engineers: Engineer[], overrides: Override[], weeksCount:
   return merged
 }
 
+/**
+ * Given a prospective override window [previewStart, previewEnd), compute which
+ * segments from the baseline schedule (built without that override) would be
+ * displaced. Returns those segments clipped to the override window.
+ */
+function computeOverrideReplacements(
+  engineers: Engineer[],
+  baseOverrides: Override[],
+  previewStart: string,
+  previewEnd: string,
+): TimeSegment[] {
+  if (engineers.length === 0 || !previewStart || !previewEnd) return []
+  const start = new Date(previewStart)
+  const end = new Date(previewEnd)
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return []
+
+  const timeline = buildTimeline(engineers, baseOverrides, 8)
+  return timeline
+    .filter(seg => seg.start < end && seg.end > start)
+    .map(seg => ({
+      ...seg,
+      start: seg.start < start ? new Date(start) : seg.start,
+      end: seg.end > end ? new Date(end) : seg.end,
+    }))
+}
+
 // --- Display helpers ---
 
 function initials(name: string) {
@@ -174,7 +206,7 @@ function formatSegmentRange(start: Date, end: Date): string {
   if (isMidnight(start) && isMidnight(end)) {
     const displayEnd = new Date(end)
     displayEnd.setDate(displayEnd.getDate() - 1)
-    return `${fmtDate.format(start)} – ${fmtDate.format(displayEnd)}`
+    return `${fmtDateTime.format(start)} – ${fmtDateTime.format(displayEnd)}`
   }
   return `${fmtDateTime.format(start)} – ${fmtDateTime.format(end)}`
 }
@@ -250,22 +282,15 @@ function ScheduleRow({ segment, index }: { segment: TimeSegment; index: number }
       }`}
     >
       {/* Time range */}
-      <div className="w-44 shrink-0">
-        <p className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+      <div className="w-64 shrink-0 flex items-center gap-2">
+        <p className={`text-sm font-medium whitespace-nowrap ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
           {formatSegmentRange(segment.start, segment.end)}
         </p>
-        <div className="flex flex-wrap gap-1 mt-0.5">
-          {isActive && (
-            <Badge className="text-xs px-1.5 py-0 bg-green-100 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/50 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/50">
-              Now
-            </Badge>
-          )}
-          {segment.isOverride && (
-            <Badge className="text-xs px-1.5 py-0 bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/50">
-              Override
-            </Badge>
-          )}
-        </div>
+        {segment.isOverride && (
+          <Badge className="text-xs px-1.5 py-0 bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/50">
+            Override
+          </Badge>
+        )}
       </div>
 
       <Separator orientation="vertical" className="h-8" />
@@ -338,24 +363,14 @@ function HomePage({ timeline, onNavigateEdit }: {
 
 // --- Settings page ---
 
-function defaultOverrideStart(): string {
-  const d = new Date()
-  d.setMinutes(0, 0, 0)
-  return toDateTimeLocal(d)
-}
 
-function defaultOverrideEnd(): string {
-  const d = new Date()
-  d.setMinutes(0, 0, 0)
-  d.setDate(d.getDate() + 7)
-  return toDateTimeLocal(d)
-}
-
-function EditPage({ engineers, setEngineers, overrides, setOverrides, onNavigateHome }: {
+function EditPage({ engineers, setEngineers, overrides, setOverrides, webhooks, setWebhooks, onNavigateHome }: {
   engineers: Engineer[]
   setEngineers: (engineers: Engineer[]) => void
   overrides: Override[]
   setOverrides: (overrides: Override[]) => void
+  webhooks: WebhookEntry[]
+  setWebhooks: (webhooks: WebhookEntry[]) => void
   onNavigateHome: () => void
 }) {
   // Rotation order state
@@ -364,15 +379,17 @@ function EditPage({ engineers, setEngineers, overrides, setOverrides, onNavigate
   const dragIndexRef = useRef<number | null>(null)
 
   // Override form state
-  const [overrideStart, setOverrideStart] = useState(defaultOverrideStart)
-  const [overrideEnd, setOverrideEnd] = useState(defaultOverrideEnd)
-  const [overrideEngineerId, setOverrideEngineerId] = useState(engineers[0]?.id ?? '')
+  const [overrideStart, setOverrideStart] = useState('')
+  const [overrideEnd, setOverrideEnd] = useState('')
+  const [overrideEngineerId, setOverrideEngineerId] = useState('')
 
   const validEngineerId = engineers.find(e => e.id === overrideEngineerId)
     ? overrideEngineerId
-    : engineers[0]?.id ?? ''
+    : ''
 
   const overrideValid = overrideStart && overrideEnd && new Date(overrideEnd) > new Date(overrideStart) && validEngineerId
+  const formReplacements = overrideValid ? computeOverrideReplacements(engineers, overrides, overrideStart, overrideEnd) : []
+  const overrideSelfAssign = formReplacements.some(seg => seg.engineer.id === validEngineerId)
 
   // Rotation order handlers
   function handleDragStart(index: number) {
@@ -405,13 +422,35 @@ function EditPage({ engineers, setEngineers, overrides, setOverrides, onNavigate
     const palette = COLOR_PALETTE[engineers.length % COLOR_PALETTE.length]
     const newEngineer = { id: crypto.randomUUID(), name: trimmedName, email: email.trim(), ...palette }
     setEngineers([...engineers, newEngineer])
-    if (!validEngineerId) setOverrideEngineerId(newEngineer.id)
     setName('')
     setEmail('')
   }
 
   function handleAddEngineerKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter') addEngineer()
+  }
+
+  // Webhook form state
+  const [webhookUrl, setWebhookUrl] = useState('')
+  const [webhookLabel, setWebhookLabel] = useState('')
+
+  const webhookUrlValid = (() => {
+    try { new URL(webhookUrl); return true } catch { return false }
+  })()
+
+  function addWebhook() {
+    if (!webhookUrlValid) return
+    setWebhooks([...webhooks, { id: crypto.randomUUID(), url: webhookUrl.trim(), label: webhookLabel.trim() }])
+    setWebhookUrl('')
+    setWebhookLabel('')
+  }
+
+  function removeWebhook(id: string) {
+    setWebhooks(webhooks.filter(w => w.id !== id))
+  }
+
+  function handleWebhookKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') addWebhook()
   }
 
   // Override handlers
@@ -421,8 +460,9 @@ function EditPage({ engineers, setEngineers, overrides, setOverrides, onNavigate
       ...overrides,
       { id: crypto.randomUUID(), start: overrideStart, end: overrideEnd, engineerId: validEngineerId },
     ])
-    setOverrideStart(defaultOverrideStart())
-    setOverrideEnd(defaultOverrideEnd())
+    setOverrideStart('')
+    setOverrideEnd('')
+    setOverrideEngineerId('')
   }
 
   function removeOverride(id: string) {
@@ -524,30 +564,53 @@ function EditPage({ engineers, setEngineers, overrides, setOverrides, onNavigate
               {overrides.map(override => {
                 const engineer = engineers.find(e => e.id === override.engineerId)
                 if (!engineer) return null
+                const baseOverrides = overrides.filter(o => o.id !== override.id)
+                const replacements = computeOverrideReplacements(engineers, baseOverrides, override.start, override.end)
                 return (
-                  <div key={override.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/40">
-                    <div className="flex-1 min-w-0 flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground shrink-0 tabular-nums">
-                        {formatOverrideRange(override.start, override.end)}
-                      </span>
-                      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <Avatar className="h-6 w-6 shrink-0">
-                        <AvatarImage src={engineer.avatarUrl} />
-                        <AvatarFallback className={`text-[10px] font-semibold ${engineer.color} ${engineer.textColor}`}>
-                          {initials(engineer.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium truncate">{engineer.name}</span>
+                  <div key={override.id} className="rounded-xl bg-muted/40 overflow-hidden">
+                    <div className="flex items-center gap-3 px-3 py-2.5">
+                      <div className="flex-1 min-w-0 flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground shrink-0 tabular-nums">
+                          {formatOverrideRange(override.start, override.end)}
+                        </span>
+                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <Avatar className="h-6 w-6 shrink-0">
+                          <AvatarImage src={engineer.avatarUrl} />
+                          <AvatarFallback className={`text-[10px] font-semibold ${engineer.color} ${engineer.textColor}`}>
+                            {initials(engineer.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium truncate">{engineer.name}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => removeOverride(override.id)}
+                        className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        aria-label="Remove override"
+                      >
+                        <X />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => removeOverride(override.id)}
-                      className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                      aria-label="Remove override"
-                    >
-                      <X />
-                    </Button>
+                    {replacements.length > 0 && (
+                      <div className="px-3 pb-2.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="text-xs text-muted-foreground">Replaces:</span>
+                        {replacements.map((seg, i) => (
+                          <span key={i} className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Avatar className="h-4 w-4 shrink-0">
+                              <AvatarImage src={seg.engineer.avatarUrl} />
+                              <AvatarFallback className={`text-[8px] font-semibold ${seg.engineer.color} ${seg.engineer.textColor}`}>
+                                {initials(seg.engineer.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium text-foreground">{seg.engineer.name}</span>
+                            {replacements.length > 1 && (
+                              <span>({formatSegmentRange(seg.start, seg.end)})</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -580,18 +643,98 @@ function EditPage({ engineers, setEngineers, overrides, setOverrides, onNavigate
                   onChange={e => setOverrideEngineerId(e.target.value)}
                   className={selectClass + ' appearance-none pr-8'}
                 >
+                  <option value="" disabled>Select person</option>
                   {engineers.map(e => (
                     <option key={e.id} value={e.id}>{e.name}</option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               </div>
-              <Button onClick={addOverride} disabled={!overrideValid} className="gap-1.5">
+              {overrideValid && formReplacements.length > 0 && (
+                <div className={`rounded-lg border px-3 py-2.5 space-y-1.5 ${overrideSelfAssign ? 'border-destructive/50 bg-destructive/5' : 'border-border bg-muted/30'}`}>
+                  <p className={`text-xs font-medium ${overrideSelfAssign ? 'text-destructive' : 'text-muted-foreground'}`}>Replaces</p>
+                  <div className="space-y-1">
+                    {formReplacements.map((seg, i) => {
+                      const isSelf = seg.engineer.id === validEngineerId
+                      return (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <Avatar className="h-5 w-5 shrink-0">
+                            <AvatarImage src={seg.engineer.avatarUrl} />
+                            <AvatarFallback className={`text-[9px] font-semibold ${seg.engineer.color} ${seg.engineer.textColor}`}>
+                              {initials(seg.engineer.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className={`font-medium ${isSelf ? 'text-destructive' : ''}`}>{seg.engineer.name}</span>
+                          <span className="text-muted-foreground text-xs">{formatSegmentRange(seg.start, seg.end)}</span>
+                          {isSelf && <span className="text-xs text-destructive">already on call</span>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              <Button onClick={addOverride} disabled={!overrideValid || overrideSelfAssign} className="gap-1.5">
                 <Plus />
                 Add override
               </Button>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Webhooks */}
+      <Card className="shadow-sm border-border bg-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">Webhooks</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Existing webhooks */}
+          {webhooks.length > 0 && (
+            <div className="space-y-1">
+              {webhooks.map(wh => (
+                <div key={wh.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/40">
+                  <Webhook className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    {wh.label && <p className="text-sm font-medium truncate">{wh.label}</p>}
+                    <p className="text-xs text-muted-foreground truncate">{wh.url}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => removeWebhook(wh.id)}
+                    className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    aria-label="Remove webhook"
+                  >
+                    <X />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add webhook form */}
+          <div className="space-y-2">
+            <input
+              type="text"
+              placeholder="Label (optional)"
+              value={webhookLabel}
+              onChange={e => setWebhookLabel(e.target.value)}
+              onKeyDown={handleWebhookKeyDown}
+              className={inputClass}
+            />
+            <input
+              type="url"
+              placeholder="https://example.com/webhook"
+              value={webhookUrl}
+              onChange={e => setWebhookUrl(e.target.value)}
+              onKeyDown={handleWebhookKeyDown}
+              className={inputClass}
+            />
+            <Button onClick={addWebhook} disabled={!webhookUrlValid} size="sm" className="gap-1.5">
+              <Plus />
+              Add webhook
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -604,6 +747,7 @@ function EditPage({ engineers, setEngineers, overrides, setOverrides, onNavigate
 export default function App() {
   const [engineers, setEngineers] = useState<Engineer[]>(INITIAL_ENGINEERS)
   const [overrides, setOverrides] = useState<Override[]>([])
+  const [webhooks, setWebhooks] = useState<WebhookEntry[]>([])
   const [page, setPage] = useState<'home' | 'edit'>('home')
 
   const timeline = buildTimeline(engineers, overrides, 8)
@@ -621,6 +765,8 @@ export default function App() {
           setEngineers={setEngineers}
           overrides={overrides}
           setOverrides={setOverrides}
+          webhooks={webhooks}
+          setWebhooks={setWebhooks}
           onNavigateHome={() => setPage('home')}
         />
       )}

@@ -129,4 +129,18 @@
   html {
     @apply font-sans;
     }
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    opacity: 0.5;
+    filter: invert(var(--calendar-picker-invert, 0));
+    cursor: pointer;
+  }
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --calendar-picker-invert: 1;
+  }
 }
