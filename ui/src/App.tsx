@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Phone, Clock, CalendarDays, Settings2, ArrowLeft, GripVertical, Plus, X, ArrowRight, ChevronDown, Webhook } from 'lucide-react'
+import { Mail, Clock, CalendarDays, Settings2, ArrowLeft, GripVertical, Plus, X, ArrowRight, ChevronDown, Webhook } from 'lucide-react'
 
 // --- Types ---
 
@@ -71,11 +71,6 @@ function mondayOf(date: Date): Date {
   d.setDate(d.getDate() + diff)
   d.setHours(0, 0, 0, 0)
   return d
-}
-
-function toDateTimeLocal(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
 /**
@@ -190,7 +185,6 @@ function initials(name: string) {
   return name.split(' ').map(p => p[0]).join('').toUpperCase()
 }
 
-const fmtDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
 const fmtDateTime = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 
 function isMidnight(date: Date) {
@@ -252,7 +246,7 @@ function OnCallHero({ segment }: { segment: TimeSegment }) {
             <div className="flex flex-col gap-1.5">
               <h2 className="text-2xl font-bold text-white">{segment.engineer.name}</h2>
               <div className="flex items-center gap-1.5 text-sm text-white/70">
-                <Phone className="h-3.5 w-3.5" />
+                <Mail className="h-3.5 w-3.5" />
                 <span>{segment.engineer.email}</span>
               </div>
               <div className="flex items-center gap-1.5 text-sm text-white/70">
