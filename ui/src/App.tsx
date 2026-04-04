@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Engineer, Override, WebhookEntry } from './types'
-import HomePage from './HomePage'
+import Home from './Home'
 import Settings from './Settings'
 import { buildTimeline } from './utils'
 
@@ -23,7 +23,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-background">
       {page === 'home' ? (
-        <HomePage
+        <Home
           timeline={timeline}
           onNavigateEdit={() => setPage('edit')}
         />

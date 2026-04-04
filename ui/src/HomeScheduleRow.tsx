@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator"
 import { formatSegmentRange, initials } from "./utils"
 import type { TimeSegment } from "./types"
 
-type HomePageScheduleRowProps = {
+type HomeScheduleRowProps = {
   segment: TimeSegment
   index: number
 }
@@ -15,7 +15,7 @@ function isActiveNow(seg: TimeSegment): boolean {
 }
 
 
-function HomePageScheduleRow({ segment, index }: HomePageScheduleRowProps) {
+function HomeScheduleRow({ segment, index }: HomeScheduleRowProps) {
   const isActive = isActiveNow(segment)
   const { engineer } = segment
 
@@ -57,4 +57,4 @@ function HomePageScheduleRow({ segment, index }: HomePageScheduleRowProps) {
   )
 }
 
-export default HomePageScheduleRow
+export default HomeScheduleRow

@@ -1,8 +1,8 @@
-type HomePageHeroEmptyProps = {
+type HomeHeroEmptyProps = {
     onNavigateEdit: () => void
 }
 
-function HomePageHeroEmpty({ onNavigateEdit }: HomePageHeroEmptyProps) {
+function HomeHeroEmpty({ onNavigateEdit }: HomeHeroEmptyProps) {
     return (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
           No engineers in the rotation yet.{' '}
@@ -13,4 +13,4 @@ function HomePageHeroEmpty({ onNavigateEdit }: HomePageHeroEmptyProps) {
       )
 }
 
-export default HomePageHeroEmpty;
+export default HomeHeroEmpty;

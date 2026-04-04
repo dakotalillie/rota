@@ -1,11 +1,11 @@
 import { Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-type HomePageHeaderProps = {
+type HomeHeaderProps = {
     onNavigateEdit: () => void
 }
 
-function HomePageHeader({ onNavigateEdit }: HomePageHeaderProps) {
+function HomeHeader({ onNavigateEdit }: HomeHeaderProps) {
     return (
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold tracking-tight">Rota</h1>
@@ -17,4 +17,4 @@ function HomePageHeader({ onNavigateEdit }: HomePageHeaderProps) {
     )
 }
 
-export default HomePageHeader
+export default HomeHeader
