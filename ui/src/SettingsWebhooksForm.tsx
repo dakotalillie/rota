@@ -1,31 +1,46 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
-import type { WebhookEntry } from './types'
-import { inputClass } from './utils'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import type { WebhookEntry } from "./types";
+import { inputClass } from "./utils";
 
 type SettingsWebhooksFormProps = {
-  webhooks: WebhookEntry[]
-  setWebhooks: (webhooks: WebhookEntry[]) => void
-}
+  webhooks: WebhookEntry[];
+  setWebhooks: (webhooks: WebhookEntry[]) => void;
+};
 
-function SettingsWebhooksForm({ webhooks, setWebhooks }: SettingsWebhooksFormProps) {
-  const [webhookUrl, setWebhookUrl] = useState('')
-  const [webhookLabel, setWebhookLabel] = useState('')
+function SettingsWebhooksForm({
+  webhooks,
+  setWebhooks,
+}: SettingsWebhooksFormProps) {
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookLabel, setWebhookLabel] = useState("");
 
   const webhookUrlValid = (() => {
-    try { new URL(webhookUrl); return true } catch { return false }
-  })()
+    try {
+      new URL(webhookUrl);
+      return true;
+    } catch {
+      return false;
+    }
+  })();
 
   function addWebhook() {
-    if (!webhookUrlValid) return
-    setWebhooks([...webhooks, { id: crypto.randomUUID(), url: webhookUrl.trim(), label: webhookLabel.trim() }])
-    setWebhookUrl('')
-    setWebhookLabel('')
+    if (!webhookUrlValid) return;
+    setWebhooks([
+      ...webhooks,
+      {
+        id: crypto.randomUUID(),
+        url: webhookUrl.trim(),
+        label: webhookLabel.trim(),
+      },
+    ]);
+    setWebhookUrl("");
+    setWebhookLabel("");
   }
 
   function handleWebhookKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') addWebhook()
+    if (e.key === "Enter") addWebhook();
   }
 
   return (
@@ -34,7 +49,7 @@ function SettingsWebhooksForm({ webhooks, setWebhooks }: SettingsWebhooksFormPro
         type="text"
         placeholder="Label (optional)"
         value={webhookLabel}
-        onChange={e => setWebhookLabel(e.target.value)}
+        onChange={(e) => setWebhookLabel(e.target.value)}
         onKeyDown={handleWebhookKeyDown}
         className={inputClass}
       />
@@ -42,16 +57,21 @@ function SettingsWebhooksForm({ webhooks, setWebhooks }: SettingsWebhooksFormPro
         type="url"
         placeholder="https://example.com/webhook"
         value={webhookUrl}
-        onChange={e => setWebhookUrl(e.target.value)}
+        onChange={(e) => setWebhookUrl(e.target.value)}
         onKeyDown={handleWebhookKeyDown}
         className={inputClass}
       />
-      <Button onClick={addWebhook} disabled={!webhookUrlValid} size="sm" className="gap-1.5">
+      <Button
+        onClick={addWebhook}
+        disabled={!webhookUrlValid}
+        size="sm"
+        className="gap-1.5"
+      >
         <Plus />
         Add webhook
       </Button>
     </div>
-  )
+  );
 }
 
-export default SettingsWebhooksForm
+export default SettingsWebhooksForm;

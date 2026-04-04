@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { WebhookEntry } from './types'
-import SettingsWebhooksList from './SettingsWebhooksList'
-import SettingsWebhooksForm from './SettingsWebhooksForm'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { WebhookEntry } from "./types";
+import SettingsWebhooksList from "./SettingsWebhooksList";
+import SettingsWebhooksForm from "./SettingsWebhooksForm";
 
 type SettingsWebhooksProps = {
-  webhooks: WebhookEntry[]
-  setWebhooks: (webhooks: WebhookEntry[]) => void
-}
+  webhooks: WebhookEntry[];
+  setWebhooks: (webhooks: WebhookEntry[]) => void;
+};
 
 function SettingsWebhooks({ webhooks, setWebhooks }: SettingsWebhooksProps) {
   return (
@@ -19,7 +19,7 @@ function SettingsWebhooks({ webhooks, setWebhooks }: SettingsWebhooksProps) {
         <SettingsWebhooksForm webhooks={webhooks} setWebhooks={setWebhooks} />
       </CardContent>
     </Card>
-  )
+  );
 }
 
-export default SettingsWebhooks
+export default SettingsWebhooks;

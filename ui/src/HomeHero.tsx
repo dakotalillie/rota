@@ -1,7 +1,7 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Clock, Mail } from "lucide-react"
-import { formatSegmentRange, initials } from "./utils"
-import type { TimeSegment } from "./types"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Clock, Mail } from "lucide-react";
+import { formatSegmentRange, initials } from "./utils";
+import type { TimeSegment } from "./types";
 
 function HomePageHero({ segment }: { segment: TimeSegment }) {
   return (
@@ -20,14 +20,19 @@ function HomePageHero({ segment }: { segment: TimeSegment }) {
           </div>
 
           <div className="flex items-center gap-5">
-            <Avatar className="ring-4 ring-white/30 shadow-xl" style={{ height: '4.5rem', width: '4.5rem' }}>
+            <Avatar
+              className="ring-4 ring-white/30 shadow-xl"
+              style={{ height: "4.5rem", width: "4.5rem" }}
+            >
               <AvatarImage src={segment.engineer.avatarUrl} />
               <AvatarFallback className="bg-white/20 text-white font-bold text-xl backdrop-blur-sm">
                 {initials(segment.engineer.name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1.5">
-              <h2 className="text-2xl font-bold text-white">{segment.engineer.name}</h2>
+              <h2 className="text-2xl font-bold text-white">
+                {segment.engineer.name}
+              </h2>
               <div className="flex items-center gap-1.5 text-sm text-white/70">
                 <Mail className="h-3.5 w-3.5" />
                 <span>{segment.engineer.email}</span>
@@ -41,7 +46,7 @@ function HomePageHero({ segment }: { segment: TimeSegment }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default HomePageHero
+export default HomePageHero;
