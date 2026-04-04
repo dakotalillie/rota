@@ -5,8 +5,7 @@ import { Button } from "./Button";
 import type { Engineer, Override } from "./types";
 import {
   computeOverrideReplacements,
-  formatOverrideRange,
-  formatSegmentRange,
+  formatDateTimeRange,
   initials,
 } from "./utils";
 
@@ -45,7 +44,10 @@ function SettingsOverridesList({
             <div className="flex items-center gap-3 px-3 py-2.5">
               <div className="flex-1 min-w-0 flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground shrink-0 tabular-nums">
-                  {formatOverrideRange(override.start, override.end)}
+                  {formatDateTimeRange(
+                    new Date(override.start),
+                    new Date(override.end),
+                  )}
                 </span>
                 <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <Avatar className="h-6 w-6 shrink-0">
@@ -88,7 +90,7 @@ function SettingsOverridesList({
                       {seg.engineer.name}
                     </span>
                     {replacements.length > 1 && (
-                      <span>({formatSegmentRange(seg.start, seg.end)})</span>
+                      <span>({formatDateTimeRange(seg.start, seg.end)})</span>
                     )}
                   </span>
                 ))}

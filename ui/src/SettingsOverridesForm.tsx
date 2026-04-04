@@ -6,7 +6,7 @@ import { Button } from "./Button";
 import type { Engineer, Override } from "./types";
 import {
   computeOverrideReplacements,
-  formatSegmentRange,
+  formatDateTimeRange,
   initials,
   inputClass,
 } from "./utils";
@@ -129,7 +129,7 @@ function SettingsOverridesForm({
                     {seg.engineer.name}
                   </span>
                   <span className="text-muted-foreground text-xs">
-                    {formatSegmentRange(seg.start, seg.end)}
+                    {formatDateTimeRange(seg.start, seg.end)}
                   </span>
                   {isSelf && (
                     <span className="text-xs text-destructive">

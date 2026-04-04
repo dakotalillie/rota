@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Badge } from "./Badge";
 import { Separator } from "./Separator";
 import type { TimeSegment } from "./types";
-import { formatSegmentRange, initials } from "./utils";
+import { formatDateTimeRange, initials } from "./utils";
 
 type HomeScheduleRowProps = {
   segment: TimeSegment;
@@ -33,7 +33,7 @@ function HomeScheduleRow({ segment, index }: HomeScheduleRowProps) {
         <p
           className={`text-sm font-medium whitespace-nowrap ${isActive ? "text-foreground" : "text-muted-foreground"}`}
         >
-          {formatSegmentRange(segment.start, segment.end)}
+          {formatDateTimeRange(segment.start, segment.end)}
         </p>
       </div>
 
