@@ -41,3 +41,10 @@ tasks:
     cmds:
       - npm run lint
     silent: true
+
+  test:ui:
+    desc: Runs the UI tests
+    dir: ui
+    cmds:
+      - npm run test
+    silent: true
