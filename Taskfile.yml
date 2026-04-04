@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 
-version: '3'
+version: "3"
 
 tasks:
   dev:
@@ -21,4 +21,23 @@ tasks:
     dir: ui
     cmds:
       - npm run dev
+    silent: true
+
+  format:check:ui:
+    desc: Checks the formatting of the UI code
+    dir: ui
+    cmds:
+      - npm run format:check
+    silent: true
+
+  hooks:install:
+    desc: Installs git hooks via lefthook
+    cmds:
+      - lefthook install
+
+  lint:ui:
+    desc: Lints the UI code
+    dir: ui
+    cmds:
+      - npm run lint
     silent: true

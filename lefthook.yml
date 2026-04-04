@@ -1,0 +1,9 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint-ui:
+      glob: "ui/**/*.{ts,tsx}"
+      run: task lint:ui
+    format-check-ui:
+      glob: "ui/**/*.{ts,tsx}"
+      run: task format:check:ui
