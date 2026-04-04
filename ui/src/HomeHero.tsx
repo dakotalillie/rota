@@ -1,6 +1,6 @@
 import { Clock, Mail } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import type { TimeSegment } from "./types";
 import { formatSegmentRange, initials } from "./utils";
 

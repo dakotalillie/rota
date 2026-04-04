@@ -1,6 +1,6 @@
-import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
-import { Badge } from "./components/ui/badge";
-import { Separator } from "./components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
+import { Badge } from "./Badge";
+import { Separator } from "./Separator";
 import type { TimeSegment } from "./types";
 import { formatSegmentRange, initials } from "./utils";
 

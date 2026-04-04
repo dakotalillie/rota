@@ -1,7 +1,7 @@
 import { ArrowRight, X } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
-import { Button } from "./components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
+import { Button } from "./Button";
 import type { Engineer, Override } from "./types";
 import {
   computeOverrideReplacements,

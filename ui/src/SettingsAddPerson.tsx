@@ -1,8 +1,8 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "./components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Button } from "./Button";
+import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import type { Engineer } from "./types";
 import { inputClass } from "./utils";
 

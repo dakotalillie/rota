@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import SettingsOverridesForm from "./SettingsOverridesForm";
 import SettingsOverridesList from "./SettingsOverridesList";
 import type { Engineer, Override } from "./types";

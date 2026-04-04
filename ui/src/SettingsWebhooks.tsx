@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import SettingsWebhooksForm from "./SettingsWebhooksForm";
 import SettingsWebhooksList from "./SettingsWebhooksList";
 import type { WebhookEntry } from "./types";

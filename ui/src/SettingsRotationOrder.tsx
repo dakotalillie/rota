@@ -1,9 +1,9 @@
 import { GripVertical, X } from "lucide-react";
 import { useRef } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
-import { Button } from "./components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
+import { Button } from "./Button";
+import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import type { Engineer, Override } from "./types";
 import { initials } from "./utils";
 
