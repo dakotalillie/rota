@@ -1,5 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { X, Webhook } from "lucide-react";
+import { Webhook, X } from "lucide-react";
+
+import { Button } from "./components/ui/button";
 import type { WebhookEntry } from "./types";
 
 type SettingsWebhooksListProps = {

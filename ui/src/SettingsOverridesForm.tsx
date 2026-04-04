@@ -1,7 +1,8 @@
+import { ArrowRight, ChevronDown, Plus } from "lucide-react";
 import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight, ChevronDown } from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
+import { Button } from "./components/ui/button";
 import type { Engineer, Override } from "./types";
 import {
   computeOverrideReplacements,

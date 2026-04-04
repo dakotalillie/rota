@@ -1,7 +1,8 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Clock, Mail } from "lucide-react";
-import { formatSegmentRange, initials } from "./utils";
+
+import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import type { TimeSegment } from "./types";
+import { formatSegmentRange, initials } from "./utils";
 
 function HomePageHero({ segment }: { segment: TimeSegment }) {
   return (

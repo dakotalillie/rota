@@ -1,8 +1,8 @@
-import type { TimeSegment } from "@/types";
 import HomeHeader from "./HomeHeader";
-import HomeHeroEmpty from "./HomeHeroEmpty";
 import HomeHero from "./HomeHero";
+import HomeHeroEmpty from "./HomeHeroEmpty";
 import HomeSchedule from "./HomeSchedule";
+import type { TimeSegment } from "./types";
 
 type HomeProps = {
   timeline: TimeSegment[];

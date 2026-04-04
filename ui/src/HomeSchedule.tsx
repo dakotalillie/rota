@@ -1,7 +1,8 @@
 import { CalendarDays } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { TimeSegment } from "./types";
+
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import HomeScheduleRow from "./HomeScheduleRow";
+import type { TimeSegment } from "./types";
 
 type HomeScheduleProps = {
   timeline: TimeSegment[];

@@ -1,9 +1,10 @@
-import { useRef } from "react";
 import { GripVertical, X } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
-import type { Engineer, Override } from "./types";
+import { useRef } from "react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import { Button } from "./components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import type { Engineer, Override } from "./types";
 import { initials } from "./utils";
 
 type SettingsRotationOrderProps = {

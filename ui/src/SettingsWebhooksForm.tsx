@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "./components/ui/button";
 import type { WebhookEntry } from "./types";
 import { inputClass } from "./utils";
 

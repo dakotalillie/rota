@@ -1,9 +1,9 @@
-import type { Engineer, Override, WebhookEntry } from "./types";
-import SettingsRotationOrder from "./SettingsRotationOrder";
 import SettingsAddPerson from "./SettingsAddPerson";
 import SettingsHeader from "./SettingsHeader";
 import SettingsOverrides from "./SettingsOverrides";
+import SettingsRotationOrder from "./SettingsRotationOrder";
 import SettingsWebhooks from "./SettingsWebhooks";
+import type { Engineer, Override, WebhookEntry } from "./types";
 
 type SettingsProps = {
   engineers: Engineer[];

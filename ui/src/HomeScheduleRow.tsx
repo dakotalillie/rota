@@ -1,8 +1,8 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { formatSegmentRange, initials } from "./utils";
+import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
+import { Badge } from "./components/ui/badge";
+import { Separator } from "./components/ui/separator";
 import type { TimeSegment } from "./types";
+import { formatSegmentRange, initials } from "./utils";
 
 type HomeScheduleRowProps = {
   segment: TimeSegment;

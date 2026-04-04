@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Engineer, Override } from "./types";
-import SettingsOverridesList from "./SettingsOverridesList";
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import SettingsOverridesForm from "./SettingsOverridesForm";
+import SettingsOverridesList from "./SettingsOverridesList";
+import type { Engineer, Override } from "./types";
 
 type SettingsOverridesProps = {
   engineers: Engineer[];
