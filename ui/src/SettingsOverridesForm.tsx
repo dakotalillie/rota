@@ -3,12 +3,12 @@ import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
+import { Input } from "./Input";
 import type { Engineer, Override } from "./types";
 import {
   computeOverrideReplacements,
   formatDateTimeRange,
   initials,
-  inputClass,
 } from "./utils";
 
 // --- Display helpers ---
@@ -70,18 +70,16 @@ function SettingsOverridesForm({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <input
+        <Input
           type="datetime-local"
           value={overrideStart}
           onChange={(e) => setOverrideStart(e.target.value)}
-          className={inputClass}
         />
         <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-        <input
+        <Input
           type="datetime-local"
           value={overrideEnd}
           onChange={(e) => setOverrideEnd(e.target.value)}
-          className={inputClass}
         />
       </div>
       <div className="relative">

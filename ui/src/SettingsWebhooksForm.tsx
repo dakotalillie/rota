@@ -2,8 +2,8 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "./Button";
+import { Input } from "./Input";
 import type { WebhookEntry } from "./types";
-import { inputClass } from "./utils";
 
 type SettingsWebhooksFormProps = {
   webhooks: WebhookEntry[];
@@ -46,21 +46,19 @@ function SettingsWebhooksForm({
 
   return (
     <div className="space-y-2">
-      <input
+      <Input
         type="text"
         placeholder="Label (optional)"
         value={webhookLabel}
         onChange={(e) => setWebhookLabel(e.target.value)}
         onKeyDown={handleWebhookKeyDown}
-        className={inputClass}
       />
-      <input
+      <Input
         type="url"
         placeholder="https://example.com/webhook"
         value={webhookUrl}
         onChange={(e) => setWebhookUrl(e.target.value)}
         onKeyDown={handleWebhookKeyDown}
-        className={inputClass}
       />
       <Button
         onClick={addWebhook}

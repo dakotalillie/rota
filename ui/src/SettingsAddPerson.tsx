@@ -3,8 +3,8 @@ import { useState } from "react";
 
 import { Button } from "./Button";
 import { Card, CardContent, CardHeader, CardTitle } from "./Card";
+import { Input } from "./Input";
 import type { Engineer } from "./types";
-import { inputClass } from "./utils";
 
 type SettingsAddPersonProps = {
   engineers: Engineer[];
@@ -94,21 +94,19 @@ function SettingsAddPerson({
         <CardTitle className="text-base font-semibold">Add person</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        <input
+        <Input
           type="text"
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={handleAddEngineerKeyDown}
-          className={inputClass}
         />
-        <input
+        <Input
           type="email"
           placeholder="Email (optional)"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={handleAddEngineerKeyDown}
-          className={inputClass}
         />
         <Button
           onClick={addEngineer}
