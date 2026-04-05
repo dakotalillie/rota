@@ -42,6 +42,12 @@ tasks:
       - npm run lint
     silent: true
 
+  seed:
+    desc: Seeds the database with development data
+    cmds:
+      - go run internal/cmd/seed/main.go
+    silent: true
+
   test:ui:
     desc: Runs the UI tests
     dir: ui

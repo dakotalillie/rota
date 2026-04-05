@@ -1,0 +1,13 @@
+[
+  {
+    "id": "01960000-0000-0000-0000-000000000001",
+    "name": "Platform On-Call",
+    "cadence": {
+      "weekly": {
+        "day": "Monday",
+        "time": "09:00",
+        "timeZone": "America/Los_Angeles"
+      }
+    }
+  }
+]

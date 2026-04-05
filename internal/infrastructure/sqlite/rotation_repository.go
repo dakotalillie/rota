@@ -12,6 +12,10 @@ type RotationRepository struct {
 	db *sql.DB
 }
 
+func NewRotationRepository(db *sql.DB) *RotationRepository {
+	return &RotationRepository{db: db}
+}
+
 func (r *RotationRepository) GetRotationByID(id string) (*domain.Rotation, error) {
 	row := r.db.QueryRow(`SELECT id, data FROM rotations WHERE id = ?`, id)
 
@@ -40,6 +44,25 @@ func (r *RotationRepository) GetRotationByID(id string) (*domain.Rotation, error
 	}, nil
 }
 
-func NewRotationRepository(db *sql.DB) *RotationRepository {
-	return &RotationRepository{db: db}
+func (r *RotationRepository) UpsertRotation(rot *domain.Rotation) error {
+	rec := rotationData{Name: rot.Name}
+	if rot.Cadence.Weekly != nil {
+		rec.Cadence.Weekly = &rotationCadenceWeekly{
+			Day:      rot.Cadence.Weekly.Day,
+			Time:     rot.Cadence.Weekly.Time,
+			TimeZone: rot.Cadence.Weekly.TimeZone,
+		}
+	}
+
+	blob, err := json.Marshal(rec)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Exec(
+		`INSERT INTO rotations (id, data) VALUES (?, ?)
+		 ON CONFLICT(id) DO UPDATE SET data = excluded.data`,
+		rot.ID, string(blob),
+	)
+	return err
 }
