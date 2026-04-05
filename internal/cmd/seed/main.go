@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -48,9 +49,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error opening database: %v\n", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer db.Close() //nolint:errcheck
 
 	repo := sqlite.NewRotationRepository(db)
+	ctx := context.Background()
 
 	for _, rot := range rotations {
 		if rot.ID == "" {
@@ -70,7 +72,7 @@ func main() {
 			}
 		}
 
-		if err := repo.UpsertRotation(r); err != nil {
+		if err := repo.UpsertRotation(ctx, r); err != nil {
 			fmt.Fprintf(os.Stderr, "error upserting rotation %q: %v\n", rot.ID, err)
 			os.Exit(1)
 		}

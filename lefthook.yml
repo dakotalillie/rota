@@ -1,6 +1,12 @@
 pre-commit:
   parallel: true
   commands:
+    lint-server:
+      glob: "**/*.go"
+      run: task lint:server
+    test-server:
+      glob: "**/*.go"
+      run: task test:server
     format-check-ui:
       glob: "ui/**/*.{ts,tsx}"
       run: task format:check:ui

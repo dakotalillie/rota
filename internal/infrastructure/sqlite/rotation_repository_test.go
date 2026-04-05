@@ -13,7 +13,7 @@ func openTestDB(t *testing.T) *sql.DB {
 	t.Helper()
 	db, err := sqlite.Open(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { db.Close() })
+	t.Cleanup(func() { _ = db.Close() })
 	return db
 }
 
@@ -80,9 +80,9 @@ func TestRotationRepository_GetRotationByID(t *testing.T) {
 			db := openTestDB(t)
 			repo := sqlite.NewRotationRepository(db)
 			if tt.seed != nil {
-				require.NoError(t, repo.UpsertRotation(tt.seed))
+				require.NoError(t, repo.UpsertRotation(t.Context(), tt.seed))
 			}
-			got, err := repo.GetRotationByID(tt.queryID)
+			got, err := repo.GetRotationByID(t.Context(), tt.queryID)
 			require.ErrorIs(t, err, tt.wantErr)
 			require.Equal(t, tt.wantRot, got)
 		})
@@ -161,10 +161,10 @@ func TestRotationRepository_UpsertRotation(t *testing.T) {
 			db := openTestDB(t)
 			repo := sqlite.NewRotationRepository(db)
 			if tt.seed != nil {
-				require.NoError(t, repo.UpsertRotation(tt.seed))
+				require.NoError(t, repo.UpsertRotation(t.Context(), tt.seed))
 			}
-			require.NoError(t, repo.UpsertRotation(tt.upsert))
-			got, err := repo.GetRotationByID(tt.upsert.ID)
+			require.NoError(t, repo.UpsertRotation(t.Context(), tt.upsert))
+			got, err := repo.GetRotationByID(t.Context(), tt.upsert.ID)
 			require.NoError(t, err)
 			require.Equal(t, tt.wantRot, got)
 		})

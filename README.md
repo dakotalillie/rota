@@ -30,6 +30,13 @@ task test:server  # Go tests
 task test:ui      # UI tests
 ```
 
+Run the linters:
+
+```sh
+task lint:server  # Go (golangci-lint)
+task lint:ui      # UI (ESLint)
+```
+
 After intentionally changing an API response, regenerate the snapshot golden files:
 
 ```sh

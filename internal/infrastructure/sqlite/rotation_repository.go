@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -16,8 +17,8 @@ func NewRotationRepository(db *sql.DB) *RotationRepository {
 	return &RotationRepository{db: db}
 }
 
-func (r *RotationRepository) GetRotationByID(id string) (*domain.Rotation, error) {
-	row := r.db.QueryRow(`SELECT id, data FROM rotations WHERE id = ?`, id)
+func (r *RotationRepository) GetRotationByID(ctx context.Context, id string) (*domain.Rotation, error) {
+	row := r.db.QueryRowContext(ctx, `SELECT id, data FROM rotations WHERE id = ?`, id)
 
 	var rotID, rawData string
 	if err := row.Scan(&rotID, &rawData); errors.Is(err, sql.ErrNoRows) {
@@ -42,7 +43,7 @@ func (r *RotationRepository) GetRotationByID(id string) (*domain.Rotation, error
 	return rot, nil
 }
 
-func (r *RotationRepository) UpsertRotation(rot *domain.Rotation) error {
+func (r *RotationRepository) UpsertRotation(ctx context.Context, rot *domain.Rotation) error {
 	rec := rotationData{Name: rot.Name}
 	if rot.Cadence.Weekly != nil {
 		rec.Cadence.Weekly = &rotationCadenceWeekly{
@@ -57,7 +58,8 @@ func (r *RotationRepository) UpsertRotation(rot *domain.Rotation) error {
 		return err
 	}
 
-	_, err = r.db.Exec(
+	_, err = r.db.ExecContext(
+		ctx,
 		`INSERT INTO rotations (id, data) VALUES (?, ?)
 		 ON CONFLICT(id) DO UPDATE SET data = excluded.data`,
 		rot.ID, string(blob),

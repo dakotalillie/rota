@@ -1,6 +1,7 @@
 package httpapi_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,12 +18,12 @@ func TestGetRotationHandler(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		getter         httpapi.RotationGetter
+		getter         httpapi.GetRotation
 		wantStatusCode int
 	}{
 		{
 			name: "success",
-			getter: func(id string) (*domain.Rotation, error) {
+			getter: func(_ context.Context, id string) (*domain.Rotation, error) {
 				return &domain.Rotation{
 					ID:   rotationID,
 					Name: "Platform On-Call",
@@ -39,7 +40,7 @@ func TestGetRotationHandler(t *testing.T) {
 		},
 		{
 			name: "not found",
-			getter: func(id string) (*domain.Rotation, error) {
+			getter: func(_ context.Context, id string) (*domain.Rotation, error) {
 				return nil, domain.ErrRotationNotFound
 			},
 			wantStatusCode: http.StatusNotFound,
@@ -50,7 +51,7 @@ func TestGetRotationHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			handler := httpapi.NewGetRotationHandler(hostname, tt.getter)
 
-			r := httptest.NewRequest(http.MethodGet, "/api/rotations/"+rotationID, nil)
+			r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/rotations/"+rotationID, nil)
 			r.SetPathValue("rotationID", rotationID)
 			w := httptest.NewRecorder()
 

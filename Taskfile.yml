@@ -35,6 +35,12 @@ tasks:
     cmds:
       - lefthook install
 
+  lint:server:
+    desc: Lints the Go code
+    cmds:
+      - golangci-lint run ./...
+    silent: true
+
   lint:ui:
     desc: Lints the UI code
     dir: ui

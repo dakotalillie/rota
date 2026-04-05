@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -18,17 +19,17 @@ type GetRotationResponseLinks struct {
 	Self string `json:"self"`
 }
 
-type RotationGetter = func(id string) (*domain.Rotation, error)
+type GetRotation = func(ctx context.Context, id string) (*domain.Rotation, error)
 
 type GetRotationHandler struct {
 	hostname    string
-	getRotation RotationGetter
+	getRotation GetRotation
 }
 
 func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	rotationID := r.PathValue("rotationID")
 
-	rotation, err := h.getRotation(rotationID)
+	rotation, err := h.getRotation(r.Context(), rotationID)
 	if errors.Is(err, domain.ErrRotationNotFound) {
 		response := GetRotationResponse{
 			Links: GetRotationResponseLinks{
@@ -43,7 +44,7 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -66,9 +67,9 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	}
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
-func NewGetRotationHandler(hostname string, getRotation RotationGetter) *GetRotationHandler {
+func NewGetRotationHandler(hostname string, getRotation GetRotation) *GetRotationHandler {
 	return &GetRotationHandler{hostname: hostname, getRotation: getRotation}
 }

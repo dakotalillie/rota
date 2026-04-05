@@ -27,7 +27,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error opening database: %v\n", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer db.Close() //nolint:errcheck
 
 	var (
 		rotationRepo       = sqlite.NewRotationRepository(db)

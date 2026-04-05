@@ -10,6 +10,7 @@ This project uses [Task](https://taskfile.dev/) as the task runner.
 - `task test:server` — run Go tests
 - `task test:server:update-snapshots` — regenerate snapshot golden files (run after intentional response changes)
 - `task test:ui` — run UI unit tests with Vitest
+- `task lint:server` — lint Go with golangci-lint
 - `task lint:ui` — lint UI with ESLint
 - `task format:check:ui` — check formatting with Prettier
 - `task seed` — seed the database with development data
