@@ -2,15 +2,17 @@ package application
 
 import (
 	"context"
+	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
 )
 
 type CreateMemberInput struct {
 	RotationID string
-	UserID     string // non-empty = existing user; mutually exclusive with UserName/UserEmail
-	UserName   string // non-empty = new user
-	UserEmail  string // non-empty = new user
+	UserID     string    // non-empty = existing user; mutually exclusive with UserName/UserEmail
+	UserName   string    // non-empty = new user
+	UserEmail  string    // non-empty = new user
+	Now        time.Time // used to set became_current_at when adding the first member
 }
 
 type CreateMemberUseCase struct {
@@ -68,7 +70,16 @@ func (uc *CreateMemberUseCase) Execute(ctx context.Context, input CreateMemberIn
 			return err
 		}
 		member.User = *user
+
+		if count == 0 {
+			if err = uc.memberRepo.SetCurrentMember(ctx, member.ID, input.Now); err != nil {
+				return err
+			}
+		}
 		return nil
 	})
-	return member, err
+	if err != nil {
+		return nil, err
+	}
+	return member, nil
 }

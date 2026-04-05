@@ -1,8 +1,12 @@
 package domain
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type MemberRepository interface {
 	CountByRotationID(ctx context.Context, rotationID string) (int, error)
 	Create(ctx context.Context, rotationID, userID string, order int) (*Member, error)
+	SetCurrentMember(ctx context.Context, memberID string, at time.Time) error
 }

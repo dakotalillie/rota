@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/dakotalillie/rota/internal/application"
 	"github.com/dakotalillie/rota/internal/domain"
@@ -82,7 +83,7 @@ func (h *CreateMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := application.CreateMemberInput{RotationID: rotationID}
+	input := application.CreateMemberInput{RotationID: rotationID, Now: time.Now()}
 	if req.Data.Relationships.User != nil {
 		input.UserID = req.Data.Relationships.User.Data.ID
 	} else {

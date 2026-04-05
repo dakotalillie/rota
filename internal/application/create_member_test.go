@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/dakotalillie/rota/internal/application"
 	"github.com/dakotalillie/rota/internal/domain"
@@ -48,6 +49,11 @@ type fakeMemberRepo struct {
 	countErr     error
 	createMember *domain.Member
 	createErr    error
+	setCurrErr   error
+	setCurrCalls []struct {
+		memberID string
+		at       time.Time
+	}
 }
 
 func (f *fakeMemberRepo) CountByRotationID(_ context.Context, _ string) (int, error) {
@@ -58,6 +64,14 @@ func (f *fakeMemberRepo) Create(_ context.Context, _, _ string, _ int) (*domain.
 	return f.createMember, f.createErr
 }
 
+func (f *fakeMemberRepo) SetCurrentMember(_ context.Context, memberID string, at time.Time) error {
+	f.setCurrCalls = append(f.setCurrCalls, struct {
+		memberID string
+		at       time.Time
+	}{memberID, at})
+	return f.setCurrErr
+}
+
 // tests
 
 func TestCreateMemberUseCase_Execute(t *testing.T) {
@@ -65,21 +79,24 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 	existingUser := &domain.User{ID: "usr_01JQGF0000000000000000000", Name: "Alice", Email: "alice@example.com"}
 	newUser := &domain.User{ID: "usr_01JQGF0000000000000000001", Name: "Bob", Email: "bob@example.com"}
 	createdMember := &domain.Member{ID: "mem_01JQGF0000000000000000000", RotationID: existingRotation.ID, Order: 1}
+	fixedNow := time.Date(2026, 4, 5, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
-		name         string
-		input        application.CreateMemberInput
-		rotationRepo fakeRotationRepo
-		userRepo     fakeUserRepo
-		memberRepo   fakeMemberRepo
-		wantMember   *domain.Member
-		wantErr      error
+		name              string
+		input             application.CreateMemberInput
+		rotationRepo      fakeRotationRepo
+		userRepo          fakeUserRepo
+		memberRepo        fakeMemberRepo
+		wantMember        *domain.Member
+		wantErr           error
+		wantSetCurrCalled bool
 	}{
 		{
-			name: "success - existing user",
+			name: "success - first member becomes current",
 			input: application.CreateMemberInput{
 				RotationID: existingRotation.ID,
 				UserID:     existingUser.ID,
+				Now:        fixedNow,
 			},
 			rotationRepo: fakeRotationRepo{rotation: existingRotation},
 			userRepo:     fakeUserRepo{getByIDUser: existingUser},
@@ -93,6 +110,28 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 				Order:      createdMember.Order,
 				User:       *existingUser,
 			},
+			wantSetCurrCalled: true,
+		},
+		{
+			name: "success - subsequent member does not become current",
+			input: application.CreateMemberInput{
+				RotationID: existingRotation.ID,
+				UserID:     existingUser.ID,
+				Now:        fixedNow,
+			},
+			rotationRepo: fakeRotationRepo{rotation: existingRotation},
+			userRepo:     fakeUserRepo{getByIDUser: existingUser},
+			memberRepo: fakeMemberRepo{
+				count:        1,
+				createMember: createdMember,
+			},
+			wantMember: &domain.Member{
+				ID:         createdMember.ID,
+				RotationID: createdMember.RotationID,
+				Order:      createdMember.Order,
+				User:       *existingUser,
+			},
+			wantSetCurrCalled: false,
 		},
 		{
 			name: "success - new user",
@@ -100,6 +139,7 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 				RotationID: existingRotation.ID,
 				UserName:   "Bob",
 				UserEmail:  "bob@example.com",
+				Now:        fixedNow,
 			},
 			rotationRepo: fakeRotationRepo{rotation: existingRotation},
 			userRepo:     fakeUserRepo{createUser: newUser},
@@ -113,6 +153,23 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 				Order:      createdMember.Order,
 				User:       *newUser,
 			},
+			wantSetCurrCalled: true,
+		},
+		{
+			name: "set current member error propagates",
+			input: application.CreateMemberInput{
+				RotationID: existingRotation.ID,
+				UserID:     existingUser.ID,
+				Now:        fixedNow,
+			},
+			rotationRepo: fakeRotationRepo{rotation: existingRotation},
+			userRepo:     fakeUserRepo{getByIDUser: existingUser},
+			memberRepo: fakeMemberRepo{
+				count:        0,
+				createMember: createdMember,
+				setCurrErr:   errors.New("db error"),
+			},
+			wantErr: errors.New("db error"),
 		},
 		{
 			name: "missing user fields - no user id, name, or email",
@@ -213,6 +270,13 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, tc.wantMember, got)
+			if tc.wantSetCurrCalled {
+				require.Len(t, tc.memberRepo.setCurrCalls, 1)
+				assert.Equal(t, createdMember.ID, tc.memberRepo.setCurrCalls[0].memberID)
+				assert.Equal(t, tc.input.Now, tc.memberRepo.setCurrCalls[0].at)
+			} else {
+				assert.Empty(t, tc.memberRepo.setCurrCalls)
+			}
 		})
 	}
 }

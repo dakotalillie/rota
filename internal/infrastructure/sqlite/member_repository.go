@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
 )
@@ -54,4 +55,13 @@ func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string
 		User:       domain.User{ID: userID},
 		Order:      order,
 	}, nil
+}
+
+func (r *MemberRepository) SetCurrentMember(ctx context.Context, memberID string, at time.Time) error {
+	db := dbFromContext(ctx, r.db)
+	_, err := db.ExecContext(ctx,
+		`UPDATE members SET is_current = 1, became_current_at = ? WHERE id = ?`,
+		at.UTC().Format(time.RFC3339), memberID,
+	)
+	return err
 }
