@@ -7,13 +7,13 @@ This project uses [Task](https://taskfile.dev/) as the task runner.
 - `task dev` — start both API (`:8080`) and UI (`:5173`) dev servers in parallel
 - `task dev:server` — run Go API server only
 - `task dev:ui` — run Vite UI dev server only
+- `task test:server` — run Go tests
+- `task test:server:update-snapshots` — regenerate snapshot golden files (run after intentional response changes)
 - `task test:ui` — run UI unit tests with Vitest
 - `task lint:ui` — lint UI with ESLint
 - `task format:check:ui` — check formatting with Prettier
 - `task seed` — seed the database with development data
 - `task hooks:install` — install Lefthook pre-commit hooks (one-time setup)
-
-There are no Go test or lint tasks defined yet. Run Go tests directly with `go test ./...`.
 
 ## Architecture
 

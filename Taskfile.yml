@@ -48,6 +48,18 @@ tasks:
       - go run internal/cmd/seed/main.go
     silent: true
 
+  test:server:
+    desc: Runs the Go tests
+    cmds:
+      - go test ./...
+    silent: true
+
+  test:server:update-snapshots:
+    desc: Regenerates snapshot golden files for Go tests
+    cmds:
+      - UPDATE_SNAPSHOTS=true go test ./...
+    silent: true
+
   test:ui:
     desc: Runs the UI tests
     dir: ui

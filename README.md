@@ -23,5 +23,18 @@ Run both UI and API dev servers:
 task dev
 ```
 
+Run the tests:
+
+```sh
+task test:server  # Go tests
+task test:ui      # UI tests
+```
+
+After intentionally changing an API response, regenerate the snapshot golden files:
+
+```sh
+task test:server:update-snapshots
+```
+
 Open the UI at http://localhost:5173. Any requests to /api are proxied to the
 API server.
