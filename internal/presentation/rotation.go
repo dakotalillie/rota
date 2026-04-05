@@ -16,7 +16,7 @@ type RotationCadence struct {
 }
 
 type RotationCadenceWeekly struct {
-	RotationDay      string `json:"rotationDay"`
-	RotationTime     string `json:"rotationTime"`
-	RotationTimeZone string `json:"rotationTimeZone"`
+	Day      string `json:"day"`
+	Time     string `json:"time"`
+	TimeZone string `json:"timeZone"`
 }

@@ -11,7 +11,7 @@ type RotationCadence struct {
 }
 
 type RotationCadenceWeekly struct {
-	RotationDay      string
-	RotationTime     string
-	RotationTimeZone string
+	Day      string
+	Time     string
+	TimeZone string
 }

@@ -58,9 +58,9 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 				Name: rotation.Name,
 				Cadence: RotationCadence{
 					Weekly: &RotationCadenceWeekly{
-						RotationDay:      rotation.Cadence.Weekly.RotationDay,
-						RotationTime:     rotation.Cadence.Weekly.RotationTime,
-						RotationTimeZone: rotation.Cadence.Weekly.RotationTimeZone,
+						Day:      rotation.Cadence.Weekly.Day,
+						Time:     rotation.Cadence.Weekly.Time,
+						TimeZone: rotation.Cadence.Weekly.TimeZone,
 					},
 				},
 			},

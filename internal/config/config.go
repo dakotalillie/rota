@@ -1,11 +1,13 @@
 package config
 
 type Config struct {
-	Hostname string
+	Hostname     string
+	DatabasePath string
 }
 
 func Load() (*Config, error) {
 	return &Config{
-		Hostname: "http://localhost:5173",
+		Hostname:     "http://localhost:5173",
+		DatabasePath: "rota.db",
 	}, nil
 }
