@@ -19,6 +19,10 @@ There are no Go test or lint tasks defined yet. Run Go tests directly with `go t
 
 Rota is an on-call rotation management app with a Go backend and a React/TypeScript frontend. The Vite dev server proxies `/api` requests to `http://localhost:8080`.
 
+### IDs
+
+Entity IDs use prefixed ULIDs: a short type prefix followed by an underscore and a 26-character ULID (e.g. `rot_01JQGF0000000000000000000` for a rotation).
+
 ### Backend (`internal/`)
 
 Follows Domain Driven Design/clean architecture with four layers:
