@@ -31,17 +31,15 @@ func (r *RotationRepository) GetRotationByID(id string) (*domain.Rotation, error
 		return nil, err
 	}
 
-	return &domain.Rotation{
-		ID:   rotID,
-		Name: rec.Name,
-		Cadence: domain.RotationCadence{
-			Weekly: &domain.RotationCadenceWeekly{
-				Day:      rec.Cadence.Weekly.Day,
-				Time:     rec.Cadence.Weekly.Time,
-				TimeZone: rec.Cadence.Weekly.TimeZone,
-			},
-		},
-	}, nil
+	rot := &domain.Rotation{ID: rotID, Name: rec.Name}
+	if rec.Cadence.Weekly != nil {
+		rot.Cadence.Weekly = &domain.RotationCadenceWeekly{
+			Day:      rec.Cadence.Weekly.Day,
+			Time:     rec.Cadence.Weekly.Time,
+			TimeZone: rec.Cadence.Weekly.TimeZone,
+		}
+	}
+	return rot, nil
 }
 
 func (r *RotationRepository) UpsertRotation(rot *domain.Rotation) error {
