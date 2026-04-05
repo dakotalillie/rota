@@ -17,8 +17,8 @@ func NewRotationRepository(db *sql.DB) *RotationRepository {
 	return &RotationRepository{db: db}
 }
 
-func (r *RotationRepository) GetRotationByID(ctx context.Context, id string) (*domain.Rotation, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, data FROM rotations WHERE id = ?`, id)
+func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Rotation, error) {
+	row := dbFromContext(ctx, r.db).QueryRowContext(ctx, `SELECT id, data FROM rotations WHERE id = ?`, id)
 
 	var rotID, rawData string
 	if err := row.Scan(&rotID, &rawData); errors.Is(err, sql.ErrNoRows) {
@@ -58,7 +58,7 @@ func (r *RotationRepository) UpsertRotation(ctx context.Context, rot *domain.Rot
 		return err
 	}
 
-	_, err = r.db.ExecContext(
+	_, err = dbFromContext(ctx, r.db).ExecContext(
 		ctx,
 		`INSERT INTO rotations (id, data) VALUES (?, ?)
 		 ON CONFLICT(id) DO UPDATE SET data = excluded.data`,

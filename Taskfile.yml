@@ -23,6 +23,12 @@ tasks:
       - npm run dev
     silent: true
 
+  format:server:
+    desc: Formats Go code with goimports
+    cmds:
+      - go tool goimports -w .
+    silent: true
+
   format:check:ui:
     desc: Checks the formatting of the UI code
     dir: ui

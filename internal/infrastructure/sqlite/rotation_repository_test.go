@@ -82,7 +82,7 @@ func TestRotationRepository_GetRotationByID(t *testing.T) {
 			if tt.seed != nil {
 				require.NoError(t, repo.UpsertRotation(t.Context(), tt.seed))
 			}
-			got, err := repo.GetRotationByID(t.Context(), tt.queryID)
+			got, err := repo.GetByID(t.Context(), tt.queryID)
 			require.ErrorIs(t, err, tt.wantErr)
 			require.Equal(t, tt.wantRot, got)
 		})
@@ -164,7 +164,7 @@ func TestRotationRepository_UpsertRotation(t *testing.T) {
 				require.NoError(t, repo.UpsertRotation(t.Context(), tt.seed))
 			}
 			require.NoError(t, repo.UpsertRotation(t.Context(), tt.upsert))
-			got, err := repo.GetRotationByID(t.Context(), tt.upsert.ID)
+			got, err := repo.GetByID(t.Context(), tt.upsert.ID)
 			require.NoError(t, err)
 			require.Equal(t, tt.wantRot, got)
 		})

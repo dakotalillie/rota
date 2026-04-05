@@ -15,5 +15,5 @@ func NewGetRotationUseCase(repo domain.RotationRepository) *GetRotationUseCase {
 }
 
 func (uc *GetRotationUseCase) Execute(ctx context.Context, id string) (*domain.Rotation, error) {
-	return uc.repo.GetRotationByID(ctx, id)
+	return uc.repo.GetByID(ctx, id)
 }

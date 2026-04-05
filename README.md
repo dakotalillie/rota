@@ -30,6 +30,12 @@ task test:server  # Go tests
 task test:ui      # UI tests
 ```
 
+Format Go code:
+
+```sh
+task format:server
+```
+
 Run the linters:
 
 ```sh

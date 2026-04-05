@@ -12,6 +12,7 @@ This project uses [Task](https://taskfile.dev/) as the task runner.
 - `task test:ui` — run UI unit tests with Vitest
 - `task lint:server` — lint Go with golangci-lint
 - `task lint:ui` — lint UI with ESLint
+- `task format:server` — format Go code with goimports
 - `task format:check:ui` — check formatting with Prettier
 - `task seed` — seed the database with development data
 - `task hooks:install` — install Lefthook pre-commit hooks (one-time setup)

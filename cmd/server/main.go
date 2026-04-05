@@ -30,13 +30,19 @@ func main() {
 	defer db.Close() //nolint:errcheck
 
 	var (
-		rotationRepo       = sqlite.NewRotationRepository(db)
-		getRotationUseCase = application.NewGetRotationUseCase(rotationRepo)
-		getRotationHandler = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
+		transactor          = sqlite.NewTransactor(db)
+		rotationRepo        = sqlite.NewRotationRepository(db)
+		userRepo            = sqlite.NewUserRepository(db)
+		memberRepo          = sqlite.NewMemberRepository(db)
+		getRotationUseCase  = application.NewGetRotationUseCase(rotationRepo)
+		createMemberUseCase = application.NewCreateMemberUseCase(transactor, rotationRepo, userRepo, memberRepo)
+		getRotationHandler  = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
+		createMemberHandler = httpapi.NewCreateMemberHandler(conf.Hostname, createMemberUseCase.Execute)
 	)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/rotations/{rotationID}", getRotationHandler.Handle)
+	mux.HandleFunc("POST /api/rotations/{rotationID}/members", createMemberHandler.Handle)
 
 	server := &http.Server{Addr: ":8080", Handler: mux}
 
