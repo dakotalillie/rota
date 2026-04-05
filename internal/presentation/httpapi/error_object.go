@@ -1,4 +1,4 @@
-package presentation
+package httpapi
 
 type ErrorObject struct {
 	Status string `json:"status"`

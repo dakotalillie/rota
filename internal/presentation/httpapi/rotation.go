@@ -1,4 +1,4 @@
-package presentation
+package httpapi
 
 type Rotation struct {
 	Type       string             `json:"type"`

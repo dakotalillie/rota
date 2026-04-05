@@ -12,7 +12,7 @@ import (
 	"github.com/dakotalillie/rota/internal/application"
 	"github.com/dakotalillie/rota/internal/config"
 	"github.com/dakotalillie/rota/internal/infrastructure/sqlite"
-	"github.com/dakotalillie/rota/internal/presentation"
+	"github.com/dakotalillie/rota/internal/presentation/httpapi"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 	var (
 		rotationRepo       = sqlite.NewRotationRepository(db)
 		getRotationUseCase = application.NewGetRotationUseCase(rotationRepo)
-		getRotationHandler = presentation.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
+		getRotationHandler = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
 	)
 
 	mux := http.NewServeMux()

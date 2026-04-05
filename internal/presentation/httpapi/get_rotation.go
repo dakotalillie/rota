@@ -1,4 +1,4 @@
-package presentation
+package httpapi
 
 import (
 	"encoding/json"
