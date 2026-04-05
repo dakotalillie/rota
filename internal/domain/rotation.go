@@ -1,9 +1,10 @@
 package domain
 
 type Rotation struct {
-	ID      string
-	Name    string
-	Cadence RotationCadence
+	ID            string
+	Name          string
+	Cadence       RotationCadence
+	CurrentMember *Member
 }
 
 type RotationCadence struct {

@@ -170,3 +170,32 @@ func TestRotationRepository_UpsertRotation(t *testing.T) {
 		})
 	}
 }
+
+func TestRotationRepository_GetRotationByID_WithCurrentMember(t *testing.T) {
+	db := openTestDB(t)
+	rotRepo := sqlite.NewRotationRepository(db)
+	userRepo := sqlite.NewUserRepository(db)
+	memberRepo := sqlite.NewMemberRepository(db)
+
+	require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+	user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
+	require.NoError(t, err)
+	member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+	require.NoError(t, err)
+
+	_, err = db.ExecContext(t.Context(),
+		`UPDATE members SET is_current = 1, became_current_at = '2026-04-01T09:00:00Z' WHERE id = ?`,
+		member.ID,
+	)
+	require.NoError(t, err)
+
+	got, err := rotRepo.GetByID(t.Context(), rotationA.ID)
+	require.NoError(t, err)
+	require.NotNil(t, got.CurrentMember)
+	require.Equal(t, member.ID, got.CurrentMember.ID)
+	require.Equal(t, rotationA.ID, got.CurrentMember.RotationID)
+	require.Equal(t, 1, got.CurrentMember.Order)
+	require.Equal(t, user.ID, got.CurrentMember.User.ID)
+	require.Equal(t, "Alice Smith", got.CurrentMember.User.Name)
+	require.Equal(t, "alice@example.com", got.CurrentMember.User.Email)
+}

@@ -39,6 +39,33 @@ func TestGetRotationHandler(t *testing.T) {
 			wantStatusCode: http.StatusOK,
 		},
 		{
+			name: "success - with current member",
+			getter: func(_ context.Context, id string) (*domain.Rotation, error) {
+				return &domain.Rotation{
+					ID:   rotationID,
+					Name: "Platform On-Call",
+					Cadence: domain.RotationCadence{
+						Weekly: &domain.RotationCadenceWeekly{
+							Day:      "Monday",
+							Time:     "09:00",
+							TimeZone: "America/New_York",
+						},
+					},
+					CurrentMember: &domain.Member{
+						ID:         "mem_01JQGF0000000000000000000",
+						RotationID: rotationID,
+						Order:      1,
+						User: domain.User{
+							ID:    "usr_01JQGF0000000000000000000",
+							Name:  "Alice Smith",
+							Email: "alice@example.com",
+						},
+					},
+				}, nil
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
 			name: "not found",
 			getter: func(_ context.Context, id string) (*domain.Rotation, error) {
 				return nil, domain.ErrRotationNotFound

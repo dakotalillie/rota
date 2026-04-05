@@ -1,9 +1,23 @@
 package httpapi
 
 type Rotation struct {
-	Type       string             `json:"type"`
-	ID         string             `json:"id"`
-	Attributes RotationAttributes `json:"attributes"`
+	Type          string                `json:"type"`
+	ID            string                `json:"id"`
+	Attributes    RotationAttributes    `json:"attributes"`
+	Relationships RotationRelationships `json:"relationships"`
+}
+
+type RotationRelationships struct {
+	CurrentMember CurrentMemberRelationship `json:"currentMember"`
+}
+
+type CurrentMemberRelationship struct {
+	Data *RelationshipData `json:"data"`
+}
+
+type RelationshipData struct {
+	Type string `json:"type"`
+	ID   string `json:"id"`
 }
 
 type RotationAttributes struct {

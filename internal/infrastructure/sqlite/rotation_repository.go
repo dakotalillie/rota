@@ -18,17 +18,27 @@ func NewRotationRepository(db *sql.DB) *RotationRepository {
 }
 
 func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Rotation, error) {
-	row := dbFromContext(ctx, r.db).QueryRowContext(ctx, `SELECT id, data FROM rotations WHERE id = ?`, id)
+	row := dbFromContext(ctx, r.db).QueryRowContext(ctx, `
+		SELECT r.id, r.data, m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		FROM rotations r
+		LEFT JOIN members m ON m.rotation_id = r.id AND m.is_current = 1
+		LEFT JOIN users u ON u.id = m.user_id
+		WHERE r.id = ?
+	`, id)
 
-	var rotID, rawData string
-	if err := row.Scan(&rotID, &rawData); errors.Is(err, sql.ErrNoRows) {
+	var (
+		rotID, rawRotData          string
+		memID, memRotID, rawMem    sql.NullString
+		userID, userEmail, rawUser sql.NullString
+	)
+	if err := row.Scan(&rotID, &rawRotData, &memID, &memRotID, &rawMem, &userID, &userEmail, &rawUser); errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrRotationNotFound
 	} else if err != nil {
 		return nil, err
 	}
 
 	var rec rotationData
-	if err := json.Unmarshal([]byte(rawData), &rec); err != nil {
+	if err := json.Unmarshal([]byte(rawRotData), &rec); err != nil {
 		return nil, err
 	}
 
@@ -40,6 +50,28 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 			TimeZone: rec.Cadence.Weekly.TimeZone,
 		}
 	}
+
+	if memID.Valid {
+		var mRec memberData
+		if err := json.Unmarshal([]byte(rawMem.String), &mRec); err != nil {
+			return nil, err
+		}
+		var uRec userData
+		if err := json.Unmarshal([]byte(rawUser.String), &uRec); err != nil {
+			return nil, err
+		}
+		rot.CurrentMember = &domain.Member{
+			ID:         memID.String,
+			RotationID: memRotID.String,
+			Order:      mRec.Order,
+			User: domain.User{
+				ID:    userID.String,
+				Email: userEmail.String,
+				Name:  uRec.Name,
+			},
+		}
+	}
+
 	return rot, nil
 }
 

@@ -10,9 +10,10 @@ import (
 )
 
 type GetRotationResponse struct {
-	Links  GetRotationResponseLinks `json:"links"`
-	Data   *Rotation                `json:"data,omitempty"`
-	Errors []ErrorObject            `json:"errors,omitempty"`
+	Links    GetRotationResponseLinks `json:"links"`
+	Data     *Rotation                `json:"data,omitempty"`
+	Included []any                    `json:"included,omitempty"`
+	Errors   []ErrorObject            `json:"errors,omitempty"`
 }
 
 type GetRotationResponseLinks struct {
@@ -67,6 +68,35 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	}
+
+	if rotation.CurrentMember != nil {
+		cm := rotation.CurrentMember
+		response.Data.Relationships.CurrentMember.Data = &RelationshipData{
+			Type: "members",
+			ID:   cm.ID,
+		}
+		response.Included = []any{
+			Member{
+				Type:       "members",
+				ID:         cm.ID,
+				Attributes: MemberAttributes{Order: cm.Order},
+				Relationships: MemberRelationships{
+					User: MemberUserRelationship{
+						Data: MemberUserRelationshipData{Type: "users", ID: cm.User.ID},
+					},
+				},
+			},
+			IncludedUser{
+				Type: "users",
+				ID:   cm.User.ID,
+				Attributes: IncludedUserAttributes{
+					Name:  cm.User.Name,
+					Email: cm.User.Email,
+				},
+			},
+		}
+	}
+
 	_ = json.NewEncoder(w).Encode(response)
 }
 
