@@ -8,11 +8,12 @@ import (
 )
 
 type GetScheduleUseCase struct {
-	repo domain.RotationRepository
+	repo         domain.RotationRepository
+	overrideRepo domain.OverrideRepository
 }
 
-func NewGetScheduleUseCase(repo domain.RotationRepository) *GetScheduleUseCase {
-	return &GetScheduleUseCase{repo: repo}
+func NewGetScheduleUseCase(repo domain.RotationRepository, overrideRepo domain.OverrideRepository) *GetScheduleUseCase {
+	return &GetScheduleUseCase{repo: repo, overrideRepo: overrideRepo}
 }
 
 func (uc *GetScheduleUseCase) Execute(ctx context.Context, rotationID string, now time.Time, numWeeks int) ([]domain.ScheduleBlock, error) {
@@ -20,5 +21,12 @@ func (uc *GetScheduleUseCase) Execute(ctx context.Context, rotationID string, no
 	if err != nil {
 		return nil, err
 	}
+
+	overrides, err := uc.overrideRepo.ListByRotationID(ctx, rotationID, now)
+	if err != nil {
+		return nil, err
+	}
+	rotation.Overrides = overrides
+
 	return rotation.Schedule(now, numWeeks)
 }

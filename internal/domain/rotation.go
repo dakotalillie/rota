@@ -29,9 +29,10 @@ type RotationCadenceWeekly struct {
 }
 
 type ScheduleBlock struct {
-	Start  time.Time
-	End    time.Time
-	Member *Member
+	Start      time.Time
+	End        time.Time
+	Member     *Member
+	IsOverride bool
 }
 
 func (r *Rotation) Schedule(now time.Time, numWeeks int) ([]ScheduleBlock, error) {
@@ -91,7 +92,7 @@ func (r *Rotation) Schedule(now time.Time, numWeeks int) ([]ScheduleBlock, error
 		}
 	}
 
-	return blocks, nil
+	return applyOverrides(blocks, r.Overrides), nil
 }
 
 func (r *Rotation) NeedsAdvance(now time.Time) (bool, time.Time, error) {
@@ -227,4 +228,64 @@ func (r *Rotation) ValidateOverride(memberID string, start, end time.Time) error
 	}
 
 	return nil
+}
+
+func applyOverrides(blocks []ScheduleBlock, overrides []Override) []ScheduleBlock {
+	if len(overrides) == 0 {
+		return blocks
+	}
+
+	sort.Slice(overrides, func(i, j int) bool {
+		return overrides[i].Start.Before(overrides[j].Start)
+	})
+
+	var result []ScheduleBlock
+	for _, block := range blocks {
+		cur := block.Start
+		for _, o := range overrides {
+			if !o.End.After(cur) || !o.Start.Before(block.End) {
+				continue
+			}
+
+			overStart := o.Start
+			if cur.After(overStart) {
+				overStart = cur
+			}
+
+			if cur.Before(overStart) {
+				result = append(result, ScheduleBlock{
+					Start:  cur,
+					End:    overStart,
+					Member: block.Member,
+				})
+			}
+
+			overEnd := o.End
+			if block.End.Before(overEnd) {
+				overEnd = block.End
+			}
+
+			m := o.Member
+			result = append(result, ScheduleBlock{
+				Start:      overStart,
+				End:        overEnd,
+				Member:     &m,
+				IsOverride: true,
+			})
+
+			cur = overEnd
+			if !cur.Before(block.End) {
+				break
+			}
+		}
+
+		if cur.Before(block.End) {
+			result = append(result, ScheduleBlock{
+				Start:  cur,
+				End:    block.End,
+				Member: block.Member,
+			})
+		}
+	}
+	return result
 }

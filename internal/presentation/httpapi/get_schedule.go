@@ -81,8 +81,9 @@ func (h *GetScheduleHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			Type: "scheduleBlocks",
 			ID:   b.Start.Format(time.RFC3339),
 			Attributes: ScheduleBlockAttributes{
-				Start: b.Start.Format(time.RFC3339),
-				End:   b.End.Format(time.RFC3339),
+				Start:      b.Start.Format(time.RFC3339),
+				End:        b.End.Format(time.RFC3339),
+				IsOverride: b.IsOverride,
 			},
 			Relationships: ScheduleBlockRelationships{
 				Member: ScheduleBlockMemberRelationship{
