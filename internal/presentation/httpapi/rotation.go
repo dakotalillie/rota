@@ -9,6 +9,11 @@ type Rotation struct {
 
 type RotationRelationships struct {
 	CurrentMember CurrentMemberRelationship `json:"currentMember"`
+	Members       *MembersRelationship      `json:"members,omitempty"`
+}
+
+type MembersRelationship struct {
+	Data []RelationshipData `json:"data"`
 }
 
 type CurrentMemberRelationship struct {
