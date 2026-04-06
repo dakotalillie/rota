@@ -36,13 +36,16 @@ func main() {
 		memberRepo          = sqlite.NewMemberRepository(db)
 		getRotationUseCase  = application.NewGetRotationUseCase(rotationRepo)
 		createMemberUseCase = application.NewCreateMemberUseCase(transactor, rotationRepo, userRepo, memberRepo)
+		getScheduleUseCase  = application.NewGetScheduleUseCase(rotationRepo)
 		getRotationHandler  = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
 		createMemberHandler = httpapi.NewCreateMemberHandler(conf.Hostname, createMemberUseCase.Execute)
+		getScheduleHandler  = httpapi.NewGetScheduleHandler(conf.Hostname, getScheduleUseCase.Execute)
 	)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/rotations/{rotationID}", getRotationHandler.Handle)
 	mux.HandleFunc("POST /api/rotations/{rotationID}/members", createMemberHandler.Handle)
+	mux.HandleFunc("GET /api/rotations/{rotationID}/schedule", getScheduleHandler.Handle)
 
 	server := &http.Server{Addr: ":8080", Handler: mux}
 

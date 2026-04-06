@@ -72,6 +72,48 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 		}
 	}
 
+	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
+		SELECT m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		FROM members m
+		JOIN users u ON u.id = m.user_id
+		WHERE m.rotation_id = ?
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() //nolint:errcheck
+
+	for rows.Next() {
+		var (
+			mID, mRotID, rawM string
+			uID, uEmail, rawU string
+		)
+		if err := rows.Scan(&mID, &mRotID, &rawM, &uID, &uEmail, &rawU); err != nil {
+			return nil, err
+		}
+		var mRec memberData
+		if err := json.Unmarshal([]byte(rawM), &mRec); err != nil {
+			return nil, err
+		}
+		var uRec userData
+		if err := json.Unmarshal([]byte(rawU), &uRec); err != nil {
+			return nil, err
+		}
+		rot.Members = append(rot.Members, domain.Member{
+			ID:         mID,
+			RotationID: mRotID,
+			Order:      mRec.Order,
+			User: domain.User{
+				ID:    uID,
+				Email: uEmail,
+				Name:  uRec.Name,
+			},
+		})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return rot, nil
 }
 

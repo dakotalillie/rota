@@ -1,0 +1,2 @@
+{"links":{"self":"http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000/schedule"},"data":[],"errors":[{"status":"400","title":"Bad Request","detail":"weeks must be an integer between 1 and 10, got \"0\""}]}
+
