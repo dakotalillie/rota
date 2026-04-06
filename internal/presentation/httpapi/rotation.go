@@ -10,6 +10,11 @@ type Rotation struct {
 type RotationRelationships struct {
 	CurrentMember CurrentMemberRelationship `json:"currentMember"`
 	Members       *MembersRelationship      `json:"members,omitempty"`
+	Overrides     *OverridesRelationship    `json:"overrides,omitempty"`
+}
+
+type OverridesRelationship struct {
+	Data []RelationshipData `json:"data"`
 }
 
 type MembersRelationship struct {
