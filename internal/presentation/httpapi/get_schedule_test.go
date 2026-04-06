@@ -60,6 +60,25 @@ func TestGetScheduleHandler(t *testing.T) {
 		},
 	}
 
+	blocksWithOverride := []domain.ScheduleBlock{
+		{
+			Start:  time.Date(2026, 3, 30, 9, 0, 0, 0, loc),
+			End:    time.Date(2026, 4, 2, 9, 0, 0, 0, loc),
+			Member: alice,
+		},
+		{
+			Start:      time.Date(2026, 4, 2, 9, 0, 0, 0, loc),
+			End:        time.Date(2026, 4, 4, 9, 0, 0, 0, loc),
+			Member:     bob,
+			IsOverride: true,
+		},
+		{
+			Start:  time.Date(2026, 4, 4, 9, 0, 0, 0, loc),
+			End:    time.Date(2026, 4, 6, 9, 0, 0, 0, loc),
+			Member: alice,
+		},
+	}
+
 	tests := []struct {
 		name           string
 		url            string
@@ -124,6 +143,14 @@ func TestGetScheduleHandler(t *testing.T) {
 				return nil, errors.New("rotation has no weekly cadence")
 			},
 			wantStatusCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "success - with override block",
+			url:  "/api/rotations/" + rotationID + "/schedule",
+			getter: func(_ context.Context, _ string, _ time.Time, _ int) ([]domain.ScheduleBlock, error) {
+				return blocksWithOverride, nil
+			},
+			wantStatusCode: http.StatusOK,
 		},
 	}
 

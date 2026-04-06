@@ -8,8 +8,9 @@ type ScheduleBlock struct {
 }
 
 type ScheduleBlockAttributes struct {
-	Start string `json:"start"`
-	End   string `json:"end"`
+	Start      string `json:"start"`
+	End        string `json:"end"`
+	IsOverride bool   `json:"isOverride"`
 }
 
 type ScheduleBlockRelationships struct {

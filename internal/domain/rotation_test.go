@@ -231,3 +231,143 @@ func TestSchedule_DSTTimezone(t *testing.T) {
 		}
 	}
 }
+
+func TestSchedule_OverridePartialBlock(t *testing.T) {
+	// Override covers Wednesday–Friday within a Mon–Mon block.
+	// Expect three sub-blocks: Mon→Wed (alice), Wed→Fri (charlie, override), Fri→Mon (alice).
+	members := []domain.Member{alice, bob, charlie}
+	r := newWeeklyRotation("Monday", "09:00", "UTC", members, &alice)
+
+	// Override: Wed 2024-01-10 09:00 → Fri 2024-01-12 09:00
+	override := domain.Override{
+		ID:     "ovr_1",
+		Member: charlie,
+		Start:  time.Date(2024, 1, 10, 9, 0, 0, 0, time.UTC),
+		End:    time.Date(2024, 1, 12, 9, 0, 0, 0, time.UTC),
+	}
+
+	r.Overrides = []domain.Override{override}
+	blocks, err := r.Schedule(fixedNow, 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(blocks) != 3 {
+		t.Fatalf("expected 3 blocks, got %d", len(blocks))
+	}
+
+	periodStart := time.Date(2024, 1, 8, 9, 0, 0, 0, time.UTC)
+
+	// Block 0: regular alice Mon→Wed
+	if blocks[0].Member.ID != "m1" || blocks[0].IsOverride {
+		t.Errorf("block 0: expected alice (regular), got member=%s override=%v", blocks[0].Member.ID, blocks[0].IsOverride)
+	}
+	if !blocks[0].Start.Equal(periodStart) || !blocks[0].End.Equal(override.Start) {
+		t.Errorf("block 0 times wrong: %v – %v", blocks[0].Start, blocks[0].End)
+	}
+
+	// Block 1: override charlie Wed→Fri
+	if blocks[1].Member.ID != "m3" || !blocks[1].IsOverride {
+		t.Errorf("block 1: expected charlie (override), got member=%s override=%v", blocks[1].Member.ID, blocks[1].IsOverride)
+	}
+	if !blocks[1].Start.Equal(override.Start) || !blocks[1].End.Equal(override.End) {
+		t.Errorf("block 1 times wrong: %v – %v", blocks[1].Start, blocks[1].End)
+	}
+
+	// Block 2: regular alice Fri→Mon
+	if blocks[2].Member.ID != "m1" || blocks[2].IsOverride {
+		t.Errorf("block 2: expected alice (regular), got member=%s override=%v", blocks[2].Member.ID, blocks[2].IsOverride)
+	}
+	if !blocks[2].Start.Equal(override.End) || !blocks[2].End.Equal(periodStart.AddDate(0, 0, 7)) {
+		t.Errorf("block 2 times wrong: %v – %v", blocks[2].Start, blocks[2].End)
+	}
+}
+
+func TestSchedule_OverrideFullBlock(t *testing.T) {
+	// Override covers the entire first weekly block.
+	members := []domain.Member{alice, bob}
+	r := newWeeklyRotation("Monday", "09:00", "UTC", members, &alice)
+
+	periodStart := time.Date(2024, 1, 8, 9, 0, 0, 0, time.UTC)
+	override := domain.Override{
+		ID:     "ovr_1",
+		Member: charlie,
+		Start:  periodStart,
+		End:    periodStart.AddDate(0, 0, 7),
+	}
+
+	r.Overrides = []domain.Override{override}
+	blocks, err := r.Schedule(fixedNow, 2)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(blocks) != 2 {
+		t.Fatalf("expected 2 blocks, got %d", len(blocks))
+	}
+
+	// Block 0: charlie override for the full first week
+	if blocks[0].Member.ID != "m3" || !blocks[0].IsOverride {
+		t.Errorf("block 0: expected charlie (override), got member=%s override=%v", blocks[0].Member.ID, blocks[0].IsOverride)
+	}
+
+	// Block 1: regular bob for second week
+	if blocks[1].Member.ID != "m2" || blocks[1].IsOverride {
+		t.Errorf("block 1: expected bob (regular), got member=%s override=%v", blocks[1].Member.ID, blocks[1].IsOverride)
+	}
+}
+
+func TestSchedule_OverrideSpansMultipleBlocks(t *testing.T) {
+	// Override spans from mid-week-1 into mid-week-2.
+	members := []domain.Member{alice, bob}
+	r := newWeeklyRotation("Monday", "09:00", "UTC", members, &alice)
+
+	periodStart := time.Date(2024, 1, 8, 9, 0, 0, 0, time.UTC)
+	// Override: Wed Jan 10 → Wed Jan 17 (spans into bob's week)
+	override := domain.Override{
+		ID:     "ovr_1",
+		Member: charlie,
+		Start:  time.Date(2024, 1, 10, 9, 0, 0, 0, time.UTC),
+		End:    time.Date(2024, 1, 17, 9, 0, 0, 0, time.UTC),
+	}
+
+	r.Overrides = []domain.Override{override}
+	blocks, err := r.Schedule(fixedNow, 2)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Expect: alice(Mon-Wed), charlie(Wed-Mon), charlie(Mon-Wed), bob(Wed-Mon)
+	if len(blocks) != 4 {
+		t.Fatalf("expected 4 blocks, got %d", len(blocks))
+	}
+
+	// Block 0: alice Mon→Wed
+	if blocks[0].Member.ID != "m1" || blocks[0].IsOverride {
+		t.Errorf("block 0 wrong: member=%s override=%v", blocks[0].Member.ID, blocks[0].IsOverride)
+	}
+	if !blocks[0].Start.Equal(periodStart) || !blocks[0].End.Equal(override.Start) {
+		t.Errorf("block 0 times wrong: %v – %v", blocks[0].Start, blocks[0].End)
+	}
+
+	// Block 1: charlie override Mon→Mon (rest of week 1)
+	if blocks[1].Member.ID != "m3" || !blocks[1].IsOverride {
+		t.Errorf("block 1 wrong: member=%s override=%v", blocks[1].Member.ID, blocks[1].IsOverride)
+	}
+	if !blocks[1].Start.Equal(override.Start) || !blocks[1].End.Equal(periodStart.AddDate(0, 0, 7)) {
+		t.Errorf("block 1 times wrong: %v – %v", blocks[1].Start, blocks[1].End)
+	}
+
+	// Block 2: charlie override Mon→Wed (start of week 2)
+	if blocks[2].Member.ID != "m3" || !blocks[2].IsOverride {
+		t.Errorf("block 2 wrong: member=%s override=%v", blocks[2].Member.ID, blocks[2].IsOverride)
+	}
+	if !blocks[2].Start.Equal(periodStart.AddDate(0, 0, 7)) || !blocks[2].End.Equal(override.End) {
+		t.Errorf("block 2 times wrong: %v – %v", blocks[2].Start, blocks[2].End)
+	}
+
+	// Block 3: bob regular Wed→Mon
+	if blocks[3].Member.ID != "m2" || blocks[3].IsOverride {
+		t.Errorf("block 3 wrong: member=%s override=%v", blocks[3].Member.ID, blocks[3].IsOverride)
+	}
+	if !blocks[3].Start.Equal(override.End) || !blocks[3].End.Equal(periodStart.AddDate(0, 0, 14)) {
+		t.Errorf("block 3 times wrong: %v – %v", blocks[3].Start, blocks[3].End)
+	}
+}
