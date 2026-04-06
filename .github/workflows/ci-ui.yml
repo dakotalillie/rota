@@ -1,0 +1,35 @@
+name: CI (UI)
+
+on:
+  push:
+    paths:
+      - "ui/**/*.ts"
+      - "ui/**/*.tsx"
+  pull_request:
+    paths:
+      - "ui/**/*.ts"
+      - "ui/**/*.tsx"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        check: [format:check:ui, lint:ui, test:ui]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - uses: arduino/setup-task@v2
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ui
+
+      - name: ${{ matrix.check }}
+        run: task ${{ matrix.check }}
