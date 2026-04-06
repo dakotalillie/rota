@@ -61,6 +61,67 @@ func TestGetRotationHandler(t *testing.T) {
 							Email: "alice@example.com",
 						},
 					},
+					Members: []domain.Member{
+						{
+							ID:         "mem_01JQGF0000000000000000000",
+							RotationID: rotationID,
+							Order:      1,
+							User: domain.User{
+								ID:    "usr_01JQGF0000000000000000000",
+								Name:  "Alice Smith",
+								Email: "alice@example.com",
+							},
+						},
+						{
+							ID:         "mem_01JQGF000000000000000000B",
+							RotationID: rotationID,
+							Order:      2,
+							User: domain.User{
+								ID:    "usr_01JQGF000000000000000000B",
+								Name:  "Bob Jones",
+								Email: "bob@example.com",
+							},
+						},
+					},
+				}, nil
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name: "success - with members",
+			getter: func(_ context.Context, id string) (*domain.Rotation, error) {
+				return &domain.Rotation{
+					ID:   rotationID,
+					Name: "Platform On-Call",
+					Cadence: domain.RotationCadence{
+						Weekly: &domain.RotationCadenceWeekly{
+							Day:      "Monday",
+							Time:     "09:00",
+							TimeZone: "America/New_York",
+						},
+					},
+					Members: []domain.Member{
+						{
+							ID:         "mem_01JQGF0000000000000000000",
+							RotationID: rotationID,
+							Order:      1,
+							User: domain.User{
+								ID:    "usr_01JQGF0000000000000000000",
+								Name:  "Alice Smith",
+								Email: "alice@example.com",
+							},
+						},
+						{
+							ID:         "mem_01JQGF000000000000000000B",
+							RotationID: rotationID,
+							Order:      2,
+							User: domain.User{
+								ID:    "usr_01JQGF000000000000000000B",
+								Name:  "Bob Jones",
+								Email: "bob@example.com",
+							},
+						},
+					},
 				}, nil
 			},
 			wantStatusCode: http.StatusOK,
