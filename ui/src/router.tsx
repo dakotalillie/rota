@@ -5,11 +5,12 @@ import {
   redirect,
 } from "@tanstack/react-router";
 
+import RootLayout from "./RootLayout";
 import RotationDetail from "./RotationDetail";
 import RotationsList from "./RotationsList";
 import Settings from "./Settings";
 
-const rootRoute = createRootRoute();
+const rootRoute = createRootRoute({ component: RootLayout });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
