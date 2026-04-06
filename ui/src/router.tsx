@@ -2,6 +2,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  redirect,
 } from "@tanstack/react-router";
 
 import RotationDetail from "./RotationDetail";
@@ -10,9 +11,17 @@ import Settings from "./Settings";
 
 const rootRoute = createRootRoute();
 
-const rotationsListRoute = createRoute({
+const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/rotations" });
+  },
+});
+
+const rotationsListRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/rotations",
   component: RotationsList,
 });
 
@@ -29,6 +38,7 @@ const settingsRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
+  indexRoute,
   rotationsListRoute,
   rotationDetailRoute,
   settingsRoute,
