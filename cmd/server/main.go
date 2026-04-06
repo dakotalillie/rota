@@ -36,17 +36,20 @@ func main() {
 		rotationRepo          = sqlite.NewRotationRepository(db)
 		userRepo              = sqlite.NewUserRepository(db)
 		memberRepo            = sqlite.NewMemberRepository(db)
+		overrideRepo          = sqlite.NewOverrideRepository(db)
 		createRotationUseCase = application.NewCreateRotationUseCase(transactor, rotationRepo)
 		getRotationUseCase    = application.NewGetRotationUseCase(rotationRepo)
 		listRotationsUseCase  = application.NewListRotationsUseCase(rotationRepo)
 		createMemberUseCase   = application.NewCreateMemberUseCase(transactor, rotationRepo, userRepo, memberRepo)
 		getScheduleUseCase    = application.NewGetScheduleUseCase(rotationRepo)
+		createOverrideUseCase = application.NewCreateOverrideUseCase(transactor, rotationRepo, overrideRepo)
 		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, 5*time.Second, slog.Default().With("component", "advance_rotation_worker"))
 		createRotationHandler = httpapi.NewCreateRotationHandler(conf.Hostname, createRotationUseCase.Execute)
 		getRotationHandler    = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
 		listRotationsHandler  = httpapi.NewListRotationsHandler(conf.Hostname, listRotationsUseCase.Execute)
 		createMemberHandler   = httpapi.NewCreateMemberHandler(conf.Hostname, createMemberUseCase.Execute)
 		getScheduleHandler    = httpapi.NewGetScheduleHandler(conf.Hostname, getScheduleUseCase.Execute)
+		createOverrideHandler = httpapi.NewCreateOverrideHandler(conf.Hostname, createOverrideUseCase.Execute)
 	)
 
 	mux := http.NewServeMux()
@@ -55,6 +58,7 @@ func main() {
 	mux.HandleFunc("GET /api/rotations/{rotationID}", getRotationHandler.Handle)
 	mux.HandleFunc("POST /api/rotations/{rotationID}/members", createMemberHandler.Handle)
 	mux.HandleFunc("GET /api/rotations/{rotationID}/schedule", getScheduleHandler.Handle)
+	mux.HandleFunc("POST /api/rotations/{rotationID}/overrides", createOverrideHandler.Handle)
 
 	server := &http.Server{Addr: ":8080", Handler: mux}
 
