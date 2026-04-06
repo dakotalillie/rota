@@ -1,0 +1,2 @@
+{"links":{"self":"http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000/overrides"},"errors":[{"status":"400","title":"Bad Request","detail":"end must be a valid RFC3339 datetime"}]}
+

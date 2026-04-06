@@ -188,3 +188,42 @@ func parseHandoffTime(s string) (hour, minute int, err error) {
 	}
 	return hour, minute, nil
 }
+
+// ValidateOverride checks whether it is valid to create an override for the given
+// member during [start, end). It returns ErrMemberNotFound if memberID is not in
+// this rotation's member list, and ErrOverrideSameMember if the member is already
+// the scheduled on-call for any block that overlaps the requested window.
+func (r *Rotation) ValidateOverride(memberID string, start, end time.Time) error {
+	memberInRotation := false
+	for _, m := range r.Members {
+		if m.ID == memberID {
+			memberInRotation = true
+			break
+		}
+	}
+	if !memberInRotation {
+		return ErrMemberNotFound
+	}
+
+	// No active schedule — nothing to conflict with.
+	if r.Cadence.Weekly == nil || r.CurrentMember == nil || len(r.Members) == 0 {
+		return nil
+	}
+
+	// Generate enough blocks to cover the entire [start, end) window.
+	numWeeks := int(end.Sub(start).Hours()/168) + 2
+	blocks, err := r.Schedule(start, numWeeks)
+	if err != nil {
+		return err
+	}
+
+	for _, block := range blocks {
+		if block.End.After(start) && block.Start.Before(end) {
+			if block.Member != nil && block.Member.ID == memberID {
+				return ErrOverrideSameMember
+			}
+		}
+	}
+
+	return nil
+}
