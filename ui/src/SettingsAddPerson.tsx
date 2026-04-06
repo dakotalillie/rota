@@ -1,3 +1,4 @@
+import { useParams } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -62,30 +63,66 @@ const COLOR_PALETTE = [
   },
 ];
 
+type CreateMemberResponse = {
+  data: {
+    id: string;
+  };
+  included: {
+    id: string;
+    attributes: { name: string; email: string };
+  }[];
+  errors?: { detail?: string }[];
+};
+
 function SettingsAddPerson({
   engineers,
   setEngineers,
 }: SettingsAddPersonProps) {
+  const { rotationId } = useParams({ strict: false });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function addEngineer() {
+  async function addEngineer() {
     const trimmedName = name.trim();
-    if (!trimmedName) return;
-    const palette = COLOR_PALETTE[engineers.length % COLOR_PALETTE.length];
-    const newEngineer: Engineer = {
-      id: crypto.randomUUID(),
-      name: trimmedName,
-      email: email.trim(),
-      ...palette,
-    };
-    setEngineers([...engineers, newEngineer]);
-    setName("");
-    setEmail("");
+    const trimmedEmail = email.trim();
+    if (!trimmedName || !trimmedEmail) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/rotations/${rotationId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: { attributes: { name: trimmedName, email: trimmedEmail } },
+        }),
+      });
+      const body = (await res.json()) as CreateMemberResponse;
+      if (!res.ok) {
+        setError(body.errors?.[0]?.detail ?? `HTTP ${res.status}`);
+        return;
+      }
+      const user = body.included[0];
+      const palette = COLOR_PALETTE[engineers.length % COLOR_PALETTE.length];
+      const newEngineer: Engineer = {
+        id: user.id,
+        name: user.attributes.name,
+        email: user.attributes.email,
+        ...palette,
+      };
+      setEngineers([...engineers, newEngineer]);
+      setName("");
+      setEmail("");
+    } catch {
+      setError("An unexpected error occurred");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleAddEngineerKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") addEngineer();
+    if (e.key === "Enter") void addEngineer();
   }
 
   return (
@@ -103,20 +140,21 @@ function SettingsAddPerson({
         />
         <Input
           type="email"
-          placeholder="Email (optional)"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={handleAddEngineerKeyDown}
         />
         <Button
-          onClick={addEngineer}
-          disabled={!name.trim()}
+          onClick={() => void addEngineer()}
+          disabled={!name.trim() || !email.trim() || submitting}
           size="sm"
           className="gap-1.5"
         >
           <Plus />
           Add person
         </Button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
       </CardContent>
     </Card>
   );
