@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "./Button";
 import { Input } from "./Input";
+import PageHeader from "./PageHeader";
 
 interface ApiRotation {
   type: "rotations";
@@ -129,46 +130,48 @@ function RotationsList() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight">Rota</h1>
-        <Dialog.Root open={dialogOpen} onOpenChange={handleOpenChange}>
-          <Dialog.Trigger render={<Button size="sm" className="gap-1.5" />}>
-            <Plus />
-            Create Rotation
-          </Dialog.Trigger>
-          <Dialog.Portal>
-            <Dialog.Backdrop className="fixed inset-0 bg-black/40 dark:bg-black/60" />
-            <Dialog.Popup className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm rounded-xl border border-border bg-background p-6 shadow-lg space-y-4 outline-none">
-              <Dialog.Title className="text-base font-semibold">
-                Create Rotation
-              </Dialog.Title>
-              <Input
-                type="text"
-                placeholder="Rotation name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={handleKeyDown}
-                autoFocus
-              />
-              {submitError && (
-                <p className="text-sm text-red-500">{submitError}</p>
-              )}
-              <div className="flex justify-end gap-2">
-                <Dialog.Close render={<Button variant="outline" size="sm" />}>
-                  Cancel
-                </Dialog.Close>
-                <Button
-                  size="sm"
-                  disabled={!name.trim() || submitting}
-                  onClick={() => void handleCreate()}
-                >
-                  Create
-                </Button>
-              </div>
-            </Dialog.Popup>
-          </Dialog.Portal>
-        </Dialog.Root>
-      </div>
+      <Dialog.Root open={dialogOpen} onOpenChange={handleOpenChange}>
+        <PageHeader
+          title="Rotations"
+          actions={
+            <Dialog.Trigger render={<Button size="sm" className="gap-1.5" />}>
+              <Plus />
+              Create Rotation
+            </Dialog.Trigger>
+          }
+        />
+        <Dialog.Portal>
+          <Dialog.Backdrop className="fixed inset-0 bg-black/40 dark:bg-black/60" />
+          <Dialog.Popup className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm rounded-xl border border-border bg-background p-6 shadow-lg space-y-4 outline-none">
+            <Dialog.Title className="text-base font-semibold">
+              Create Rotation
+            </Dialog.Title>
+            <Input
+              type="text"
+              placeholder="Rotation name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+            {submitError && (
+              <p className="text-sm text-red-500">{submitError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Dialog.Close render={<Button variant="outline" size="sm" />}>
+                Cancel
+              </Dialog.Close>
+              <Button
+                size="sm"
+                disabled={!name.trim() || submitting}
+                onClick={() => void handleCreate()}
+              >
+                Create
+              </Button>
+            </div>
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       {error && (
         <p className="text-sm text-red-500">

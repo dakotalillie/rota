@@ -1,9 +1,10 @@
 import { useParams } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useAppState } from "./AppStateContext";
+import { useBreadcrumbs } from "./BreadcrumbContext";
+import PageHeader from "./PageHeader";
 import SettingsAddPerson from "./SettingsAddPerson";
-import SettingsHeader from "./SettingsHeader";
 import SettingsOverrides from "./SettingsOverrides";
 import SettingsRotationOrder from "./SettingsRotationOrder";
 import SettingsWebhooks from "./SettingsWebhooks";
@@ -24,6 +25,7 @@ type ApiUser = {
 
 type GetRotationResponse = {
   data?: {
+    attributes: { name: string };
     relationships: {
       members: { data: { id: string }[] };
     };
@@ -84,7 +86,19 @@ const COLOR_PALETTE = [
 ];
 
 function Settings() {
-  const { rotationId } = useParams({ strict: false });
+  const { rotationId } = useParams({ from: "/rotations/$rotationId/settings" });
+  const [rotationName, setRotationName] = useState<string | null>(null);
+
+  useBreadcrumbs([
+    { label: "Rotations", to: "/rotations" },
+    {
+      label: rotationName ?? "…",
+      to: "/rotations/$rotationId",
+      params: { rotationId },
+    },
+    { label: "Settings" },
+  ]);
+
   const {
     engineers,
     setEngineers,
@@ -95,11 +109,12 @@ function Settings() {
   } = useAppState();
 
   useEffect(() => {
-    if (!rotationId) return;
     void (async () => {
       const res = await fetch(`/api/rotations/${rotationId}`);
       const body = (await res.json()) as GetRotationResponse;
       if (!res.ok || !body.data) return;
+
+      setRotationName(body.data.attributes.name);
 
       const memberRefs = body.data.relationships.members.data;
       const included = body.included ?? [];
@@ -135,11 +150,11 @@ function Settings() {
 
       setEngineers(loadedEngineers);
     })();
-  }, [rotationId, setEngineers]);
+  }, [rotationId, setEngineers, setRotationName]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
-      <SettingsHeader />
+      <PageHeader title="Settings" />
       <SettingsRotationOrder
         engineers={engineers}
         setEngineers={setEngineers}

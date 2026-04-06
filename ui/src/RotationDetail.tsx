@@ -1,10 +1,13 @@
-import { useParams } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
+import { Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import HomeHeader from "./HomeHeader";
+import { useBreadcrumbs } from "./BreadcrumbContext";
+import { Button } from "./Button";
 import HomeHero from "./HomeHero";
 import HomeHeroEmpty from "./HomeHeroEmpty";
 import HomeSchedule from "./HomeSchedule";
+import PageHeader from "./PageHeader";
 import type { Engineer, TimeSegment } from "./types";
 
 const COLORS: Pick<
@@ -165,13 +168,28 @@ function RotationDetail() {
       });
   }, [rotationId]);
 
+  useBreadcrumbs([
+    { label: "Rotations", to: "/rotations" },
+    { label: rotationName ?? "…" },
+  ]);
+
   const now = new Date();
   const activeSegment =
     timeline.find((s) => now >= s.start && now < s.end) ?? timeline[0];
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
-      <HomeHeader name={rotationName ?? undefined} />
+      <PageHeader
+        title={rotationName ?? "Loading…"}
+        actions={
+          <Link to="/rotations/$rotationId/settings" params={{ rotationId }}>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Settings2 />
+              Settings
+            </Button>
+          </Link>
+        }
+      />
 
       {loading && <p className="text-sm text-neutral-500">Loading…</p>}
 
