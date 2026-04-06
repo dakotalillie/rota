@@ -3,13 +3,13 @@ import { Settings2 } from "lucide-react";
 
 import { Button } from "./Button";
 
-function HomeHeader() {
+function HomeHeader({ name }: { name?: string }) {
   const { rotationId } = useParams({ strict: false });
 
   return (
     <div className="flex items-center justify-between">
       <Link to="/" className="text-xl font-bold tracking-tight">
-        Rota
+        {name ?? "Rota"}
       </Link>
       <Link
         to="/rotations/$rotationId/settings"
