@@ -78,7 +78,7 @@ func (f *fakeMemberRepo) Create(_ context.Context, _, _ string, _ int) (*domain.
 	return f.createMember, f.createErr
 }
 
-func (f *fakeMemberRepo) SetCurrentMember(_ context.Context, memberID string, at time.Time) error {
+func (f *fakeMemberRepo) SetCurrentMember(_ context.Context, _ string, memberID string, at time.Time) error {
 	f.setCurrCalls = append(f.setCurrCalls, struct {
 		memberID string
 		at       time.Time

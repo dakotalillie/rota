@@ -93,6 +93,56 @@ func (r *Rotation) Schedule(now time.Time, numWeeks int) ([]ScheduleBlock, error
 	return blocks, nil
 }
 
+func (r *Rotation) NeedsAdvance(now time.Time) (bool, time.Time, error) {
+	if r.CurrentMember == nil || r.Cadence.Weekly == nil || r.CurrentMember.BecameCurrentAt.IsZero() {
+		return false, time.Time{}, nil
+	}
+
+	loc, err := time.LoadLocation(r.Cadence.Weekly.TimeZone)
+	if err != nil {
+		return false, time.Time{}, fmt.Errorf("invalid timezone %q: %w", r.Cadence.Weekly.TimeZone, err)
+	}
+
+	weekday, err := parseWeekday(r.Cadence.Weekly.Day)
+	if err != nil {
+		return false, time.Time{}, err
+	}
+
+	hour, minute, err := parseHandoffTime(r.Cadence.Weekly.Time)
+	if err != nil {
+		return false, time.Time{}, err
+	}
+
+	handoff := mostRecentHandoff(now, weekday, hour, minute, loc)
+	if handoff.After(r.CurrentMember.BecameCurrentAt) {
+		return true, handoff, nil
+	}
+	return false, time.Time{}, nil
+}
+
+func (r *Rotation) NextMember() (*Member, error) {
+	if r.CurrentMember == nil {
+		return nil, errors.New("rotation has no current member")
+	}
+	if len(r.Members) == 0 {
+		return nil, errors.New("rotation has no members")
+	}
+
+	sorted := make([]Member, len(r.Members))
+	copy(sorted, r.Members)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Order < sorted[j].Order
+	})
+
+	for i, m := range sorted {
+		if m.ID == r.CurrentMember.ID {
+			next := sorted[(i+1)%len(sorted)]
+			return &next, nil
+		}
+	}
+	return nil, fmt.Errorf("current member %q not found in rotation members", r.CurrentMember.ID)
+}
+
 func mostRecentHandoff(now time.Time, weekday time.Weekday, hour, minute int, loc *time.Location) time.Time {
 	nowInLoc := now.In(loc)
 	y, m, d := nowInLoc.Date()

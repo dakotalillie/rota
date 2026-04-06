@@ -57,11 +57,13 @@ func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string
 	}, nil
 }
 
-func (r *MemberRepository) SetCurrentMember(ctx context.Context, memberID string, at time.Time) error {
+func (r *MemberRepository) SetCurrentMember(ctx context.Context, rotationID string, memberID string, at time.Time) error {
 	db := dbFromContext(ctx, r.db)
-	_, err := db.ExecContext(ctx,
-		`UPDATE members SET is_current = 1, became_current_at = ? WHERE id = ?`,
-		at.UTC().Format(time.RFC3339), memberID,
-	)
+	_, err := db.ExecContext(ctx, `
+		UPDATE members
+		SET is_current        = CASE WHEN id = ? THEN 1 ELSE 0 END,
+		    became_current_at = CASE WHEN id = ? THEN ? ELSE became_current_at END
+		WHERE rotation_id = ?
+	`, memberID, memberID, at.UTC().Format(time.RFC3339), rotationID)
 	return err
 }

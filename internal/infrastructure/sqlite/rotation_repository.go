@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
 )
@@ -51,7 +53,7 @@ func (r *RotationRepository) Create(ctx context.Context, rot *domain.Rotation) (
 
 func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Rotation, error) {
 	row := dbFromContext(ctx, r.db).QueryRowContext(ctx, `
-		SELECT r.id, r.data, m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		SELECT r.id, r.data, m.id, m.rotation_id, m.data, m.became_current_at, u.id, u.email, u.data
 		FROM rotations r
 		LEFT JOIN members m ON m.rotation_id = r.id AND m.is_current = 1
 		LEFT JOIN users u ON u.id = m.user_id
@@ -61,9 +63,10 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 	var (
 		rotID, rawRotData          string
 		memID, memRotID, rawMem    sql.NullString
+		becameCurrentAt            sql.NullString
 		userID, userEmail, rawUser sql.NullString
 	)
-	if err := row.Scan(&rotID, &rawRotData, &memID, &memRotID, &rawMem, &userID, &userEmail, &rawUser); errors.Is(err, sql.ErrNoRows) {
+	if err := row.Scan(&rotID, &rawRotData, &memID, &memRotID, &rawMem, &becameCurrentAt, &userID, &userEmail, &rawUser); errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrRotationNotFound
 	} else if err != nil {
 		return nil, err
@@ -101,6 +104,13 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 				Email: userEmail.String,
 				Name:  uRec.Name,
 			},
+		}
+		if becameCurrentAt.Valid {
+			t, err := time.Parse(time.RFC3339, becameCurrentAt.String)
+			if err != nil {
+				return nil, fmt.Errorf("parsing became_current_at: %w", err)
+			}
+			rot.CurrentMember.BecameCurrentAt = t.UTC()
 		}
 	}
 
@@ -151,7 +161,7 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 
 func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, error) {
 	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
-		SELECT r.id, r.data, m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		SELECT r.id, r.data, m.id, m.rotation_id, m.data, m.became_current_at, u.id, u.email, u.data
 		FROM rotations r
 		LEFT JOIN members m ON m.rotation_id = r.id AND m.is_current = 1
 		LEFT JOIN users u ON u.id = m.user_id
@@ -167,9 +177,10 @@ func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, erro
 		var (
 			rotID, rawRotData          string
 			memID, memRotID, rawMem    sql.NullString
+			becameCurrentAt            sql.NullString
 			userID, userEmail, rawUser sql.NullString
 		)
-		if err := rows.Scan(&rotID, &rawRotData, &memID, &memRotID, &rawMem, &userID, &userEmail, &rawUser); err != nil {
+		if err := rows.Scan(&rotID, &rawRotData, &memID, &memRotID, &rawMem, &becameCurrentAt, &userID, &userEmail, &rawUser); err != nil {
 			return nil, err
 		}
 
@@ -205,6 +216,13 @@ func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, erro
 					Email: userEmail.String,
 					Name:  uRec.Name,
 				},
+			}
+			if becameCurrentAt.Valid {
+				t, err := time.Parse(time.RFC3339, becameCurrentAt.String)
+				if err != nil {
+					return nil, fmt.Errorf("parsing became_current_at: %w", err)
+				}
+				rot.CurrentMember.BecameCurrentAt = t.UTC()
 			}
 		}
 

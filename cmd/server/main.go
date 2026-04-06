@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/dakotalillie/rota/internal/application"
 	"github.com/dakotalillie/rota/internal/config"
@@ -39,6 +41,7 @@ func main() {
 		listRotationsUseCase  = application.NewListRotationsUseCase(rotationRepo)
 		createMemberUseCase   = application.NewCreateMemberUseCase(transactor, rotationRepo, userRepo, memberRepo)
 		getScheduleUseCase    = application.NewGetScheduleUseCase(rotationRepo)
+		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, 5*time.Second, slog.Default().With("component", "advance_rotation_worker"))
 		createRotationHandler = httpapi.NewCreateRotationHandler(conf.Hostname, createRotationUseCase.Execute)
 		getRotationHandler    = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
 		listRotationsHandler  = httpapi.NewListRotationsHandler(conf.Hostname, listRotationsUseCase.Execute)
@@ -55,6 +58,10 @@ func main() {
 
 	server := &http.Server{Addr: ":8080", Handler: mux}
 
+	workerCtx, cancelWorker := context.WithCancel(context.Background())
+	defer cancelWorker()
+	go worker.Run(workerCtx)
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
@@ -63,6 +70,7 @@ func main() {
 
 	select {
 	case <-quit:
+		cancelWorker()
 		if err := server.Shutdown(context.Background()); err != nil {
 			fmt.Fprintf(os.Stderr, "Error shutting down server: %v\n", err)
 			os.Exit(1)

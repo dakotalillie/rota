@@ -72,7 +72,7 @@ func (uc *CreateMemberUseCase) Execute(ctx context.Context, input CreateMemberIn
 		member.User = *user
 
 		if count == 0 {
-			if err = uc.memberRepo.SetCurrentMember(ctx, member.ID, input.Now); err != nil {
+			if err = uc.memberRepo.SetCurrentMember(ctx, input.RotationID, member.ID, input.Now); err != nil {
 				return err
 			}
 		}
