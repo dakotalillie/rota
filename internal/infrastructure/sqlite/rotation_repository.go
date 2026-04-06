@@ -17,6 +17,38 @@ func NewRotationRepository(db *sql.DB) *RotationRepository {
 	return &RotationRepository{db: db}
 }
 
+func (r *RotationRepository) Count(ctx context.Context) (int, error) {
+	var count int
+	err := dbFromContext(ctx, r.db).QueryRowContext(ctx, `SELECT COUNT(*) FROM rotations`).Scan(&count)
+	return count, err
+}
+
+func (r *RotationRepository) Create(ctx context.Context, rot *domain.Rotation) (*domain.Rotation, error) {
+	rot.ID = newID("rot")
+	rec := rotationData{Name: rot.Name}
+	if rot.Cadence.Weekly != nil {
+		rec.Cadence.Weekly = &rotationCadenceWeekly{
+			Day:      rot.Cadence.Weekly.Day,
+			Time:     rot.Cadence.Weekly.Time,
+			TimeZone: rot.Cadence.Weekly.TimeZone,
+		}
+	}
+
+	blob, err := json.Marshal(rec)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = dbFromContext(ctx, r.db).ExecContext(ctx,
+		`INSERT INTO rotations (id, data) VALUES (?, ?)`,
+		rot.ID, string(blob),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return rot, nil
+}
+
 func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Rotation, error) {
 	row := dbFromContext(ctx, r.db).QueryRowContext(ctx, `
 		SELECT r.id, r.data, m.id, m.rotation_id, m.data, u.id, u.email, u.data

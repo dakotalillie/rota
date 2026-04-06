@@ -21,8 +21,18 @@ func (f *fakeTransactor) RunInTx(ctx context.Context, fn func(context.Context) e
 }
 
 type fakeRotationRepo struct {
+	count    int
+	countErr error
 	rotation *domain.Rotation
 	err      error
+}
+
+func (f *fakeRotationRepo) Count(_ context.Context) (int, error) {
+	return f.count, f.countErr
+}
+
+func (f *fakeRotationRepo) Create(_ context.Context, rot *domain.Rotation) (*domain.Rotation, error) {
+	return rot, f.err
 }
 
 func (f *fakeRotationRepo) GetByID(_ context.Context, _ string) (*domain.Rotation, error) {

@@ -4,6 +4,8 @@ import "errors"
 
 var (
 	ErrRotationNotFound       = errors.New("rotation not found")
+	ErrTooManyRotations       = errors.New("maximum number of rotations reached")
+	ErrInvalidRotationName    = errors.New("rotation name is required")
 	ErrUserNotFound           = errors.New("user not found")
 	ErrMemberAlreadyExists    = errors.New("user is already a member of this rotation")
 	ErrRotationMembershipFull = errors.New("rotation has reached the maximum number of members")

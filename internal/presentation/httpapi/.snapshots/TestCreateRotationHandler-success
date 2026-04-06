@@ -1,0 +1,2 @@
+{"links":{"self":"http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000"},"data":{"type":"rotations","id":"rot_01JQGF0000000000000000000","attributes":{"name":"Platform On-Call","cadence":{"weekly":{"day":"monday","time":"09:00","timeZone":"America/Los_Angeles"}}},"relationships":{"currentMember":{"data":null}}}}
+
