@@ -1,0 +1,29 @@
+name: CI (Server)
+
+on:
+  push:
+    paths:
+      - "internal/**/*.go"
+      - "cmd/**/*.go"
+  pull_request:
+    paths:
+      - "internal/**/*.go"
+      - "cmd/**/*.go"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
+
+      - uses: arduino/setup-task@v2
+
+      - name: Test
+        run: task test:server
