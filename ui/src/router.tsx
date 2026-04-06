@@ -4,24 +4,35 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 
-import Home from "./Home";
+import RotationDetail from "./RotationDetail";
+import RotationsList from "./RotationsList";
 import Settings from "./Settings";
 
 const rootRoute = createRootRoute();
 
-const homeRoute = createRoute({
+const rotationsListRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: Home,
+  component: RotationsList,
+});
+
+const rotationDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/rotations/$rotationId",
+  component: RotationDetail,
 });
 
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/settings",
+  path: "/rotations/$rotationId/settings",
   component: Settings,
 });
 
-const routeTree = rootRoute.addChildren([homeRoute, settingsRoute]);
+const routeTree = rootRoute.addChildren([
+  rotationsListRoute,
+  rotationDetailRoute,
+  settingsRoute,
+]);
 
 export const router = createRouter({ routeTree });
 

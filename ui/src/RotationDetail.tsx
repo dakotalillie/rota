@@ -5,7 +5,7 @@ import HomeHeroEmpty from "./HomeHeroEmpty";
 import HomeSchedule from "./HomeSchedule";
 import { buildTimeline } from "./utils";
 
-function Home() {
+function RotationDetail() {
   const { engineers, overrides } = useAppState();
   const timeline = buildTimeline(engineers, overrides, 8);
   const now = new Date();
@@ -23,4 +23,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default RotationDetail;
