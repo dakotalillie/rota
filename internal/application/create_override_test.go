@@ -39,6 +39,10 @@ func (f *fakeOverrideRepo) HasOverlapping(_ context.Context, _ string, _, _ time
 	return f.hasOverlapping, f.hasOverlappingErr
 }
 
+func (f *fakeOverrideRepo) ListByRotationID(_ context.Context, _ string, _ time.Time) ([]domain.Override, error) {
+	return []domain.Override{}, nil
+}
+
 func TestCreateOverrideUseCase_Execute(t *testing.T) {
 	const rotationID = "rot_01JQGF0000000000000000000"
 	const memberID = "mem_01JQGF0000000000000000001"

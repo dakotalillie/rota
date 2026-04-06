@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
 )
@@ -97,6 +98,25 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	response.Data.Relationships.Members = &MembersRelationship{Data: membersData}
+
+	overridesData := make([]RelationshipData, 0, len(rotation.Overrides))
+	for _, o := range rotation.Overrides {
+		overridesData = append(overridesData, RelationshipData{Type: "overrides", ID: o.ID})
+		included = append(included, OverrideResource{
+			Type: "overrides",
+			ID:   o.ID,
+			Attributes: OverrideAttributes{
+				Start: o.Start.Format(time.RFC3339),
+				End:   o.End.Format(time.RFC3339),
+			},
+			Relationships: OverrideRelationships{
+				Member: OverrideMemberRelationship{
+					Data: OverrideMemberRelationshipData{Type: "members", ID: o.Member.ID},
+				},
+			},
+		})
+	}
+	response.Data.Relationships.Overrides = &OverridesRelationship{Data: overridesData}
 	response.Included = included
 
 	if rotation.CurrentMember != nil {

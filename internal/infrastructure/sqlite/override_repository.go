@@ -3,6 +3,8 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
@@ -34,6 +36,73 @@ func (r *OverrideRepository) Create(ctx context.Context, rotationID, memberID st
 		Start:      start.UTC(),
 		End:        end.UTC(),
 	}, nil
+}
+
+func (r *OverrideRepository) ListByRotationID(ctx context.Context, rotationID string, now time.Time) ([]domain.Override, error) {
+	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
+		SELECT o.id, o.start_time, o.end_time, m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		FROM overrides o
+		JOIN members m ON o.member_id = m.id
+		JOIN users u ON m.user_id = u.id
+		WHERE o.rotation_id = ? AND o.end_time > ?
+		ORDER BY o.start_time
+	`, rotationID, now.UTC().Format(time.RFC3339))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() //nolint:errcheck
+
+	var overrides []domain.Override
+	for rows.Next() {
+		var (
+			oID, oStart, oEnd string
+			mID, mRotID, rawM string
+			uID, uEmail, rawU string
+		)
+		if err := rows.Scan(&oID, &oStart, &oEnd, &mID, &mRotID, &rawM, &uID, &uEmail, &rawU); err != nil {
+			return nil, err
+		}
+		start, err := time.Parse(time.RFC3339, oStart)
+		if err != nil {
+			return nil, fmt.Errorf("parsing override start_time: %w", err)
+		}
+		end, err := time.Parse(time.RFC3339, oEnd)
+		if err != nil {
+			return nil, fmt.Errorf("parsing override end_time: %w", err)
+		}
+		var mRec memberData
+		if err := json.Unmarshal([]byte(rawM), &mRec); err != nil {
+			return nil, err
+		}
+		var uRec userData
+		if err := json.Unmarshal([]byte(rawU), &uRec); err != nil {
+			return nil, err
+		}
+		overrides = append(overrides, domain.Override{
+			ID:         oID,
+			RotationID: rotationID,
+			Start:      start.UTC(),
+			End:        end.UTC(),
+			Member: domain.Member{
+				ID:         mID,
+				RotationID: mRotID,
+				Order:      mRec.Order,
+				User: domain.User{
+					ID:    uID,
+					Email: uEmail,
+					Name:  uRec.Name,
+				},
+			},
+		})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if overrides == nil {
+		overrides = []domain.Override{}
+	}
+	return overrides, nil
 }
 
 func (r *OverrideRepository) HasOverlapping(ctx context.Context, rotationID string, start, end time.Time) (bool, error) {

@@ -15,6 +15,7 @@ type Rotation struct {
 	Cadence       RotationCadence
 	CurrentMember *Member
 	Members       []Member
+	Overrides     []Override
 }
 
 type RotationCadence struct {
