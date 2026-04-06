@@ -1,9 +1,7 @@
-import { useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState } from "react";
 
-import Home from "./Home";
-import Settings from "./Settings";
 import type { Engineer, Override, WebhookEntry } from "./types";
-import { buildTimeline } from "./utils";
 
 const INITIAL_ENGINEERS: Engineer[] = [
   {
@@ -53,29 +51,40 @@ const INITIAL_ENGINEERS: Engineer[] = [
   },
 ];
 
-export default function App() {
+type AppState = {
+  engineers: Engineer[];
+  setEngineers: (engineers: Engineer[]) => void;
+  overrides: Override[];
+  setOverrides: (overrides: Override[]) => void;
+  webhooks: WebhookEntry[];
+  setWebhooks: (webhooks: WebhookEntry[]) => void;
+};
+
+const AppStateContext = createContext<AppState | null>(null);
+
+export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [engineers, setEngineers] = useState<Engineer[]>(INITIAL_ENGINEERS);
   const [overrides, setOverrides] = useState<Override[]>([]);
   const [webhooks, setWebhooks] = useState<WebhookEntry[]>([]);
-  const [page, setPage] = useState<"home" | "edit">("home");
-
-  const timeline = buildTimeline(engineers, overrides, 8);
 
   return (
-    <div className="min-h-screen bg-background">
-      {page === "home" ? (
-        <Home timeline={timeline} onNavigateEdit={() => setPage("edit")} />
-      ) : (
-        <Settings
-          engineers={engineers}
-          setEngineers={setEngineers}
-          overrides={overrides}
-          setOverrides={setOverrides}
-          webhooks={webhooks}
-          setWebhooks={setWebhooks}
-          onNavigateHome={() => setPage("home")}
-        />
-      )}
-    </div>
+    <AppStateContext.Provider
+      value={{
+        engineers,
+        setEngineers,
+        overrides,
+        setOverrides,
+        webhooks,
+        setWebhooks,
+      }}
+    >
+      {children}
+    </AppStateContext.Provider>
   );
+}
+
+export function useAppState(): AppState {
+  const ctx = useContext(AppStateContext);
+  if (!ctx) throw new Error("useAppState must be used within AppStateProvider");
+  return ctx;
 }

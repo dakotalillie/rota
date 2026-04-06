@@ -1,32 +1,23 @@
+import { useAppState } from "./AppStateContext";
 import SettingsAddPerson from "./SettingsAddPerson";
 import SettingsHeader from "./SettingsHeader";
 import SettingsOverrides from "./SettingsOverrides";
 import SettingsRotationOrder from "./SettingsRotationOrder";
 import SettingsWebhooks from "./SettingsWebhooks";
-import type { Engineer, Override, WebhookEntry } from "./types";
 
-type SettingsProps = {
-  engineers: Engineer[];
-  setEngineers: (engineers: Engineer[]) => void;
-  overrides: Override[];
-  setOverrides: (overrides: Override[]) => void;
-  webhooks: WebhookEntry[];
-  setWebhooks: (webhooks: WebhookEntry[]) => void;
-  onNavigateHome: () => void;
-};
+function Settings() {
+  const {
+    engineers,
+    setEngineers,
+    overrides,
+    setOverrides,
+    webhooks,
+    setWebhooks,
+  } = useAppState();
 
-function Settings({
-  engineers,
-  setEngineers,
-  overrides,
-  setOverrides,
-  webhooks,
-  setWebhooks,
-  onNavigateHome,
-}: SettingsProps) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
-      <SettingsHeader onNavigateHome={onNavigateHome} />
+      <SettingsHeader />
       <SettingsRotationOrder
         engineers={engineers}
         setEngineers={setEngineers}

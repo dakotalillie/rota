@@ -1,22 +1,16 @@
+import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "./Button";
 
-type SettingsHeaderProps = {
-  onNavigateHome: () => void;
-};
-
-function SettingsHeader({ onNavigateHome }: SettingsHeaderProps) {
+function SettingsHeader() {
   return (
     <div className="flex items-center gap-3">
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        onClick={onNavigateHome}
-        aria-label="Back to home"
-      >
-        <ArrowLeft />
-      </Button>
+      <Link to="/">
+        <Button variant="ghost" size="icon-sm" aria-label="Back to home">
+          <ArrowLeft />
+        </Button>
+      </Link>
       <h1 className="text-xl font-bold tracking-tight">Settings</h1>
     </div>
   );
