@@ -1,10 +1,6 @@
 name: CI (UI)
 
 on:
-  push:
-    paths:
-      - "ui/**/*.ts"
-      - "ui/**/*.tsx"
   pull_request:
     paths:
       - "ui/**/*.ts"

@@ -1,10 +1,6 @@
 name: CI (Server)
 
 on:
-  push:
-    paths:
-      - "internal/**/*.go"
-      - "cmd/**/*.go"
   pull_request:
     paths:
       - "internal/**/*.go"
