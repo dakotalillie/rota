@@ -23,17 +23,24 @@ tasks:
       - npm run dev
     silent: true
 
+  format:check:ui:
+    desc: Checks the formatting of the UI code
+    dir: ui
+    cmds:
+      - npm run format:check
+    silent: true
+
   format:server:
     desc: Formats Go code with goimports
     cmds:
       - go tool goimports -w .
     silent: true
 
-  format:check:ui:
-    desc: Checks the formatting of the UI code
+  format:ui:
+    desc: Formats the UI code
     dir: ui
     cmds:
-      - npm run format:check
+      - npm run format
     silent: true
 
   hooks:install:
