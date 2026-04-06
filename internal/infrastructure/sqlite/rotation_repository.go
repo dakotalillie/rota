@@ -149,6 +149,77 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 	return rot, nil
 }
 
+func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, error) {
+	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
+		SELECT r.id, r.data, m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		FROM rotations r
+		LEFT JOIN members m ON m.rotation_id = r.id AND m.is_current = 1
+		LEFT JOIN users u ON u.id = m.user_id
+		ORDER BY r.id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() //nolint:errcheck
+
+	var rotations []*domain.Rotation
+	for rows.Next() {
+		var (
+			rotID, rawRotData          string
+			memID, memRotID, rawMem    sql.NullString
+			userID, userEmail, rawUser sql.NullString
+		)
+		if err := rows.Scan(&rotID, &rawRotData, &memID, &memRotID, &rawMem, &userID, &userEmail, &rawUser); err != nil {
+			return nil, err
+		}
+
+		var rec rotationData
+		if err := json.Unmarshal([]byte(rawRotData), &rec); err != nil {
+			return nil, err
+		}
+
+		rot := &domain.Rotation{ID: rotID, Name: rec.Name}
+		if rec.Cadence.Weekly != nil {
+			rot.Cadence.Weekly = &domain.RotationCadenceWeekly{
+				Day:      rec.Cadence.Weekly.Day,
+				Time:     rec.Cadence.Weekly.Time,
+				TimeZone: rec.Cadence.Weekly.TimeZone,
+			}
+		}
+
+		if memID.Valid {
+			var mRec memberData
+			if err := json.Unmarshal([]byte(rawMem.String), &mRec); err != nil {
+				return nil, err
+			}
+			var uRec userData
+			if err := json.Unmarshal([]byte(rawUser.String), &uRec); err != nil {
+				return nil, err
+			}
+			rot.CurrentMember = &domain.Member{
+				ID:         memID.String,
+				RotationID: memRotID.String,
+				Order:      mRec.Order,
+				User: domain.User{
+					ID:    userID.String,
+					Email: userEmail.String,
+					Name:  uRec.Name,
+				},
+			}
+		}
+
+		rotations = append(rotations, rot)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if rotations == nil {
+		rotations = []*domain.Rotation{}
+	}
+	return rotations, nil
+}
+
 func (r *RotationRepository) UpsertRotation(ctx context.Context, rot *domain.Rotation) error {
 	rec := rotationData{Name: rot.Name}
 	if rot.Cadence.Weekly != nil {

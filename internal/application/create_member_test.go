@@ -39,6 +39,10 @@ func (f *fakeRotationRepo) GetByID(_ context.Context, _ string) (*domain.Rotatio
 	return f.rotation, f.err
 }
 
+func (f *fakeRotationRepo) List(_ context.Context) ([]*domain.Rotation, error) {
+	return nil, f.err
+}
+
 type fakeUserRepo struct {
 	getByIDUser *domain.User
 	getByIDErr  error
