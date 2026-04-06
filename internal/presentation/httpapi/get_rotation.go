@@ -69,31 +69,40 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	membersData := make([]RelationshipData, 0, len(rotation.Members))
+	included := make([]any, 0)
+	seenUsers := map[string]bool{}
+	for _, m := range rotation.Members {
+		membersData = append(membersData, RelationshipData{Type: "members", ID: m.ID})
+		included = append(included, Member{
+			Type:       "members",
+			ID:         m.ID,
+			Attributes: MemberAttributes{Order: m.Order},
+			Relationships: MemberRelationships{
+				User: MemberUserRelationship{
+					Data: MemberUserRelationshipData{Type: "users", ID: m.User.ID},
+				},
+			},
+		})
+		if !seenUsers[m.User.ID] {
+			seenUsers[m.User.ID] = true
+			included = append(included, IncludedUser{
+				Type: "users",
+				ID:   m.User.ID,
+				Attributes: IncludedUserAttributes{
+					Name:  m.User.Name,
+					Email: m.User.Email,
+				},
+			})
+		}
+	}
+	response.Data.Relationships.Members = &MembersRelationship{Data: membersData}
+	response.Included = included
+
 	if rotation.CurrentMember != nil {
-		cm := rotation.CurrentMember
 		response.Data.Relationships.CurrentMember.Data = &RelationshipData{
 			Type: "members",
-			ID:   cm.ID,
-		}
-		response.Included = []any{
-			Member{
-				Type:       "members",
-				ID:         cm.ID,
-				Attributes: MemberAttributes{Order: cm.Order},
-				Relationships: MemberRelationships{
-					User: MemberUserRelationship{
-						Data: MemberUserRelationshipData{Type: "users", ID: cm.User.ID},
-					},
-				},
-			},
-			IncludedUser{
-				Type: "users",
-				ID:   cm.User.ID,
-				Attributes: IncludedUserAttributes{
-					Name:  cm.User.Name,
-					Email: cm.User.Email,
-				},
-			},
+			ID:   rotation.CurrentMember.ID,
 		}
 	}
 
