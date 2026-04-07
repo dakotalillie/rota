@@ -1,4 +1,6 @@
+import { useParams } from "@tanstack/react-router";
 import { ArrowRight, X } from "lucide-react";
+import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
@@ -20,8 +22,46 @@ function OverridesList({
   overrides,
   setOverrides,
 }: OverridesListProps) {
-  function removeOverride(id: string) {
-    setOverrides(overrides.filter((o) => o.id !== id));
+  const { rotationId } = useParams({ strict: false });
+  const [deletingOverrideId, setDeletingOverrideId] = useState<string | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  async function removeOverride(id: string) {
+    if (!rotationId) {
+      setError("An unexpected error occurred");
+      return;
+    }
+
+    setDeletingOverrideId(id);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/rotations/${rotationId}/overrides/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        let detail = `HTTP ${res.status}`;
+
+        if (res.headers.get("Content-Type")?.includes("application/json")) {
+          const body = (await res.json()) as {
+            errors?: { detail?: string }[];
+          };
+          detail = body.errors?.[0]?.detail ?? detail;
+        }
+
+        setError(detail);
+        return;
+      }
+
+      setOverrides(overrides.filter((o) => o.id !== id));
+    } catch {
+      setError("An unexpected error occurred");
+    } finally {
+      setDeletingOverrideId((current) => (current === id ? null : current));
+    }
   }
 
   return (
@@ -63,7 +103,8 @@ function OverridesList({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => removeOverride(override.id)}
+                onClick={() => void removeOverride(override.id)}
+                disabled={deletingOverrideId !== null}
                 className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 aria-label="Remove override"
               >
@@ -99,6 +140,7 @@ function OverridesList({
           </div>
         );
       })}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }
