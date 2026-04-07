@@ -1,4 +1,6 @@
-import { ArrowRight, ChevronDown, Plus } from "lucide-react";
+import { Dialog } from "@base-ui/react/dialog";
+import { Tooltip } from "@base-ui/react/tooltip";
+import { ArrowRight, ChevronDown, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
@@ -17,7 +19,6 @@ function todayAt9am(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T09:00`;
 }
 
-// --- Display helpers ---
 const selectClass =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-shadow";
 
@@ -32,9 +33,19 @@ function SettingsOverridesForm({
   overrides,
   setOverrides,
 }: SettingsOverridesFormProps) {
+  const [open, setOpen] = useState(false);
   const [overrideStart, setOverrideStart] = useState("");
   const [overrideEnd, setOverrideEnd] = useState("");
   const [overrideEngineerId, setOverrideEngineerId] = useState("");
+
+  function handleOpenChange(newOpen: boolean) {
+    setOpen(newOpen);
+    if (newOpen) {
+      setOverrideStart("");
+      setOverrideEnd("");
+      setOverrideEngineerId("");
+    }
+  }
 
   const validEngineerId = engineers.find((e) => e.id === overrideEngineerId)
     ? overrideEngineerId
@@ -68,99 +79,162 @@ function SettingsOverridesForm({
         engineerId: validEngineerId,
       },
     ]);
-    setOverrideStart("");
-    setOverrideEnd("");
-    setOverrideEngineerId("");
+    setOpen(false);
   }
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <Input
-          type="datetime-local"
-          value={overrideStart}
-          onFocus={() => {
-            if (!overrideStart) setOverrideStart(todayAt9am());
-          }}
-          onChange={(e) => setOverrideStart(e.target.value)}
-        />
-        <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-        <Input
-          type="datetime-local"
-          value={overrideEnd}
-          onFocus={() => {
-            if (!overrideEnd) setOverrideEnd(todayAt9am());
-          }}
-          onChange={(e) => setOverrideEnd(e.target.value)}
-        />
-      </div>
-      <div className="relative">
-        <select
-          value={validEngineerId}
-          onChange={(e) => setOverrideEngineerId(e.target.value)}
-          className={selectClass + " appearance-none pr-8"}
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          render={
+            <span
+              className={engineers.length === 0 ? "cursor-not-allowed" : ""}
+            />
+          }
         >
-          <option value="" disabled>
-            Select person
-          </option>
-          {engineers.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.name}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-      </div>
-      {overrideValid && formReplacements.length > 0 && (
-        <div
-          className={`rounded-lg border px-3 py-2.5 space-y-1.5 ${overrideSelfAssign ? "border-destructive/50 bg-destructive/5" : "border-border bg-muted/30"}`}
-        >
-          <p
-            className={`text-xs font-medium ${overrideSelfAssign ? "text-destructive" : "text-muted-foreground"}`}
-          >
-            Replaces
-          </p>
-          <div className="space-y-1">
-            {formReplacements.map((seg, i) => {
-              const isSelf = seg.engineer.id === validEngineerId;
-              return (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <Avatar className="h-5 w-5 shrink-0">
-                    <AvatarImage src={seg.engineer.avatarUrl} />
-                    <AvatarFallback
-                      className={`text-[9px] font-semibold ${seg.engineer.color} ${seg.engineer.textColor}`}
-                    >
-                      {initials(seg.engineer.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span
-                    className={`font-medium ${isSelf ? "text-destructive" : ""}`}
+          <Dialog.Trigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+                className={`gap-1.5${engineers.length === 0 ? " pointer-events-none" : ""}`}
+                disabled={engineers.length === 0}
+                tabIndex={engineers.length === 0 ? -1 : undefined}
+              >
+                <Plus />
+                Add override
+              </Button>
+            }
+          />
+        </Tooltip.Trigger>
+        {engineers.length === 0 && (
+          <Tooltip.Portal>
+            <Tooltip.Positioner>
+              <Tooltip.Popup className="rounded-md bg-popover border border-border px-2.5 py-1.5 text-xs text-popover-foreground shadow-md">
+                Add engineers to the rotation first
+              </Tooltip.Popup>
+            </Tooltip.Positioner>
+          </Tooltip.Portal>
+        )}
+      </Tooltip.Root>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 bg-black/40 dark:bg-black/60 animate-in fade-in" />
+        <Dialog.Viewport className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Popup className="bg-card w-full max-w-lg rounded-xl border border-border shadow-lg animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between px-5 pt-5 pb-4">
+              <Dialog.Title className="text-base font-semibold">
+                Add override
+              </Dialog.Title>
+              <Dialog.Close
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Close"
+                    className="text-muted-foreground hover:text-foreground"
                   >
-                    {seg.engineer.name}
-                  </span>
-                  <span className="text-muted-foreground text-xs">
-                    {formatDateTimeRange(seg.start, seg.end)}
-                  </span>
-                  {isSelf && (
-                    <span className="text-xs text-destructive">
-                      already on call
-                    </span>
-                  )}
+                    <X />
+                  </Button>
+                }
+              />
+            </div>
+            <div className="space-y-3 px-5 pb-5">
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <Input
+                  type="datetime-local"
+                  value={overrideStart}
+                  className="min-w-0"
+                  onFocus={() => {
+                    if (!overrideStart) setOverrideStart(todayAt9am());
+                  }}
+                  onChange={(e) => setOverrideStart(e.target.value)}
+                />
+                <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Input
+                  type="datetime-local"
+                  value={overrideEnd}
+                  className="min-w-0"
+                  onFocus={() => {
+                    if (!overrideEnd) setOverrideEnd(todayAt9am());
+                  }}
+                  onChange={(e) => setOverrideEnd(e.target.value)}
+                />
+              </div>
+              <div className="relative">
+                <select
+                  value={validEngineerId}
+                  onChange={(e) => setOverrideEngineerId(e.target.value)}
+                  className={selectClass + " appearance-none pr-8"}
+                >
+                  <option value="" disabled>
+                    Select person
+                  </option>
+                  {engineers.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              </div>
+              {overrideValid && formReplacements.length > 0 && (
+                <div
+                  className={`rounded-lg border px-3 py-2.5 space-y-1.5 ${overrideSelfAssign ? "border-destructive/50 bg-destructive/5" : "border-border bg-muted/30"}`}
+                >
+                  <p
+                    className={`text-xs font-medium ${overrideSelfAssign ? "text-destructive" : "text-muted-foreground"}`}
+                  >
+                    Replaces
+                  </p>
+                  <div className="space-y-1">
+                    {formReplacements.map((seg, i) => {
+                      const isSelf = seg.engineer.id === validEngineerId;
+                      return (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          <Avatar className="h-5 w-5 shrink-0">
+                            <AvatarImage src={seg.engineer.avatarUrl} />
+                            <AvatarFallback
+                              className={`text-[9px] font-semibold ${seg.engineer.color} ${seg.engineer.textColor}`}
+                            >
+                              {initials(seg.engineer.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span
+                            className={`font-medium ${isSelf ? "text-destructive" : ""}`}
+                          >
+                            {seg.engineer.name}
+                          </span>
+                          <span className="text-muted-foreground text-xs">
+                            {formatDateTimeRange(seg.start, seg.end)}
+                          </span>
+                          {isSelf && (
+                            <span className="text-xs text-destructive">
+                              already on call
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-      <Button
-        onClick={addOverride}
-        disabled={!overrideValid || overrideSelfAssign}
-        className="gap-1.5"
-      >
-        <Plus />
-        Add override
-      </Button>
-    </div>
+              )}
+              <Button
+                onClick={addOverride}
+                disabled={!overrideValid || overrideSelfAssign}
+                size="sm"
+                className="w-full gap-1.5"
+              >
+                <Plus />
+                Add override
+              </Button>
+            </div>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
