@@ -43,16 +43,18 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 	}
 
 	tests := []struct {
-		name              string
-		input             application.DeleteMemberInput
-		rotationRepo      fakeRotationRepo
-		memberRepo        fakeMemberRepo
-		userRepo          fakeUserRepo
-		wantErr           error
-		wantDeletedMember string
-		wantDeletedUser   string
-		wantReorderCall   []string
-		wantSetCurrMember string
+		name                          string
+		input                         application.DeleteMemberInput
+		rotationRepo                  fakeRotationRepo
+		memberRepo                    fakeMemberRepo
+		overrideRepo                  fakeOverrideRepo
+		userRepo                      fakeUserRepo
+		wantErr                       error
+		wantDeletedMember             string
+		wantDeletedOverridesForMember string
+		wantDeletedUser               string
+		wantReorderCall               []string
+		wantSetCurrMember             string
 	}{
 		{
 			name:  "success - non-current member, user has other memberships",
@@ -69,8 +71,9 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			userRepo: fakeUserRepo{
 				countMembershipsCount: 1, // still has another membership
 			},
-			wantDeletedMember: bob.ID,
-			wantReorderCall:   []string{alice.ID, charlie.ID},
+			wantDeletedMember:             bob.ID,
+			wantDeletedOverridesForMember: bob.ID,
+			wantReorderCall:               []string{alice.ID, charlie.ID},
 		},
 		{
 			name:  "success - user's last membership, user deleted",
@@ -87,9 +90,10 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			userRepo: fakeUserRepo{
 				countMembershipsCount: 0,
 			},
-			wantDeletedMember: bob.ID,
-			wantDeletedUser:   bob.User.ID,
-			wantReorderCall:   []string{alice.ID, charlie.ID},
+			wantDeletedMember:             bob.ID,
+			wantDeletedOverridesForMember: bob.ID,
+			wantDeletedUser:               bob.User.ID,
+			wantReorderCall:               []string{alice.ID, charlie.ID},
 		},
 		{
 			name:         "success - current member deleted, next member promoted",
@@ -101,10 +105,11 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			userRepo: fakeUserRepo{
 				countMembershipsCount: 0,
 			},
-			wantDeletedMember: alice.ID,
-			wantDeletedUser:   alice.User.ID,
-			wantReorderCall:   []string{bob.ID, charlie.ID},
-			wantSetCurrMember: bob.ID, // alice was index 0, next = index 0 % 2 = bob
+			wantDeletedMember:             alice.ID,
+			wantDeletedOverridesForMember: alice.ID,
+			wantDeletedUser:               alice.User.ID,
+			wantReorderCall:               []string{bob.ID, charlie.ID},
+			wantSetCurrMember:             bob.ID, // alice was index 0, next = index 0 % 2 = bob
 		},
 		{
 			name:  "success - current member deleted, wrap-around to first",
@@ -121,10 +126,11 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			userRepo: fakeUserRepo{
 				countMembershipsCount: 0,
 			},
-			wantDeletedMember: charlie.ID,
-			wantDeletedUser:   charlie.User.ID,
-			wantReorderCall:   []string{alice.ID, bob.ID},
-			wantSetCurrMember: alice.ID, // charlie was index 2, next = 2 % 2 = alice
+			wantDeletedMember:             charlie.ID,
+			wantDeletedOverridesForMember: charlie.ID,
+			wantDeletedUser:               charlie.User.ID,
+			wantReorderCall:               []string{alice.ID, bob.ID},
+			wantSetCurrMember:             alice.ID, // charlie was index 2, next = 2 % 2 = alice
 		},
 		{
 			name:  "success - last member deleted",
@@ -141,8 +147,9 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			userRepo: fakeUserRepo{
 				countMembershipsCount: 0,
 			},
-			wantDeletedMember: alice.ID,
-			wantDeletedUser:   alice.User.ID,
+			wantDeletedMember:             alice.ID,
+			wantDeletedOverridesForMember: alice.ID,
+			wantDeletedUser:               alice.User.ID,
 			// no reorder, no SetCurrentMember
 		},
 		{
@@ -157,6 +164,14 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			rotationRepo: fakeRotationRepo{rotation: rotation3},
 			memberRepo:   fakeMemberRepo{getByIDErr: domain.ErrMemberNotFound},
 			wantErr:      domain.ErrMemberNotFound,
+		},
+		{
+			name:         "override delete error propagates",
+			input:        application.DeleteMemberInput{RotationID: rotationID, MemberID: bob.ID},
+			rotationRepo: fakeRotationRepo{rotation: rotation3},
+			memberRepo:   fakeMemberRepo{getByIDMember: &bob},
+			overrideRepo: fakeOverrideRepo{deleteByMemberIDErr: errors.New("db error")},
+			wantErr:      errors.New("db error"),
 		},
 		{
 			name:         "member delete error propagates",
@@ -206,6 +221,7 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 				&fakeTransactor{},
 				&tc.rotationRepo,
 				&tc.memberRepo,
+				&tc.overrideRepo,
 				&tc.userRepo,
 			)
 
@@ -224,6 +240,13 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 				assert.Equal(t, tc.wantDeletedMember, tc.memberRepo.deleteMemberCalls[0])
 			} else {
 				assert.Empty(t, tc.memberRepo.deleteMemberCalls)
+			}
+
+			if tc.wantDeletedOverridesForMember != "" {
+				require.Len(t, tc.overrideRepo.deleteByMemberIDCalls, 1)
+				assert.Equal(t, tc.wantDeletedOverridesForMember, tc.overrideRepo.deleteByMemberIDCalls[0])
+			} else {
+				assert.Empty(t, tc.overrideRepo.deleteByMemberIDCalls)
 			}
 
 			if tc.wantDeletedUser != "" {
