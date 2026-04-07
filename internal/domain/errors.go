@@ -13,4 +13,5 @@ var (
 	ErrMemberNotFound         = errors.New("member not found in rotation")
 	ErrOverrideSameMember     = errors.New("override member is already the scheduled on-call during this window")
 	ErrOverrideConflict       = errors.New("an override already exists during this window")
+	ErrMemberMismatch         = errors.New("the provided members do not match the rotation's current members")
 )

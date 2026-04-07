@@ -67,3 +67,22 @@ func (r *MemberRepository) SetCurrentMember(ctx context.Context, rotationID stri
 	`, memberID, memberID, at.UTC().Format(time.RFC3339), rotationID)
 	return err
 }
+
+func (r *MemberRepository) ReorderMembers(ctx context.Context, rotationID string, memberIDs []string) error {
+	db := dbFromContext(ctx, r.db)
+	for i, memberID := range memberIDs {
+		rec := memberData{Order: i + 1}
+		blob, err := json.Marshal(rec)
+		if err != nil {
+			return err
+		}
+		_, err = db.ExecContext(ctx,
+			`UPDATE members SET data = ? WHERE id = ? AND rotation_id = ?`,
+			string(blob), memberID, rotationID,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
