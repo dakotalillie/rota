@@ -6,7 +6,7 @@ import { useBreadcrumbs } from "./BreadcrumbContext";
 import Members from "./Members";
 import Overrides from "./Overrides";
 import PageHeader from "./PageHeader";
-import type { Member } from "./types";
+import type { Member, Override } from "./types";
 
 type ApiMember = {
   type: "members";
@@ -21,15 +21,29 @@ type ApiUser = {
   attributes: { name: string; email: string };
 };
 
+type ApiOverride = {
+  type: "overrides";
+  id: string;
+  attributes: { start: string; end: string };
+  relationships: { member: { data: { id: string } } };
+};
+
 type GetRotationResponse = {
   data?: {
     attributes: { name: string };
     relationships: {
       members: { data: { id: string }[] };
+      overrides: { data: { id: string }[] };
     };
   };
-  included?: (ApiMember | ApiUser)[];
+  included?: (ApiMember | ApiUser | ApiOverride)[];
   errors?: { detail?: string }[];
+};
+
+type IncludedMaps = {
+  memberMap: Map<string, ApiMember>;
+  userMap: Map<string, ApiUser>;
+  overrideMap: Map<string, ApiOverride>;
 };
 
 const COLOR_PALETTE = [
@@ -83,6 +97,84 @@ const COLOR_PALETTE = [
   },
 ];
 
+function buildIncludedMaps(
+  included: (ApiMember | ApiUser | ApiOverride)[],
+): IncludedMaps {
+  const memberMap = new Map<string, ApiMember>();
+  const userMap = new Map<string, ApiUser>();
+  const overrideMap = new Map<string, ApiOverride>();
+
+  for (const item of included) {
+    if (item.type === "members") memberMap.set(item.id, item);
+    else if (item.type === "users") userMap.set(item.id, item);
+    else if (item.type === "overrides") overrideMap.set(item.id, item);
+  }
+
+  return { memberMap, userMap, overrideMap };
+}
+
+function loadMembers(
+  memberRefs: { id: string }[],
+  { memberMap, userMap }: IncludedMaps,
+): Member[] {
+  const sortedRefs = [...memberRefs].sort((a, b) => {
+    const orderA = memberMap.get(a.id)?.attributes.order ?? 0;
+    const orderB = memberMap.get(b.id)?.attributes.order ?? 0;
+    return orderA - orderB;
+  });
+
+  return sortedRefs.flatMap((ref, index) => {
+    const member = memberMap.get(ref.id);
+    if (!member) return [];
+
+    const userId = member.relationships.user.data.id;
+    const user = userMap.get(userId);
+    if (!user) return [];
+
+    return [
+      {
+        id: ref.id,
+        userId,
+        name: user.attributes.name,
+        email: user.attributes.email,
+        ...COLOR_PALETTE[index % COLOR_PALETTE.length],
+      },
+    ];
+  });
+}
+
+function toDateTimeLocalValue(dateTime: string): string {
+  const date = new Date(dateTime);
+  if (Number.isNaN(date.getTime())) return dateTime;
+
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function loadOverrides(
+  overrideRefs: { id: string }[],
+  { memberMap, overrideMap }: IncludedMaps,
+): Override[] {
+  return overrideRefs.flatMap((ref) => {
+    const override = overrideMap.get(ref.id);
+    if (!override) return [];
+
+    const memberId = override.relationships.member.data.id;
+    if (!memberMap.has(memberId)) return [];
+
+    return [
+      {
+        id: override.id,
+        start: toDateTimeLocalValue(override.attributes.start),
+        end: toDateTimeLocalValue(override.attributes.end),
+        memberId,
+      },
+    ];
+  });
+}
+
 function Settings() {
   const { rotationId } = useParams({ from: "/rotations/$rotationId/settings" });
   const [rotationName, setRotationName] = useState<string | null>(null);
@@ -100,49 +192,48 @@ function Settings() {
   const { members, setMembers, overrides, setOverrides } = useAppState();
 
   useEffect(() => {
+    let cancelled = false;
+
+    function clearState() {
+      if (cancelled) return;
+      setRotationName(null);
+      setMembers([]);
+      setOverrides([]);
+    }
+
     void (async () => {
-      const res = await fetch(`/api/rotations/${rotationId}`);
-      const body = (await res.json()) as GetRotationResponse;
-      if (!res.ok || !body.data) return;
+      try {
+        const res = await fetch(`/api/rotations/${rotationId}`);
+        const body = (await res.json()) as GetRotationResponse;
+        if (!res.ok || !body.data) {
+          clearState();
+          return;
+        }
 
-      setRotationName(body.data.attributes.name);
+        if (cancelled) return;
 
-      const memberRefs = body.data.relationships.members.data;
-      const included = body.included ?? [];
+        const includedMaps = buildIncludedMaps(body.included ?? []);
+        const loadedMembers = loadMembers(
+          body.data.relationships.members.data,
+          includedMaps,
+        );
+        const loadedOverrides = loadOverrides(
+          body.data.relationships.overrides.data,
+          includedMaps,
+        );
 
-      const memberMap = new Map<string, ApiMember>();
-      const userMap = new Map<string, ApiUser>();
-      for (const item of included) {
-        if (item.type === "members") memberMap.set(item.id, item);
-        else if (item.type === "users") userMap.set(item.id, item);
+        setRotationName(body.data.attributes.name);
+        setMembers(loadedMembers);
+        setOverrides(loadedOverrides);
+      } catch {
+        clearState();
       }
-
-      const sortedRefs = [...memberRefs].sort((a, b) => {
-        const orderA = memberMap.get(a.id)?.attributes.order ?? 0;
-        const orderB = memberMap.get(b.id)?.attributes.order ?? 0;
-        return orderA - orderB;
-      });
-
-      const loadedMembers: Member[] = sortedRefs.flatMap((ref, i) => {
-        const member = memberMap.get(ref.id);
-        if (!member) return [];
-        const userId = member.relationships.user.data.id;
-        const user = userMap.get(userId);
-        if (!user) return [];
-        return [
-          {
-            id: ref.id,
-            userId,
-            name: user.attributes.name,
-            email: user.attributes.email,
-            ...COLOR_PALETTE[i % COLOR_PALETTE.length],
-          },
-        ];
-      });
-
-      setMembers(loadedMembers);
     })();
-  }, [rotationId, setMembers, setRotationName]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rotationId, setMembers, setOverrides]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
