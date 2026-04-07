@@ -42,6 +42,7 @@ func main() {
 		listRotationsUseCase  = application.NewListRotationsUseCase(rotationRepo)
 		createMemberUseCase   = application.NewCreateMemberUseCase(transactor, rotationRepo, userRepo, memberRepo)
 		reorderMembersUseCase = application.NewReorderMembersUseCase(transactor, rotationRepo, memberRepo)
+		deleteMemberUseCase   = application.NewDeleteMemberUseCase(transactor, rotationRepo, memberRepo, userRepo)
 		getScheduleUseCase    = application.NewGetScheduleUseCase(rotationRepo, overrideRepo)
 		createOverrideUseCase = application.NewCreateOverrideUseCase(transactor, rotationRepo, overrideRepo)
 		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, 5*time.Second, slog.Default().With("component", "advance_rotation_worker"))
@@ -50,6 +51,7 @@ func main() {
 		listRotationsHandler  = httpapi.NewListRotationsHandler(conf.Hostname, listRotationsUseCase.Execute)
 		createMemberHandler   = httpapi.NewCreateMemberHandler(conf.Hostname, createMemberUseCase.Execute)
 		reorderMembersHandler = httpapi.NewReorderMembersHandler(conf.Hostname, reorderMembersUseCase.Execute)
+		deleteMemberHandler   = httpapi.NewDeleteMemberHandler(conf.Hostname, deleteMemberUseCase.Execute)
 		getScheduleHandler    = httpapi.NewGetScheduleHandler(conf.Hostname, getScheduleUseCase.Execute)
 		createOverrideHandler = httpapi.NewCreateOverrideHandler(conf.Hostname, createOverrideUseCase.Execute)
 	)
@@ -60,6 +62,7 @@ func main() {
 	mux.HandleFunc("GET /api/rotations/{rotationID}", getRotationHandler.Handle)
 	mux.HandleFunc("POST /api/rotations/{rotationID}/members", createMemberHandler.Handle)
 	mux.HandleFunc("PUT /api/rotations/{rotationID}/members", reorderMembersHandler.Handle)
+	mux.HandleFunc("DELETE /api/rotations/{rotationID}/members/{memberID}", deleteMemberHandler.Handle)
 	mux.HandleFunc("GET /api/rotations/{rotationID}/schedule", getScheduleHandler.Handle)
 	mux.HandleFunc("POST /api/rotations/{rotationID}/overrides", createOverrideHandler.Handle)
 

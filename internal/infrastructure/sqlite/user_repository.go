@@ -40,6 +40,20 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, 
 	return &user, nil
 }
 
+func (r *UserRepository) CountMemberships(ctx context.Context, userID string) (int, error) {
+	var count int
+	err := dbFromContext(ctx, r.db).QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM members WHERE user_id = ?`,
+		userID,
+	).Scan(&count)
+	return count, err
+}
+
+func (r *UserRepository) Delete(ctx context.Context, userID string) error {
+	_, err := dbFromContext(ctx, r.db).ExecContext(ctx, `DELETE FROM users WHERE id = ?`, userID)
+	return err
+}
+
 func (r *UserRepository) Create(ctx context.Context, name, email string) (*domain.User, error) {
 	db := dbFromContext(ctx, r.db)
 

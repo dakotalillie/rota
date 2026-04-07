@@ -38,6 +38,73 @@ func TestUserRepository_GetByID(t *testing.T) {
 	})
 }
 
+func TestUserRepository_CountMemberships(t *testing.T) {
+	t.Run("zero memberships", func(t *testing.T) {
+		db := openTestDB(t)
+		userRepo := sqlite.NewUserRepository(db)
+
+		user, err := userRepo.Create(t.Context(), userA.Name, userA.Email)
+		require.NoError(t, err)
+
+		count, err := userRepo.CountMemberships(t.Context(), user.ID)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+
+	t.Run("one membership", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		userRepo := sqlite.NewUserRepository(db)
+		memberRepo := sqlite.NewMemberRepository(db)
+
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+		user, err := userRepo.Create(t.Context(), userA.Name, userA.Email)
+		require.NoError(t, err)
+		_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		require.NoError(t, err)
+
+		count, err := userRepo.CountMemberships(t.Context(), user.ID)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+
+	t.Run("two memberships across rotations", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		userRepo := sqlite.NewUserRepository(db)
+		memberRepo := sqlite.NewMemberRepository(db)
+
+		rotB := &domain.Rotation{ID: "rot_01JQGF0000000000000000001", Name: "Second Rotation"}
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotB))
+		user, err := userRepo.Create(t.Context(), userA.Name, userA.Email)
+		require.NoError(t, err)
+		_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		require.NoError(t, err)
+		_, err = memberRepo.Create(t.Context(), rotB.ID, user.ID, 1)
+		require.NoError(t, err)
+
+		count, err := userRepo.CountMemberships(t.Context(), user.ID)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
+}
+
+func TestUserRepository_Delete(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		db := openTestDB(t)
+		userRepo := sqlite.NewUserRepository(db)
+
+		user, err := userRepo.Create(t.Context(), userA.Name, userA.Email)
+		require.NoError(t, err)
+
+		require.NoError(t, userRepo.Delete(t.Context(), user.ID))
+
+		_, err = userRepo.GetByID(t.Context(), user.ID)
+		require.ErrorIs(t, err, domain.ErrUserNotFound)
+	})
+}
+
 func TestUserRepository_Create(t *testing.T) {
 	t.Run("creates new user", func(t *testing.T) {
 		db := openTestDB(t)

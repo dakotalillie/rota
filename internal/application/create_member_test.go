@@ -44,10 +44,14 @@ func (f *fakeRotationRepo) List(_ context.Context) ([]*domain.Rotation, error) {
 }
 
 type fakeUserRepo struct {
-	getByIDUser *domain.User
-	getByIDErr  error
-	createUser  *domain.User
-	createErr   error
+	getByIDUser           *domain.User
+	getByIDErr            error
+	createUser            *domain.User
+	createErr             error
+	countMembershipsCount int
+	countMembershipsErr   error
+	deleteUserCalls       []string
+	deleteUserErr         error
 }
 
 func (f *fakeUserRepo) GetByID(_ context.Context, _ string) (*domain.User, error) {
@@ -58,13 +62,26 @@ func (f *fakeUserRepo) Create(_ context.Context, _, _ string) (*domain.User, err
 	return f.createUser, f.createErr
 }
 
+func (f *fakeUserRepo) CountMemberships(_ context.Context, _ string) (int, error) {
+	return f.countMembershipsCount, f.countMembershipsErr
+}
+
+func (f *fakeUserRepo) Delete(_ context.Context, userID string) error {
+	f.deleteUserCalls = append(f.deleteUserCalls, userID)
+	return f.deleteUserErr
+}
+
 type fakeMemberRepo struct {
-	count        int
-	countErr     error
-	createMember *domain.Member
-	createErr    error
-	setCurrErr   error
-	setCurrCalls []struct {
+	count             int
+	countErr          error
+	createMember      *domain.Member
+	createErr         error
+	getByIDMember     *domain.Member
+	getByIDErr        error
+	deleteMemberCalls []string
+	deleteMemberErr   error
+	setCurrErr        error
+	setCurrCalls      []struct {
 		memberID string
 		at       time.Time
 	}
@@ -78,6 +95,15 @@ func (f *fakeMemberRepo) CountByRotationID(_ context.Context, _ string) (int, er
 
 func (f *fakeMemberRepo) Create(_ context.Context, _, _ string, _ int) (*domain.Member, error) {
 	return f.createMember, f.createErr
+}
+
+func (f *fakeMemberRepo) GetByID(_ context.Context, _, _ string) (*domain.Member, error) {
+	return f.getByIDMember, f.getByIDErr
+}
+
+func (f *fakeMemberRepo) Delete(_ context.Context, memberID string) error {
+	f.deleteMemberCalls = append(f.deleteMemberCalls, memberID)
+	return f.deleteMemberErr
 }
 
 func (f *fakeMemberRepo) SetCurrentMember(_ context.Context, _ string, memberID string, at time.Time) error {

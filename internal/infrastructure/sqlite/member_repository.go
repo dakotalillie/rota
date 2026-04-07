@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 
@@ -55,6 +56,36 @@ func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string
 		User:       domain.User{ID: userID},
 		Order:      order,
 	}, nil
+}
+
+func (r *MemberRepository) GetByID(ctx context.Context, rotationID, memberID string) (*domain.Member, error) {
+	db := dbFromContext(ctx, r.db)
+
+	var (
+		m       domain.Member
+		rawData string
+	)
+	err := db.QueryRowContext(ctx,
+		`SELECT id, rotation_id, user_id, data FROM members WHERE id = ? AND rotation_id = ?`,
+		memberID, rotationID,
+	).Scan(&m.ID, &m.RotationID, &m.User.ID, &rawData)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, domain.ErrMemberNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	var rec memberData
+	if err := json.Unmarshal([]byte(rawData), &rec); err != nil {
+		return nil, err
+	}
+	m.Order = rec.Order
+	return &m, nil
+}
+
+func (r *MemberRepository) Delete(ctx context.Context, memberID string) error {
+	_, err := dbFromContext(ctx, r.db).ExecContext(ctx, `DELETE FROM members WHERE id = ?`, memberID)
+	return err
 }
 
 func (r *MemberRepository) SetCurrentMember(ctx context.Context, rotationID string, memberID string, at time.Time) error {
