@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
 import { Input } from "./Input";
-import type { Engineer, Override } from "./types";
+import type { Member, Override } from "./types";
 import {
   computeOverrideReplacements,
   formatDateTimeRange,
@@ -22,39 +22,39 @@ const selectClass =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-shadow";
 
 type SettingsOverridesFormProps = {
-  engineers: Engineer[];
+  members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
 function SettingsOverridesForm({
-  engineers,
+  members,
   overrides,
   setOverrides,
 }: SettingsOverridesFormProps) {
   const [overrideStart, setOverrideStart] = useState("");
   const [overrideEnd, setOverrideEnd] = useState("");
-  const [overrideEngineerId, setOverrideEngineerId] = useState("");
+  const [overrideMemberId, setOverrideMemberId] = useState("");
 
-  const validEngineerId = engineers.find((e) => e.id === overrideEngineerId)
-    ? overrideEngineerId
+  const validMemberId = members.find((m) => m.id === overrideMemberId)
+    ? overrideMemberId
     : "";
 
   const overrideValid =
     overrideStart &&
     overrideEnd &&
     new Date(overrideEnd) > new Date(overrideStart) &&
-    validEngineerId;
+    validMemberId;
   const formReplacements = overrideValid
     ? computeOverrideReplacements(
-        engineers,
+        members,
         overrides,
         overrideStart,
         overrideEnd,
       )
     : [];
   const overrideSelfAssign = formReplacements.some(
-    (seg) => seg.engineer.id === validEngineerId,
+    (seg) => seg.member.id === validMemberId,
   );
 
   function addOverride() {
@@ -65,12 +65,12 @@ function SettingsOverridesForm({
         id: crypto.randomUUID(),
         start: overrideStart,
         end: overrideEnd,
-        engineerId: validEngineerId,
+        memberId: validMemberId,
       },
     ]);
     setOverrideStart("");
     setOverrideEnd("");
-    setOverrideEngineerId("");
+    setOverrideMemberId("");
   }
 
   return (
@@ -96,16 +96,16 @@ function SettingsOverridesForm({
       </div>
       <div className="relative">
         <select
-          value={validEngineerId}
-          onChange={(e) => setOverrideEngineerId(e.target.value)}
+          value={validMemberId}
+          onChange={(e) => setOverrideMemberId(e.target.value)}
           className={selectClass + " appearance-none pr-8"}
         >
           <option value="" disabled>
             Select person
           </option>
-          {engineers.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.name}
+          {members.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
             </option>
           ))}
         </select>
@@ -122,21 +122,21 @@ function SettingsOverridesForm({
           </p>
           <div className="space-y-1">
             {formReplacements.map((seg, i) => {
-              const isSelf = seg.engineer.id === validEngineerId;
+              const isSelf = seg.member.id === validMemberId;
               return (
                 <div key={i} className="flex items-center gap-2 text-sm">
                   <Avatar className="h-5 w-5 shrink-0">
-                    <AvatarImage src={seg.engineer.avatarUrl} />
+                    <AvatarImage src={seg.member.avatarUrl} />
                     <AvatarFallback
-                      className={`text-[9px] font-semibold ${seg.engineer.color} ${seg.engineer.textColor}`}
+                      className={`text-[9px] font-semibold ${seg.member.color} ${seg.member.textColor}`}
                     >
-                      {initials(seg.engineer.name)}
+                      {initials(seg.member.name)}
                     </AvatarFallback>
                   </Avatar>
                   <span
                     className={`font-medium ${isSelf ? "text-destructive" : ""}`}
                   >
-                    {seg.engineer.name}
+                    {seg.member.name}
                   </span>
                   <span className="text-muted-foreground text-xs">
                     {formatDateTimeRange(seg.start, seg.end)}

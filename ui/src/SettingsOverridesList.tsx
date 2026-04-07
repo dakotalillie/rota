@@ -2,7 +2,7 @@ import { ArrowRight, X } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
-import type { Engineer, Override } from "./types";
+import type { Member, Override } from "./types";
 import {
   computeOverrideReplacements,
   formatDateTimeRange,
@@ -10,13 +10,13 @@ import {
 } from "./utils";
 
 type SettingsOverridesListProps = {
-  engineers: Engineer[];
+  members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
 function SettingsOverridesList({
-  engineers,
+  members,
   overrides,
   setOverrides,
 }: SettingsOverridesListProps) {
@@ -27,11 +27,11 @@ function SettingsOverridesList({
   return (
     <div className="space-y-1">
       {overrides.map((override) => {
-        const engineer = engineers.find((e) => e.id === override.engineerId);
-        if (!engineer) return null;
+        const member = members.find((m) => m.id === override.memberId);
+        if (!member) return null;
         const baseOverrides = overrides.filter((o) => o.id !== override.id);
         const replacements = computeOverrideReplacements(
-          engineers,
+          members,
           baseOverrides,
           override.start,
           override.end,
@@ -51,14 +51,14 @@ function SettingsOverridesList({
                 </span>
                 <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <Avatar className="h-6 w-6 shrink-0">
-                  <AvatarImage src={engineer.avatarUrl} />
+                  <AvatarImage src={member.avatarUrl} />
                   <AvatarFallback
-                    className={`text-[10px] font-semibold ${engineer.color} ${engineer.textColor}`}
+                    className={`text-[10px] font-semibold ${member.color} ${member.textColor}`}
                   >
-                    {initials(engineer.name)}
+                    {initials(member.name)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="font-medium truncate">{engineer.name}</span>
+                <span className="font-medium truncate">{member.name}</span>
               </div>
               <Button
                 variant="ghost"
@@ -79,15 +79,15 @@ function SettingsOverridesList({
                     className="flex items-center gap-1 text-xs text-muted-foreground"
                   >
                     <Avatar className="h-4 w-4 shrink-0">
-                      <AvatarImage src={seg.engineer.avatarUrl} />
+                      <AvatarImage src={seg.member.avatarUrl} />
                       <AvatarFallback
-                        className={`text-[8px] font-semibold ${seg.engineer.color} ${seg.engineer.textColor}`}
+                        className={`text-[8px] font-semibold ${seg.member.color} ${seg.member.textColor}`}
                       >
-                        {initials(seg.engineer.name)}
+                        {initials(seg.member.name)}
                       </AvatarFallback>
                     </Avatar>
                     <span className="font-medium text-foreground">
-                      {seg.engineer.name}
+                      {seg.member.name}
                     </span>
                     {replacements.length > 1 && (
                       <span>({formatDateTimeRange(seg.start, seg.end)})</span>

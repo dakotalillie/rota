@@ -6,7 +6,7 @@ import { useBreadcrumbs } from "./BreadcrumbContext";
 import PageHeader from "./PageHeader";
 import SettingsOverrides from "./SettingsOverrides";
 import SettingsRotationOrder from "./SettingsRotationOrder";
-import type { Engineer } from "./types";
+import type { Member } from "./types";
 
 type ApiMember = {
   type: "members";
@@ -97,7 +97,7 @@ function Settings() {
     { label: "Settings" },
   ]);
 
-  const { engineers, setEngineers, overrides, setOverrides } = useAppState();
+  const { members, setMembers, overrides, setOverrides } = useAppState();
 
   useEffect(() => {
     void (async () => {
@@ -123,7 +123,7 @@ function Settings() {
         return orderA - orderB;
       });
 
-      const loadedEngineers: Engineer[] = sortedRefs.flatMap((ref, i) => {
+      const loadedMembers: Member[] = sortedRefs.flatMap((ref, i) => {
         const member = memberMap.get(ref.id);
         if (!member) return [];
         const userId = member.relationships.user.data.id;
@@ -131,7 +131,8 @@ function Settings() {
         if (!user) return [];
         return [
           {
-            id: userId,
+            id: ref.id,
+            userId,
             name: user.attributes.name,
             email: user.attributes.email,
             ...COLOR_PALETTE[i % COLOR_PALETTE.length],
@@ -139,21 +140,21 @@ function Settings() {
         ];
       });
 
-      setEngineers(loadedEngineers);
+      setMembers(loadedMembers);
     })();
-  }, [rotationId, setEngineers, setRotationName]);
+  }, [rotationId, setMembers, setRotationName]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
       <PageHeader title="Settings" />
       <SettingsRotationOrder
-        engineers={engineers}
-        setEngineers={setEngineers}
+        members={members}
+        setMembers={setMembers}
         overrides={overrides}
         setOverrides={setOverrides}
       />
       <SettingsOverrides
-        engineers={engineers}
+        members={members}
         overrides={overrides}
         setOverrides={setOverrides}
       />

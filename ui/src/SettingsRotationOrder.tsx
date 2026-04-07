@@ -1,3 +1,4 @@
+import { useParams } from "@tanstack/react-router";
 import { GripVertical, X } from "lucide-react";
 import { useRef } from "react";
 
@@ -5,23 +6,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "./Card";
 import SettingsAddPerson from "./SettingsAddPerson";
-import type { Engineer, Override } from "./types";
+import type { Member, Override } from "./types";
 import { initials } from "./utils";
 
 type SettingsRotationOrderProps = {
-  engineers: Engineer[];
-  setEngineers: (engineers: Engineer[]) => void;
+  members: Member[];
+  setMembers: (members: Member[]) => void;
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
 function SettingsRotationOrder({
-  engineers,
-  setEngineers,
+  members,
+  setMembers,
   overrides,
   setOverrides,
 }: SettingsRotationOrderProps) {
+  const { rotationId } = useParams({ strict: false });
   const dragIndexRef = useRef<number | null>(null);
+  const didReorderRef = useRef(false);
 
   function handleDragStart(index: number) {
     dragIndexRef.current = index;
@@ -31,20 +34,31 @@ function SettingsRotationOrder({
     e.preventDefault();
     const from = dragIndexRef.current;
     if (from === null || from === index) return;
-    const next = [...engineers];
+    const next = [...members];
     const [item] = next.splice(from, 1);
     next.splice(index, 0, item);
     dragIndexRef.current = index;
-    setEngineers(next);
+    didReorderRef.current = true;
+    setMembers(next);
   }
 
   function handleDragEnd() {
     dragIndexRef.current = null;
+    if (didReorderRef.current) {
+      didReorderRef.current = false;
+      void fetch(`/api/rotations/${rotationId}/members`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: members.map((m) => ({ type: "members", id: m.id })),
+        }),
+      });
+    }
   }
 
-  function removeEngineer(id: string) {
-    setEngineers(engineers.filter((e) => e.id !== id));
-    setOverrides(overrides.filter((o) => o.engineerId !== id));
+  function removeMember(id: string) {
+    setMembers(members.filter((m) => m.id !== id));
+    setOverrides(overrides.filter((o) => o.memberId !== id));
   }
 
   return (
@@ -52,17 +66,14 @@ function SettingsRotationOrder({
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold">Members</CardTitle>
         <CardAction>
-          <SettingsAddPerson
-            engineers={engineers}
-            setEngineers={setEngineers}
-          />
+          <SettingsAddPerson members={members} setMembers={setMembers} />
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-1">
-        {engineers.length > 0 ? (
-          engineers.map((engineer, index) => (
+        {members.length > 0 ? (
+          members.map((member, index) => (
             <div
-              key={engineer.id}
+              key={member.id}
               draggable
               onDragStart={() => handleDragStart(index)}
               onDragOver={(e) => handleDragOver(e, index)}
@@ -71,27 +82,27 @@ function SettingsRotationOrder({
             >
               <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
               <Avatar className="h-8 w-8 shrink-0">
-                <AvatarImage src={engineer.avatarUrl} />
+                <AvatarImage src={member.avatarUrl} />
                 <AvatarFallback
-                  className={`text-xs font-semibold ${engineer.color} ${engineer.textColor}`}
+                  className={`text-xs font-semibold ${member.color} ${member.textColor}`}
                 >
-                  {initials(engineer.name)}
+                  {initials(member.name)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{engineer.name}</p>
-                {engineer.email && (
+                <p className="text-sm font-medium truncate">{member.name}</p>
+                {member.email && (
                   <p className="text-xs text-muted-foreground truncate">
-                    {engineer.email}
+                    {member.email}
                   </p>
                 )}
               </div>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => removeEngineer(engineer.id)}
+                onClick={() => removeMember(member.id)}
                 className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                aria-label={`Remove ${engineer.name}`}
+                aria-label={`Remove ${member.name}`}
               >
                 <X />
               </Button>
@@ -99,7 +110,7 @@ function SettingsRotationOrder({
           ))
         ) : (
           <p className="text-sm text-muted-foreground px-1 py-1">
-            No engineers yet.
+            No members yet.
           </p>
         )}
       </CardContent>

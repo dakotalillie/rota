@@ -1,5 +1,6 @@
-export type Engineer = {
-  id: string;
+export type Member = {
+  id: string; // member ID (matches server-side Member.id)
+  userId: string; // user ID
   name: string;
   email: string;
   avatarUrl?: string;
@@ -13,12 +14,12 @@ export type Override = {
   id: string;
   start: string; // datetime-local string: "YYYY-MM-DDThh:mm"
   end: string; // datetime-local string: "YYYY-MM-DDThh:mm"
-  engineerId: string;
+  memberId: string;
 };
 
 export type TimeSegment = {
   start: Date;
   end: Date;
-  engineer: Engineer;
+  member: Member;
   isOverride: boolean;
 };
