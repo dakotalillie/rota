@@ -1,6 +1,7 @@
 import { Clock, Mail } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
+import { Badge } from "./Badge";
 import type { TimeSegment } from "./types";
 import { formatDateTimeRange, initials } from "./utils";
 
@@ -32,9 +33,16 @@ function OnCallHero({ segment }: OnCallHeroProps) {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1.5">
-              <h2 className="text-2xl font-bold text-white">
-                {segment.member.name}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold text-white">
+                  {segment.member.name}
+                </h2>
+                {segment.isOverride && (
+                  <Badge className="border-amber-200/40 bg-amber-400/20 px-1.5 py-0 text-xs text-white backdrop-blur-sm hover:bg-amber-400/20">
+                    Override
+                  </Badge>
+                )}
+              </div>
               <div className="flex items-center gap-1.5 text-sm text-white/70">
                 <Mail className="h-3.5 w-3.5" />
                 <span>{segment.member.email}</span>
