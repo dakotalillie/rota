@@ -115,6 +115,79 @@ func TestMemberRepository_CreateMember_DuplicateUser(t *testing.T) {
 	require.ErrorIs(t, err, domain.ErrMemberAlreadyExists)
 }
 
+func TestMemberRepository_GetByID(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		userRepo := sqlite.NewUserRepository(db)
+		memberRepo := sqlite.NewMemberRepository(db)
+
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+		user, err := userRepo.Create(t.Context(), "Alice", "alice@example.com")
+		require.NoError(t, err)
+		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		require.NoError(t, err)
+
+		found, err := memberRepo.GetByID(t.Context(), rotationA.ID, created.ID)
+		require.NoError(t, err)
+		require.Equal(t, created.ID, found.ID)
+		require.Equal(t, rotationA.ID, found.RotationID)
+		require.Equal(t, user.ID, found.User.ID)
+		require.Equal(t, 1, found.Order)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		memberRepo := sqlite.NewMemberRepository(db)
+
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+
+		_, err := memberRepo.GetByID(t.Context(), rotationA.ID, "mem_99999999999999999999999999")
+		require.ErrorIs(t, err, domain.ErrMemberNotFound)
+	})
+
+	t.Run("wrong rotation", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		userRepo := sqlite.NewUserRepository(db)
+		memberRepo := sqlite.NewMemberRepository(db)
+
+		rotB := &domain.Rotation{ID: "rot_01JQGF0000000000000000001", Name: "Other Rotation"}
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotB))
+		user, err := userRepo.Create(t.Context(), "Alice", "alice@example.com")
+		require.NoError(t, err)
+		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		require.NoError(t, err)
+
+		// Looking up the member using a different rotation ID should fail.
+		_, err = memberRepo.GetByID(t.Context(), rotB.ID, created.ID)
+		require.ErrorIs(t, err, domain.ErrMemberNotFound)
+	})
+}
+
+func TestMemberRepository_Delete(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		userRepo := sqlite.NewUserRepository(db)
+		memberRepo := sqlite.NewMemberRepository(db)
+
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+		user, err := userRepo.Create(t.Context(), "Alice", "alice@example.com")
+		require.NoError(t, err)
+		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		require.NoError(t, err)
+
+		require.NoError(t, memberRepo.Delete(t.Context(), created.ID))
+
+		count, err := memberRepo.CountByRotationID(t.Context(), rotationA.ID)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+}
+
 func TestMemberRepository_ReorderMembers(t *testing.T) {
 	seedMembers := func(t *testing.T, db *sql.DB, count int) (rotRepo *sqlite.RotationRepository, memberRepo *sqlite.MemberRepository, memberIDs []string) {
 		t.Helper()
