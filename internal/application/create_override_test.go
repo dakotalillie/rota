@@ -13,10 +13,15 @@ import (
 )
 
 type fakeOverrideRepo struct {
-	hasOverlapping        bool
-	hasOverlappingErr     error
-	createdOverride       *domain.Override
-	createErr             error
+	hasOverlapping    bool
+	hasOverlappingErr error
+	createdOverride   *domain.Override
+	createErr         error
+	deleteCalls       []struct {
+		rotationID string
+		overrideID string
+	}
+	deleteErr             error
 	deleteByMemberIDCalls []string
 	deleteByMemberIDErr   error
 }
@@ -39,6 +44,14 @@ func (f *fakeOverrideRepo) Create(_ context.Context, rotationID, memberID string
 
 func (f *fakeOverrideRepo) HasOverlapping(_ context.Context, _ string, _, _ time.Time) (bool, error) {
 	return f.hasOverlapping, f.hasOverlappingErr
+}
+
+func (f *fakeOverrideRepo) Delete(_ context.Context, rotationID, overrideID string) error {
+	f.deleteCalls = append(f.deleteCalls, struct {
+		rotationID string
+		overrideID string
+	}{rotationID, overrideID})
+	return f.deleteErr
 }
 
 func (f *fakeOverrideRepo) DeleteByMemberID(_ context.Context, memberID string) error {

@@ -45,6 +45,7 @@ func main() {
 		deleteMemberUseCase   = application.NewDeleteMemberUseCase(transactor, rotationRepo, memberRepo, overrideRepo, userRepo)
 		getScheduleUseCase    = application.NewGetScheduleUseCase(rotationRepo, overrideRepo)
 		createOverrideUseCase = application.NewCreateOverrideUseCase(transactor, rotationRepo, overrideRepo)
+		deleteOverrideUseCase = application.NewDeleteOverrideUseCase(transactor, rotationRepo, overrideRepo)
 		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, 5*time.Second, slog.Default().With("component", "advance_rotation_worker"))
 		createRotationHandler = httpapi.NewCreateRotationHandler(conf.Hostname, createRotationUseCase.Execute)
 		getRotationHandler    = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
@@ -54,6 +55,7 @@ func main() {
 		deleteMemberHandler   = httpapi.NewDeleteMemberHandler(conf.Hostname, deleteMemberUseCase.Execute)
 		getScheduleHandler    = httpapi.NewGetScheduleHandler(conf.Hostname, getScheduleUseCase.Execute)
 		createOverrideHandler = httpapi.NewCreateOverrideHandler(conf.Hostname, createOverrideUseCase.Execute)
+		deleteOverrideHandler = httpapi.NewDeleteOverrideHandler(conf.Hostname, deleteOverrideUseCase.Execute)
 	)
 
 	mux := http.NewServeMux()
@@ -65,6 +67,7 @@ func main() {
 	mux.HandleFunc("DELETE /api/rotations/{rotationID}/members/{memberID}", deleteMemberHandler.Handle)
 	mux.HandleFunc("GET /api/rotations/{rotationID}/schedule", getScheduleHandler.Handle)
 	mux.HandleFunc("POST /api/rotations/{rotationID}/overrides", createOverrideHandler.Handle)
+	mux.HandleFunc("DELETE /api/rotations/{rotationID}/overrides/{overrideID}", deleteOverrideHandler.Handle)
 
 	server := &http.Server{Addr: ":8080", Handler: mux}
 

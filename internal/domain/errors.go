@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrRotationNotFound       = errors.New("rotation not found")
+	ErrOverrideNotFound       = errors.New("override not found")
 	ErrTooManyRotations       = errors.New("maximum number of rotations reached")
 	ErrInvalidRotationName    = errors.New("rotation name is required")
 	ErrUserNotFound           = errors.New("user not found")

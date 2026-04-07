@@ -38,6 +38,27 @@ func (r *OverrideRepository) Create(ctx context.Context, rotationID, memberID st
 	}, nil
 }
 
+func (r *OverrideRepository) Delete(ctx context.Context, rotationID, overrideID string) error {
+	result, err := dbFromContext(ctx, r.db).ExecContext(ctx,
+		`DELETE FROM overrides WHERE id = ? AND rotation_id = ?`,
+		overrideID,
+		rotationID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return domain.ErrOverrideNotFound
+	}
+
+	return nil
+}
+
 func (r *OverrideRepository) DeleteByMemberID(ctx context.Context, memberID string) error {
 	_, err := dbFromContext(ctx, r.db).ExecContext(ctx,
 		`DELETE FROM overrides WHERE member_id = ?`,
