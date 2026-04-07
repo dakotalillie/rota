@@ -49,9 +49,7 @@ function SettingsRotationOrder({
   return (
     <Card className="shadow-sm border-border bg-card">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">
-          Rotation order
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">Members</CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
         {engineers.length > 0 ? (

@@ -14,7 +14,7 @@ function HomeSchedule({ timeline }: HomeScheduleProps) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <CalendarDays className="h-4 w-4 text-indigo-500" />
-          Upcoming Rotation
+          Upcoming Schedule
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">

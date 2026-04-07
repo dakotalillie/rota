@@ -17,9 +17,7 @@ function SettingsOverrides({
   return (
     <Card className="shadow-sm border-border bg-card">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">
-          Schedule overrides
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">Overrides</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {overrides.length > 0 && (

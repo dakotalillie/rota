@@ -1,15 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from "react";
 
-import type { Engineer, Override, WebhookEntry } from "./types";
+import type { Engineer, Override } from "./types";
 
 type AppState = {
   engineers: Engineer[];
   setEngineers: (engineers: Engineer[]) => void;
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
-  webhooks: WebhookEntry[];
-  setWebhooks: (webhooks: WebhookEntry[]) => void;
 };
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -17,7 +15,6 @@ const AppStateContext = createContext<AppState | null>(null);
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [engineers, setEngineers] = useState<Engineer[]>([]);
   const [overrides, setOverrides] = useState<Override[]>([]);
-  const [webhooks, setWebhooks] = useState<WebhookEntry[]>([]);
 
   return (
     <AppStateContext.Provider
@@ -26,8 +23,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         setEngineers,
         overrides,
         setOverrides,
-        webhooks,
-        setWebhooks,
       }}
     >
       {children}

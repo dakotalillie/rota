@@ -16,12 +16,6 @@ export type Override = {
   engineerId: string;
 };
 
-export type WebhookEntry = {
-  id: string;
-  url: string;
-  label: string;
-};
-
 export type TimeSegment = {
   start: Date;
   end: Date;

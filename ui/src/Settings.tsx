@@ -7,7 +7,6 @@ import PageHeader from "./PageHeader";
 import SettingsAddPerson from "./SettingsAddPerson";
 import SettingsOverrides from "./SettingsOverrides";
 import SettingsRotationOrder from "./SettingsRotationOrder";
-import SettingsWebhooks from "./SettingsWebhooks";
 import type { Engineer } from "./types";
 
 type ApiMember = {
@@ -99,14 +98,7 @@ function Settings() {
     { label: "Settings" },
   ]);
 
-  const {
-    engineers,
-    setEngineers,
-    overrides,
-    setOverrides,
-    webhooks,
-    setWebhooks,
-  } = useAppState();
+  const { engineers, setEngineers, overrides, setOverrides } = useAppState();
 
   useEffect(() => {
     void (async () => {
@@ -167,7 +159,6 @@ function Settings() {
         overrides={overrides}
         setOverrides={setOverrides}
       />
-      <SettingsWebhooks webhooks={webhooks} setWebhooks={setWebhooks} />
     </div>
   );
 }
