@@ -68,6 +68,8 @@ type fakeMemberRepo struct {
 		memberID string
 		at       time.Time
 	}
+	reorderErr   error
+	reorderCalls [][]string
 }
 
 func (f *fakeMemberRepo) CountByRotationID(_ context.Context, _ string) (int, error) {
@@ -84,6 +86,11 @@ func (f *fakeMemberRepo) SetCurrentMember(_ context.Context, _ string, memberID 
 		at       time.Time
 	}{memberID, at})
 	return f.setCurrErr
+}
+
+func (f *fakeMemberRepo) ReorderMembers(_ context.Context, _ string, memberIDs []string) error {
+	f.reorderCalls = append(f.reorderCalls, memberIDs)
+	return f.reorderErr
 }
 
 // tests
