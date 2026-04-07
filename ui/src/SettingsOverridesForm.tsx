@@ -11,6 +11,12 @@ import {
   initials,
 } from "./utils";
 
+function todayAt9am(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T09:00`;
+}
+
 // --- Display helpers ---
 const selectClass =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-shadow";
@@ -73,12 +79,18 @@ function SettingsOverridesForm({
         <Input
           type="datetime-local"
           value={overrideStart}
+          onFocus={() => {
+            if (!overrideStart) setOverrideStart(todayAt9am());
+          }}
           onChange={(e) => setOverrideStart(e.target.value)}
         />
         <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
         <Input
           type="datetime-local"
           value={overrideEnd}
+          onFocus={() => {
+            if (!overrideEnd) setOverrideEnd(todayAt9am());
+          }}
           onChange={(e) => setOverrideEnd(e.target.value)}
         />
       </div>
