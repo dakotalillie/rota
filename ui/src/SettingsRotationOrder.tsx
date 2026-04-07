@@ -1,6 +1,6 @@
 import { useParams } from "@tanstack/react-router";
 import { GripVertical, X } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
@@ -25,6 +25,8 @@ function SettingsRotationOrder({
   const { rotationId } = useParams({ strict: false });
   const dragIndexRef = useRef<number | null>(null);
   const didReorderRef = useRef(false);
+  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function handleDragStart(index: number) {
     dragIndexRef.current = index;
@@ -56,9 +58,41 @@ function SettingsRotationOrder({
     }
   }
 
-  function removeMember(id: string) {
-    setMembers(members.filter((m) => m.id !== id));
-    setOverrides(overrides.filter((o) => o.memberId !== id));
+  async function removeMember(id: string) {
+    if (!rotationId) {
+      setError("An unexpected error occurred");
+      return;
+    }
+
+    setDeletingMemberId(id);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/rotations/${rotationId}/members/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        let detail = `HTTP ${res.status}`;
+
+        if (res.headers.get("Content-Type")?.includes("application/json")) {
+          const body = (await res.json()) as {
+            errors?: { detail?: string }[];
+          };
+          detail = body.errors?.[0]?.detail ?? detail;
+        }
+
+        setError(detail);
+        return;
+      }
+
+      setMembers(members.filter((m) => m.id !== id));
+      setOverrides(overrides.filter((o) => o.memberId !== id));
+    } catch {
+      setError("An unexpected error occurred");
+    } finally {
+      setDeletingMemberId((current) => (current === id ? null : current));
+    }
   }
 
   return (
@@ -100,7 +134,8 @@ function SettingsRotationOrder({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => removeMember(member.id)}
+                onClick={() => void removeMember(member.id)}
+                disabled={deletingMemberId === member.id}
                 className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 aria-label={`Remove ${member.name}`}
               >
@@ -113,6 +148,7 @@ function SettingsRotationOrder({
             No members yet.
           </p>
         )}
+        {error && <p className="text-sm text-destructive">{error}</p>}
       </CardContent>
     </Card>
   );
