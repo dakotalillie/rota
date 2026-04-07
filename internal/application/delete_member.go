@@ -18,6 +18,7 @@ type DeleteMemberUseCase struct {
 	transactor   Transactor
 	rotationRepo domain.RotationRepository
 	memberRepo   domain.MemberRepository
+	overrideRepo domain.OverrideRepository
 	userRepo     domain.UserRepository
 }
 
@@ -25,12 +26,14 @@ func NewDeleteMemberUseCase(
 	transactor Transactor,
 	rotationRepo domain.RotationRepository,
 	memberRepo domain.MemberRepository,
+	overrideRepo domain.OverrideRepository,
 	userRepo domain.UserRepository,
 ) *DeleteMemberUseCase {
 	return &DeleteMemberUseCase{
 		transactor:   transactor,
 		rotationRepo: rotationRepo,
 		memberRepo:   memberRepo,
+		overrideRepo: overrideRepo,
 		userRepo:     userRepo,
 	}
 }
@@ -44,6 +47,10 @@ func (uc *DeleteMemberUseCase) Execute(ctx context.Context, input DeleteMemberIn
 
 		member, err := uc.memberRepo.GetByID(ctx, input.RotationID, input.MemberID)
 		if err != nil {
+			return err
+		}
+
+		if err := uc.overrideRepo.DeleteByMemberID(ctx, input.MemberID); err != nil {
 			return err
 		}
 

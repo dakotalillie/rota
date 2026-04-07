@@ -38,6 +38,14 @@ func (r *OverrideRepository) Create(ctx context.Context, rotationID, memberID st
 	}, nil
 }
 
+func (r *OverrideRepository) DeleteByMemberID(ctx context.Context, memberID string) error {
+	_, err := dbFromContext(ctx, r.db).ExecContext(ctx,
+		`DELETE FROM overrides WHERE member_id = ?`,
+		memberID,
+	)
+	return err
+}
+
 func (r *OverrideRepository) ListByRotationID(ctx context.Context, rotationID string, now time.Time) ([]domain.Override, error) {
 	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
 		SELECT o.id, o.start_time, o.end_time, m.id, m.rotation_id, m.data, u.id, u.email, u.data
