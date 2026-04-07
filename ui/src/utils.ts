@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import type { Engineer, Override, TimeSegment } from "./types";
+import type { Member, Override, TimeSegment } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -39,15 +39,15 @@ function mondayOf(date: Date): Date {
  * Build a timeline of non-overlapping segments by:
  * 1. Generating base week segments from the rotation
  * 2. Collecting all time boundaries (week starts + override starts/ends)
- * 3. For each sub-interval, checking whether an override covers it; if not, using the rotation engineer
- * 4. Merging adjacent segments with the same engineer
+ * 3. For each sub-interval, checking whether an override covers it; if not, using the rotation member
+ * 4. Merging adjacent segments with the same member
  */
 export function buildTimeline(
-  engineers: Engineer[],
+  members: Member[],
   overrides: Override[],
   weeksCount: number,
 ): TimeSegment[] {
-  if (engineers.length === 0) return [];
+  if (members.length === 0) return [];
 
   const start = mondayOf(new Date());
   const endTime = new Date(start);
@@ -84,22 +84,22 @@ export function buildTimeline(
     const midMs = (boundaries[i] + boundaries[i + 1]) / 2;
 
     // Find the most-recently-added override that covers this segment (last one wins)
-    let overrideEngineer: Engineer | undefined;
+    let overrideMember: Member | undefined;
     for (let j = overrides.length - 1; j >= 0; j--) {
       const ov = overrides[j];
       const ovStart = new Date(ov.start).getTime();
       const ovEnd = new Date(ov.end).getTime();
       if (ovStart <= midMs && ovEnd > midMs) {
-        overrideEngineer = engineers.find((e) => e.id === ov.engineerId);
+        overrideMember = members.find((m) => m.id === ov.memberId);
         break;
       }
     }
 
-    if (overrideEngineer) {
+    if (overrideMember) {
       raw.push({
         start: segStart,
         end: segEnd,
-        engineer: overrideEngineer,
+        member: overrideMember,
         isOverride: true,
       });
     } else {
@@ -107,18 +107,18 @@ export function buildTimeline(
       const weekIndex = Math.floor(
         (boundaries[i] - start.getTime()) / (7 * 24 * 60 * 60 * 1000),
       );
-      const engineer = engineers[weekIndex % engineers.length];
-      raw.push({ start: segStart, end: segEnd, engineer, isOverride: false });
+      const member = members[weekIndex % members.length];
+      raw.push({ start: segStart, end: segEnd, member, isOverride: false });
     }
   }
 
-  // Merge adjacent segments with the same engineer and override status
+  // Merge adjacent segments with the same member and override status
   const merged: TimeSegment[] = [];
   for (const seg of raw) {
     const last = merged[merged.length - 1];
     if (
       last &&
-      last.engineer.id === seg.engineer.id &&
+      last.member.id === seg.member.id &&
       last.isOverride === seg.isOverride
     ) {
       last.end = seg.end;
@@ -136,17 +136,17 @@ export function buildTimeline(
  * displaced. Returns those segments clipped to the override window.
  */
 export function computeOverrideReplacements(
-  engineers: Engineer[],
+  members: Member[],
   baseOverrides: Override[],
   previewStart: string,
   previewEnd: string,
 ): TimeSegment[] {
-  if (engineers.length === 0 || !previewStart || !previewEnd) return [];
+  if (members.length === 0 || !previewStart || !previewEnd) return [];
   const start = new Date(previewStart);
   const end = new Date(previewEnd);
   if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return [];
 
-  const timeline = buildTimeline(engineers, baseOverrides, 8);
+  const timeline = buildTimeline(members, baseOverrides, 8);
   return timeline
     .filter((seg) => seg.start < end && seg.end > start)
     .map((seg) => ({

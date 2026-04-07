@@ -8,10 +8,10 @@ import HomeHero from "./HomeHero";
 import HomeHeroEmpty from "./HomeHeroEmpty";
 import HomeSchedule from "./HomeSchedule";
 import PageHeader from "./PageHeader";
-import type { Engineer, TimeSegment } from "./types";
+import type { Member, TimeSegment } from "./types";
 
 const COLORS: Pick<
-  Engineer,
+  Member,
   "color" | "textColor" | "lightColor" | "darkColor"
 >[] = [
   {
@@ -95,20 +95,21 @@ function buildTimelineFromSchedule(
       memberUserMap.set(item.id, item.relationships.user.data.id);
   }
 
-  const userColorIndex = new Map<string, number>();
-  const engineers = new Map<string, Engineer>();
+  const memberColorIndex = new Map<string, number>();
+  const members = new Map<string, Member>();
 
   for (const block of data) {
     const memberId = block.relationships.member.data.id;
-    const userId = memberUserMap.get(memberId);
-    if (!userId) continue;
-    if (!engineers.has(userId)) {
+    if (!members.has(memberId)) {
+      const userId = memberUserMap.get(memberId);
+      if (!userId) continue;
       const user = userMap.get(userId);
       if (!user) continue;
-      const idx = userColorIndex.size;
-      userColorIndex.set(userId, idx);
-      engineers.set(userId, {
-        id: userId,
+      const idx = memberColorIndex.size;
+      memberColorIndex.set(memberId, idx);
+      members.set(memberId, {
+        id: memberId,
+        userId,
         name: user.attributes.name,
         email: user.attributes.email,
         ...COLORS[idx % COLORS.length],
@@ -118,9 +119,9 @@ function buildTimelineFromSchedule(
 
   return data.map((block) => {
     const memberId = block.relationships.member.data.id;
-    const userId = memberUserMap.get(memberId) ?? "";
-    const engineer = engineers.get(userId) ?? {
-      id: userId,
+    const member = members.get(memberId) ?? {
+      id: memberId,
+      userId: "",
       name: "Unknown",
       email: "",
       ...COLORS[0],
@@ -128,7 +129,7 @@ function buildTimelineFromSchedule(
     return {
       start: new Date(block.attributes.start),
       end: new Date(block.attributes.end),
-      engineer,
+      member,
       isOverride: false,
     };
   });

@@ -5,11 +5,11 @@ import { useState } from "react";
 
 import { Button } from "./Button";
 import { Input } from "./Input";
-import type { Engineer } from "./types";
+import type { Member } from "./types";
 
 type SettingsAddPersonProps = {
-  engineers: Engineer[];
-  setEngineers: (engineers: Engineer[]) => void;
+  members: Member[];
+  setMembers: (members: Member[]) => void;
 };
 
 const COLOR_PALETTE = [
@@ -74,10 +74,7 @@ type CreateMemberResponse = {
   errors?: { detail?: string }[];
 };
 
-function SettingsAddPerson({
-  engineers,
-  setEngineers,
-}: SettingsAddPersonProps) {
+function SettingsAddPerson({ members, setMembers }: SettingsAddPersonProps) {
   const { rotationId } = useParams({ strict: false });
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -94,7 +91,7 @@ function SettingsAddPerson({
     }
   }
 
-  async function addEngineer() {
+  async function addMember() {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
     if (!trimmedName || !trimmedEmail) return;
@@ -114,14 +111,15 @@ function SettingsAddPerson({
         return;
       }
       const user = body.included[0];
-      const palette = COLOR_PALETTE[engineers.length % COLOR_PALETTE.length];
-      const newEngineer: Engineer = {
-        id: user.id,
+      const palette = COLOR_PALETTE[members.length % COLOR_PALETTE.length];
+      const newMember: Member = {
+        id: body.data.id,
+        userId: user.id,
         name: user.attributes.name,
         email: user.attributes.email,
         ...palette,
       };
-      setEngineers([...engineers, newEngineer]);
+      setMembers([...members, newMember]);
       setOpen(false);
     } catch {
       setError("An unexpected error occurred");
@@ -131,7 +129,7 @@ function SettingsAddPerson({
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") void addEngineer();
+    if (e.key === "Enter") void addMember();
   }
 
   return (
@@ -182,7 +180,7 @@ function SettingsAddPerson({
                 onKeyDown={handleKeyDown}
               />
               <Button
-                onClick={() => void addEngineer()}
+                onClick={() => void addMember()}
                 disabled={!name.trim() || !email.trim() || submitting}
                 size="sm"
                 className="w-full gap-1.5"

@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import SettingsOverridesForm from "./SettingsOverridesForm";
 import SettingsOverridesList from "./SettingsOverridesList";
-import type { Engineer, Override } from "./types";
+import type { Member, Override } from "./types";
 
 type SettingsOverridesProps = {
-  engineers: Engineer[];
+  members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
 function SettingsOverrides({
-  engineers,
+  members,
   overrides,
   setOverrides,
 }: SettingsOverridesProps) {
@@ -22,18 +22,18 @@ function SettingsOverrides({
       <CardContent className="space-y-4">
         {overrides.length > 0 && (
           <SettingsOverridesList
-            engineers={engineers}
+            members={members}
             overrides={overrides}
             setOverrides={setOverrides}
           />
         )}
-        {engineers.length === 0 ? (
+        {members.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Add engineers to the rotation before creating overrides.
           </p>
         ) : (
           <SettingsOverridesForm
-            engineers={engineers}
+            members={members}
             overrides={overrides}
             setOverrides={setOverrides}
           />
