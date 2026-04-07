@@ -16,23 +16,21 @@ function SettingsOverrides({
 }: SettingsOverridesProps) {
   return (
     <Card className="shadow-sm border-border bg-card">
-      <CardHeader className="pb-3">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-base font-semibold">Overrides</CardTitle>
+        <SettingsOverridesForm
+          members={members}
+          overrides={overrides}
+          setOverrides={setOverrides}
+        />
       </CardHeader>
-      <CardContent className="space-y-4">
-        {overrides.length > 0 && (
-          <SettingsOverridesList
-            members={members}
-            overrides={overrides}
-            setOverrides={setOverrides}
-          />
-        )}
-        {members.length === 0 ? (
+      <CardContent>
+        {overrides.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Add engineers to the rotation before creating overrides.
+            No overrides scheduled.
           </p>
         ) : (
-          <SettingsOverridesForm
+          <SettingsOverridesList
             members={members}
             overrides={overrides}
             setOverrides={setOverrides}
