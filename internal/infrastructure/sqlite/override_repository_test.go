@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/dakotalillie/rota/internal/infrastructure/sqlite"
 	"github.com/stretchr/testify/require"
 )
@@ -121,4 +122,67 @@ func TestOverrideRepository_HasOverlapping(t *testing.T) {
 			require.Equal(t, tt.wantOverlap, got)
 		})
 	}
+}
+
+func TestOverrideRepository_Delete(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		userRepo := sqlite.NewUserRepository(db)
+		memberRepo := sqlite.NewMemberRepository(db)
+		overrideRepo := sqlite.NewOverrideRepository(db)
+
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+		user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
+		require.NoError(t, err)
+		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		require.NoError(t, err)
+
+		start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
+		end := time.Date(2026, 4, 14, 9, 0, 0, 0, time.UTC)
+
+		override, err := overrideRepo.Create(t.Context(), rotationA.ID, member.ID, start, end)
+		require.NoError(t, err)
+
+		require.NoError(t, overrideRepo.Delete(t.Context(), rotationA.ID, override.ID))
+
+		overrides, err := overrideRepo.ListByRotationID(t.Context(), rotationA.ID, start.Add(-time.Hour))
+		require.NoError(t, err)
+		require.Empty(t, overrides)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		overrideRepo := sqlite.NewOverrideRepository(db)
+
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+
+		err := overrideRepo.Delete(t.Context(), rotationA.ID, "ovr_99999999999999999999999999")
+		require.ErrorIs(t, err, domain.ErrOverrideNotFound)
+	})
+
+	t.Run("wrong rotation", func(t *testing.T) {
+		db := openTestDB(t)
+		rotRepo := sqlite.NewRotationRepository(db)
+		userRepo := sqlite.NewUserRepository(db)
+		memberRepo := sqlite.NewMemberRepository(db)
+		overrideRepo := sqlite.NewOverrideRepository(db)
+
+		rotationB := &domain.Rotation{ID: "rot_01JQGF0000000000000000001", Name: "Other Rotation"}
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationB))
+		user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
+		require.NoError(t, err)
+		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		require.NoError(t, err)
+
+		start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
+		end := time.Date(2026, 4, 14, 9, 0, 0, 0, time.UTC)
+		override, err := overrideRepo.Create(t.Context(), rotationA.ID, member.ID, start, end)
+		require.NoError(t, err)
+
+		err = overrideRepo.Delete(t.Context(), rotationB.ID, override.ID)
+		require.ErrorIs(t, err, domain.ErrOverrideNotFound)
+	})
 }
