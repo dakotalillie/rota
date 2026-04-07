@@ -67,7 +67,7 @@ interface ApiUser {
 interface ApiScheduleBlock {
   type: "scheduleBlocks";
   id: string;
-  attributes: { start: string; end: string };
+  attributes: { start: string; end: string; isOverride: boolean };
   relationships: { member: { data: { type: "members"; id: string } } };
 }
 
@@ -130,7 +130,7 @@ function buildTimelineFromSchedule(
       start: new Date(block.attributes.start),
       end: new Date(block.attributes.end),
       member,
-      isOverride: false,
+      isOverride: block.attributes.isOverride,
     };
   });
 }
