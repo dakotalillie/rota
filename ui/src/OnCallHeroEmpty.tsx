@@ -1,11 +1,11 @@
 import { Link, useParams } from "@tanstack/react-router";
 
-function HomeHeroEmpty() {
+function OnCallHeroEmpty() {
   const { rotationId } = useParams({ strict: false });
 
   return (
     <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-      No engineers in the rotation yet.{" "}
+      This rotation doesn't have any members yet.{" "}
       <Link
         to="/rotations/$rotationId/settings"
         params={{ rotationId: rotationId! }}
@@ -17,4 +17,4 @@ function HomeHeroEmpty() {
   );
 }
 
-export default HomeHeroEmpty;
+export default OnCallHeroEmpty;

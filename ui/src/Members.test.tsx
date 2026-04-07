@@ -4,14 +4,14 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import SettingsRotationOrder from "./SettingsRotationOrder";
+import Members from "./Members";
 import type { Member, Override } from "./types";
 
 vi.mock("@tanstack/react-router", () => ({
   useParams: () => ({ rotationId: "rot_123" }),
 }));
 
-vi.mock("./SettingsAddPerson", () => ({
+vi.mock("./AddMemberDialog", () => ({
   default: () => null,
 }));
 
@@ -55,7 +55,7 @@ function createDeferredResponse() {
   return { promise, resolve };
 }
 
-describe("SettingsRotationOrder", () => {
+describe("Members", () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -63,7 +63,7 @@ describe("SettingsRotationOrder", () => {
 
   function renderComponent(setMembers = vi.fn(), setOverrides = vi.fn()) {
     render(
-      <SettingsRotationOrder
+      <Members
         members={members}
         setMembers={setMembers}
         overrides={overrides}

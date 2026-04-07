@@ -1,24 +1,20 @@
+import AddOverrideDialog from "./AddOverrideDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "./Card";
-import SettingsOverridesForm from "./SettingsOverridesForm";
-import SettingsOverridesList from "./SettingsOverridesList";
+import OverridesList from "./OverridesList";
 import type { Member, Override } from "./types";
 
-type SettingsOverridesProps = {
+type OverridesProps = {
   members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
-function SettingsOverrides({
-  members,
-  overrides,
-  setOverrides,
-}: SettingsOverridesProps) {
+function Overrides({ members, overrides, setOverrides }: OverridesProps) {
   return (
     <Card className="shadow-sm border-border bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-base font-semibold">Overrides</CardTitle>
-        <SettingsOverridesForm
+        <AddOverrideDialog
           members={members}
           overrides={overrides}
           setOverrides={setOverrides}
@@ -30,7 +26,7 @@ function SettingsOverrides({
             No overrides scheduled.
           </p>
         ) : (
-          <SettingsOverridesList
+          <OverridesList
             members={members}
             overrides={overrides}
             setOverrides={setOverrides}
@@ -41,4 +37,4 @@ function SettingsOverrides({
   );
 }
 
-export default SettingsOverrides;
+export default Overrides;

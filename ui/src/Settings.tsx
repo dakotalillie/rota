@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 
 import { useAppState } from "./AppStateContext";
 import { useBreadcrumbs } from "./BreadcrumbContext";
+import Members from "./Members";
+import Overrides from "./Overrides";
 import PageHeader from "./PageHeader";
-import SettingsOverrides from "./SettingsOverrides";
-import SettingsRotationOrder from "./SettingsRotationOrder";
 import type { Member } from "./types";
 
 type ApiMember = {
@@ -147,13 +147,13 @@ function Settings() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
       <PageHeader title="Settings" />
-      <SettingsRotationOrder
+      <Members
         members={members}
         setMembers={setMembers}
         overrides={overrides}
         setOverrides={setOverrides}
       />
-      <SettingsOverrides
+      <Overrides
         members={members}
         overrides={overrides}
         setOverrides={setOverrides}

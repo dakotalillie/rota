@@ -4,7 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import type { TimeSegment } from "./types";
 import { formatDateTimeRange, initials } from "./utils";
 
-function HomePageHero({ segment }: { segment: TimeSegment }) {
+type OnCallHeroProps = {
+  segment: TimeSegment;
+};
+
+function OnCallHero({ segment }: OnCallHeroProps) {
   return (
     <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-violet-500 via-indigo-500 to-sky-500 dark:from-violet-700 dark:via-indigo-700 dark:to-sky-700 p-px shadow-lg shadow-indigo-200 dark:shadow-indigo-950">
       <div className="relative rounded-[calc(1rem-1px)] bg-linear-to-br from-violet-500 via-indigo-500 to-sky-500 dark:from-violet-700 dark:via-indigo-700 dark:to-sky-700 px-6 py-5">
@@ -47,4 +51,4 @@ function HomePageHero({ segment }: { segment: TimeSegment }) {
   );
 }
 
-export default HomePageHero;
+export default OnCallHero;

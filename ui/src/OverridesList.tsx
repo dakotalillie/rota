@@ -9,17 +9,17 @@ import {
   initials,
 } from "./utils";
 
-type SettingsOverridesListProps = {
+type OverridesListProps = {
   members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
-function SettingsOverridesList({
+function OverridesList({
   members,
   overrides,
   setOverrides,
-}: SettingsOverridesListProps) {
+}: OverridesListProps) {
   function removeOverride(id: string) {
     setOverrides(overrides.filter((o) => o.id !== id));
   }
@@ -103,4 +103,4 @@ function SettingsOverridesList({
   );
 }
 
-export default SettingsOverridesList;
+export default OverridesList;

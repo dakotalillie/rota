@@ -28,17 +28,17 @@ function todayAt9am(): string {
 const selectClass =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-shadow";
 
-type SettingsOverridesFormProps = {
+type AddOverrideDialogProps = {
   members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
-function SettingsOverridesForm({
+function AddOverrideDialog({
   members,
   overrides,
   setOverrides,
-}: SettingsOverridesFormProps) {
+}: AddOverrideDialogProps) {
   const { rotationId } = useParams({ strict: false });
   const [open, setOpen] = useState(false);
   const [overrideStart, setOverrideStart] = useState("");
@@ -277,4 +277,4 @@ function SettingsOverridesForm({
   );
 }
 
-export default SettingsOverridesForm;
+export default AddOverrideDialog;

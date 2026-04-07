@@ -7,7 +7,7 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import type { Member } from "./types";
 
-type SettingsAddPersonProps = {
+type AddMemberDialogProps = {
   members: Member[];
   setMembers: (members: Member[]) => void;
 };
@@ -74,7 +74,7 @@ type CreateMemberResponse = {
   errors?: { detail?: string }[];
 };
 
-function SettingsAddPerson({ members, setMembers }: SettingsAddPersonProps) {
+function AddMemberDialog({ members, setMembers }: AddMemberDialogProps) {
   const { rotationId } = useParams({ strict: false });
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -197,4 +197,4 @@ function SettingsAddPerson({ members, setMembers }: SettingsAddPersonProps) {
   );
 }
 
-export default SettingsAddPerson;
+export default AddMemberDialog;

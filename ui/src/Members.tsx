@@ -2,26 +2,26 @@ import { useParams } from "@tanstack/react-router";
 import { GripVertical, X } from "lucide-react";
 import { useRef, useState } from "react";
 
+import AddMemberDialog from "./AddMemberDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "./Card";
-import SettingsAddPerson from "./SettingsAddPerson";
 import type { Member, Override } from "./types";
 import { initials } from "./utils";
 
-type SettingsRotationOrderProps = {
+type MembersProps = {
   members: Member[];
   setMembers: (members: Member[]) => void;
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
-function SettingsRotationOrder({
+function Members({
   members,
   setMembers,
   overrides,
   setOverrides,
-}: SettingsRotationOrderProps) {
+}: MembersProps) {
   const { rotationId } = useParams({ strict: false });
   const dragIndexRef = useRef<number | null>(null);
   const didReorderRef = useRef(false);
@@ -100,7 +100,7 @@ function SettingsRotationOrder({
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold">Members</CardTitle>
         <CardAction>
-          <SettingsAddPerson members={members} setMembers={setMembers} />
+          <AddMemberDialog members={members} setMembers={setMembers} />
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-1">
@@ -154,4 +154,4 @@ function SettingsRotationOrder({
   );
 }
 
-export default SettingsRotationOrder;
+export default Members;

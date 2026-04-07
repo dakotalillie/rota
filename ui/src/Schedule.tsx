@@ -1,14 +1,14 @@
 import { CalendarDays } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "./Card";
-import HomeScheduleRow from "./HomeScheduleRow";
+import ScheduleRow from "./ScheduleRow";
 import type { TimeSegment } from "./types";
 
-type HomeScheduleProps = {
+type ScheduleProps = {
   timeline: TimeSegment[];
 };
 
-function HomeSchedule({ timeline }: HomeScheduleProps) {
+function Schedule({ timeline }: ScheduleProps) {
   return (
     <Card className="shadow-sm border-border bg-card">
       <CardHeader className="pb-3">
@@ -20,7 +20,7 @@ function HomeSchedule({ timeline }: HomeScheduleProps) {
       <CardContent className="space-y-1">
         {timeline.length > 0 ? (
           timeline.map((seg, i) => (
-            <HomeScheduleRow key={i} segment={seg} index={i} />
+            <ScheduleRow key={i} segment={seg} index={i} />
           ))
         ) : (
           <p className="text-sm text-muted-foreground px-4 py-2">
@@ -32,4 +32,4 @@ function HomeSchedule({ timeline }: HomeScheduleProps) {
   );
 }
 
-export default HomeSchedule;
+export default Schedule;

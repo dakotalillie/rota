@@ -4,7 +4,7 @@ import { Separator } from "./Separator";
 import type { TimeSegment } from "./types";
 import { formatDateTimeRange, initials } from "./utils";
 
-type HomeScheduleRowProps = {
+type ScheduleRowProps = {
   segment: TimeSegment;
   index: number;
 };
@@ -14,7 +14,7 @@ function isActiveNow(seg: TimeSegment): boolean {
   return now >= seg.start && now < seg.end;
 }
 
-function HomeScheduleRow({ segment, index }: HomeScheduleRowProps) {
+function ScheduleRow({ segment, index }: ScheduleRowProps) {
   const isActive = isActiveNow(segment);
   const { member } = segment;
 
@@ -62,4 +62,4 @@ function HomeScheduleRow({ segment, index }: HomeScheduleRowProps) {
   );
 }
 
-export default HomeScheduleRow;
+export default ScheduleRow;

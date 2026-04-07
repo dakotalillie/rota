@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 
 import { useBreadcrumbs } from "./BreadcrumbContext";
 import { Button } from "./Button";
-import HomeHero from "./HomeHero";
-import HomeHeroEmpty from "./HomeHeroEmpty";
-import HomeSchedule from "./HomeSchedule";
+import HomeHero from "./OnCallHero";
+import OnCallHeroEmpty from "./OnCallHeroEmpty";
 import PageHeader from "./PageHeader";
+import Schedule from "./Schedule";
 import type { Member, TimeSegment } from "./types";
 
 const COLORS: Pick<
@@ -203,9 +203,9 @@ function RotationDetail() {
           {activeSegment ? (
             <HomeHero segment={activeSegment} />
           ) : (
-            <HomeHeroEmpty />
+            <OnCallHeroEmpty />
           )}
-          <HomeSchedule timeline={timeline} />
+          <Schedule timeline={timeline} />
         </>
       )}
     </div>
