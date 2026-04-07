@@ -1,5 +1,6 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Tooltip } from "@base-ui/react/tooltip";
+import { useParams } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Plus, X } from "lucide-react";
 import { useState } from "react";
 
@@ -12,6 +13,11 @@ import {
   formatDateTimeRange,
   initials,
 } from "./utils";
+
+type CreateOverrideResponse = {
+  data?: { id: string };
+  errors?: { detail?: string }[];
+};
 
 function todayAt9am(): string {
   const d = new Date();
@@ -33,10 +39,13 @@ function SettingsOverridesForm({
   overrides,
   setOverrides,
 }: SettingsOverridesFormProps) {
+  const { rotationId } = useParams({ strict: false });
   const [open, setOpen] = useState(false);
   const [overrideStart, setOverrideStart] = useState("");
   const [overrideEnd, setOverrideEnd] = useState("");
   const [overrideMemberId, setOverrideMemberId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function handleOpenChange(newOpen: boolean) {
     setOpen(newOpen);
@@ -44,6 +53,7 @@ function SettingsOverridesForm({
       setOverrideStart("");
       setOverrideEnd("");
       setOverrideMemberId("");
+      setError(null);
     }
   }
 
@@ -68,18 +78,46 @@ function SettingsOverridesForm({
     (seg) => seg.member.id === validMemberId,
   );
 
-  function addOverride() {
+  async function addOverride() {
     if (!overrideValid) return;
-    setOverrides([
-      ...overrides,
-      {
-        id: crypto.randomUUID(),
-        start: overrideStart,
-        end: overrideEnd,
-        memberId: validMemberId,
-      },
-    ]);
-    setOpen(false);
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/rotations/${rotationId}/overrides`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            attributes: {
+              start: new Date(overrideStart).toISOString(),
+              end: new Date(overrideEnd).toISOString(),
+            },
+            relationships: {
+              member: { data: { type: "members", id: validMemberId } },
+            },
+          },
+        }),
+      });
+      const body = (await res.json()) as CreateOverrideResponse;
+      if (!res.ok) {
+        setError(body.errors?.[0]?.detail ?? `HTTP ${res.status}`);
+        return;
+      }
+      setOverrides([
+        ...overrides,
+        {
+          id: body.data!.id,
+          start: overrideStart,
+          end: overrideEnd,
+          memberId: validMemberId,
+        },
+      ]);
+      setOpen(false);
+    } catch {
+      setError("An unexpected error occurred");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -222,14 +260,15 @@ function SettingsOverridesForm({
                 </div>
               )}
               <Button
-                onClick={addOverride}
-                disabled={!overrideValid || overrideSelfAssign}
+                onClick={() => void addOverride()}
+                disabled={!overrideValid || overrideSelfAssign || submitting}
                 size="sm"
                 className="w-full gap-1.5"
               >
                 <Plus />
                 Add override
               </Button>
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
           </Dialog.Popup>
         </Dialog.Viewport>
