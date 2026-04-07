@@ -1,11 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from "react";
 
-import type { Engineer, Override } from "./types";
+import type { Member, Override } from "./types";
 
 type AppState = {
-  engineers: Engineer[];
-  setEngineers: (engineers: Engineer[]) => void;
+  members: Member[];
+  setMembers: (members: Member[]) => void;
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
@@ -13,14 +13,14 @@ type AppState = {
 const AppStateContext = createContext<AppState | null>(null);
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
-  const [engineers, setEngineers] = useState<Engineer[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [overrides, setOverrides] = useState<Override[]>([]);
 
   return (
     <AppStateContext.Provider
       value={{
-        engineers,
-        setEngineers,
+        members,
+        setMembers,
         overrides,
         setOverrides,
       }}

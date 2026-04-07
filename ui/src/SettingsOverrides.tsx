@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import SettingsOverridesForm from "./SettingsOverridesForm";
 import SettingsOverridesList from "./SettingsOverridesList";
-import type { Engineer, Override } from "./types";
+import type { Member, Override } from "./types";
 
 type SettingsOverridesProps = {
-  engineers: Engineer[];
+  members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
 };
 
 function SettingsOverrides({
-  engineers,
+  members,
   overrides,
   setOverrides,
 }: SettingsOverridesProps) {
@@ -19,7 +19,7 @@ function SettingsOverrides({
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-base font-semibold">Overrides</CardTitle>
         <SettingsOverridesForm
-          engineers={engineers}
+          members={members}
           overrides={overrides}
           setOverrides={setOverrides}
         />
@@ -31,7 +31,7 @@ function SettingsOverrides({
           </p>
         ) : (
           <SettingsOverridesList
-            engineers={engineers}
+            members={members}
             overrides={overrides}
             setOverrides={setOverrides}
           />

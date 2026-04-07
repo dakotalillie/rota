@@ -22,18 +22,18 @@ function HomePageHero({ segment }: { segment: TimeSegment }) {
               className="ring-4 ring-white/30 shadow-xl"
               style={{ height: "4.5rem", width: "4.5rem" }}
             >
-              <AvatarImage src={segment.engineer.avatarUrl} />
+              <AvatarImage src={segment.member.avatarUrl} />
               <AvatarFallback className="bg-white/20 text-white font-bold text-xl backdrop-blur-sm">
-                {initials(segment.engineer.name)}
+                {initials(segment.member.name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1.5">
               <h2 className="text-2xl font-bold text-white">
-                {segment.engineer.name}
+                {segment.member.name}
               </h2>
               <div className="flex items-center gap-1.5 text-sm text-white/70">
                 <Mail className="h-3.5 w-3.5" />
-                <span>{segment.engineer.email}</span>
+                <span>{segment.member.email}</span>
               </div>
               <div className="flex items-center gap-1.5 text-sm text-white/70">
                 <Clock className="h-3.5 w-3.5" />
