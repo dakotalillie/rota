@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useAppState } from "./AppStateContext";
 import { useBreadcrumbs } from "./BreadcrumbContext";
 import PageHeader from "./PageHeader";
-import SettingsAddPerson from "./SettingsAddPerson";
 import SettingsOverrides from "./SettingsOverrides";
 import SettingsRotationOrder from "./SettingsRotationOrder";
 import type { Engineer } from "./types";
@@ -153,7 +152,6 @@ function Settings() {
         overrides={overrides}
         setOverrides={setOverrides}
       />
-      <SettingsAddPerson engineers={engineers} setEngineers={setEngineers} />
       <SettingsOverrides
         engineers={engineers}
         overrides={overrides}

@@ -3,7 +3,8 @@ import { useRef } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
-import { Card, CardContent, CardHeader, CardTitle } from "./Card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "./Card";
+import SettingsAddPerson from "./SettingsAddPerson";
 import type { Engineer, Override } from "./types";
 import { initials } from "./utils";
 
@@ -50,6 +51,12 @@ function SettingsRotationOrder({
     <Card className="shadow-sm border-border bg-card">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold">Members</CardTitle>
+        <CardAction>
+          <SettingsAddPerson
+            engineers={engineers}
+            setEngineers={setEngineers}
+          />
+        </CardAction>
       </CardHeader>
       <CardContent className="space-y-1">
         {engineers.length > 0 ? (

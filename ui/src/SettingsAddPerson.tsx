@@ -1,9 +1,9 @@
+import { Dialog } from "@base-ui/react/dialog";
 import { useParams } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { UserPlus, X } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "./Button";
-import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import { Input } from "./Input";
 import type { Engineer } from "./types";
 
@@ -79,10 +79,20 @@ function SettingsAddPerson({
   setEngineers,
 }: SettingsAddPersonProps) {
   const { rotationId } = useParams({ strict: false });
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function handleOpenChange(newOpen: boolean) {
+    setOpen(newOpen);
+    if (newOpen) {
+      setName("");
+      setEmail("");
+      setError(null);
+    }
+  }
 
   async function addEngineer() {
     const trimmedName = name.trim();
@@ -112,8 +122,7 @@ function SettingsAddPerson({
         ...palette,
       };
       setEngineers([...engineers, newEngineer]);
-      setName("");
-      setEmail("");
+      setOpen(false);
     } catch {
       setError("An unexpected error occurred");
     } finally {
@@ -121,42 +130,72 @@ function SettingsAddPerson({
     }
   }
 
-  function handleAddEngineerKeyDown(e: React.KeyboardEvent) {
+  function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") void addEngineer();
   }
 
   return (
-    <Card className="shadow-sm border-border bg-card">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">Add person</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <Input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={handleAddEngineerKeyDown}
-        />
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={handleAddEngineerKeyDown}
-        />
-        <Button
-          onClick={() => void addEngineer()}
-          disabled={!name.trim() || !email.trim() || submitting}
-          size="sm"
-          className="gap-1.5"
-        >
-          <Plus />
-          Add person
-        </Button>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-      </CardContent>
-    </Card>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
+      <Dialog.Trigger
+        render={
+          <Button variant="outline" size="sm" className="gap-1.5">
+            <UserPlus />
+            Add member
+          </Button>
+        }
+      />
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 bg-black/40 dark:bg-black/60 animate-in fade-in" />
+        <Dialog.Viewport className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Popup className="bg-card w-full max-w-sm rounded-xl border border-border shadow-lg animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between px-5 pt-5 pb-4">
+              <Dialog.Title className="text-base font-semibold">
+                Add person
+              </Dialog.Title>
+              <Dialog.Close
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Close"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X />
+                  </Button>
+                }
+              />
+            </div>
+            <div className="space-y-2 px-5 pb-5">
+              <Input
+                type="text"
+                placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <Button
+                onClick={() => void addEngineer()}
+                disabled={!name.trim() || !email.trim() || submitting}
+                size="sm"
+                className="w-full gap-1.5"
+              >
+                <UserPlus />
+                Add person
+              </Button>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+            </div>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
