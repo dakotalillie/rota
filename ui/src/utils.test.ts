@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { cn, formatDateTimeRange, initials } from "./utils";
+import type { Member } from "./types";
+import { buildTimeline, cn, formatDateTimeRange, initials } from "./utils";
 
 describe("cn", () => {
   it("joins class strings", () => {
@@ -57,5 +58,51 @@ describe("initials", () => {
 
   it("handles three names", () => {
     expect(initials("John Paul Jones")).toBe("JPJ");
+  });
+});
+
+describe("buildTimeline", () => {
+  const members: Member[] = [
+    {
+      id: "mem_1",
+      userId: "usr_1",
+      name: "Alice Adams",
+      email: "alice@example.com",
+      color: "bg-violet-500",
+      lightColor: "bg-violet-50",
+      darkColor: "dark:bg-violet-950/50",
+      textColor: "text-white",
+    },
+    {
+      id: "mem_2",
+      userId: "usr_2",
+      name: "Bob Brown",
+      email: "bob@example.com",
+      color: "bg-sky-500",
+      lightColor: "bg-sky-50",
+      darkColor: "dark:bg-sky-950/50",
+      textColor: "text-white",
+    },
+    {
+      id: "mem_3",
+      userId: "usr_3",
+      name: "Casey Clark",
+      email: "casey@example.com",
+      color: "bg-emerald-500",
+      lightColor: "bg-emerald-50",
+      darkColor: "dark:bg-emerald-950/50",
+      textColor: "text-white",
+    },
+  ];
+
+  it("starts the timeline from the scheduled member instead of index zero", () => {
+    const timeline = buildTimeline(members, [], 3, "mem_2");
+
+    expect(timeline).toHaveLength(3);
+    expect(timeline.map((segment) => segment.member.id)).toEqual([
+      "mem_2",
+      "mem_3",
+      "mem_1",
+    ]);
   });
 });

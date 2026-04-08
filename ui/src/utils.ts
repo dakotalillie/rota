@@ -46,6 +46,7 @@ export function buildTimeline(
   members: Member[],
   overrides: Override[],
   weeksCount: number,
+  scheduledMemberId?: string | null,
 ): TimeSegment[] {
   if (members.length === 0) return [];
 
@@ -75,6 +76,12 @@ export function buildTimeline(
   }
 
   const boundaries = [...boundarySet].sort((a, b) => a - b);
+  const startIdx = scheduledMemberId
+    ? Math.max(
+        members.findIndex((member) => member.id === scheduledMemberId),
+        0,
+      )
+    : 0;
 
   // Build raw segments
   const raw: TimeSegment[] = [];
@@ -107,7 +114,7 @@ export function buildTimeline(
       const weekIndex = Math.floor(
         (boundaries[i] - start.getTime()) / (7 * 24 * 60 * 60 * 1000),
       );
-      const member = members[weekIndex % members.length];
+      const member = members[(startIdx + weekIndex) % members.length];
       raw.push({ start: segStart, end: segEnd, member, isOverride: false });
     }
   }
@@ -140,13 +147,14 @@ export function computeOverrideReplacements(
   baseOverrides: Override[],
   previewStart: string,
   previewEnd: string,
+  scheduledMemberId?: string | null,
 ): TimeSegment[] {
   if (members.length === 0 || !previewStart || !previewEnd) return [];
   const start = new Date(previewStart);
   const end = new Date(previewEnd);
   if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return [];
 
-  const timeline = buildTimeline(members, baseOverrides, 8);
+  const timeline = buildTimeline(members, baseOverrides, 8, scheduledMemberId);
   return timeline
     .filter((seg) => seg.start < end && seg.end > start)
     .map((seg) => ({

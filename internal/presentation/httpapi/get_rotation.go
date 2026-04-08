@@ -125,6 +125,12 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			ID:   currentMember.ID,
 		}
 	}
+	if rotation.ScheduledMember != nil {
+		response.Data.Relationships.ScheduledMember.Data = &RelationshipData{
+			Type: "members",
+			ID:   rotation.ScheduledMember.ID,
+		}
+	}
 
 	_ = json.NewEncoder(w).Encode(response)
 }

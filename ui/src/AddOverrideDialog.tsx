@@ -4,6 +4,7 @@ import { useParams } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Plus, X } from "lucide-react";
 import { useState } from "react";
 
+import { useAppState } from "./AppStateContext";
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
 import { Input } from "./Input";
@@ -39,6 +40,7 @@ function AddOverrideDialog({
   overrides,
   setOverrides,
 }: AddOverrideDialogProps) {
+  const { scheduledMemberId } = useAppState();
   const { rotationId } = useParams({ strict: false });
   const [open, setOpen] = useState(false);
   const [overrideStart, setOverrideStart] = useState("");
@@ -72,6 +74,7 @@ function AddOverrideDialog({
         overrides,
         overrideStart,
         overrideEnd,
+        scheduledMemberId,
       )
     : [];
   const overrideSelfAssign = formReplacements.some(
