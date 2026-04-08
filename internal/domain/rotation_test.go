@@ -371,3 +371,39 @@ func TestSchedule_OverrideSpansMultipleBlocks(t *testing.T) {
 		t.Errorf("block 3 times wrong: %v – %v", blocks[3].Start, blocks[3].End)
 	}
 }
+
+func TestSchedule_OverridePastBlocksFiltered(t *testing.T) {
+	now := time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC)
+	members := []domain.Member{alice, bob}
+	r := newWeeklyRotation("Monday", "09:00", "UTC", members, &alice)
+
+	override := domain.Override{
+		ID:     "ovr_1",
+		Member: bob,
+		Start:  time.Date(2024, 1, 8, 9, 0, 0, 0, time.UTC),
+		End:    time.Date(2024, 1, 9, 9, 0, 0, 0, time.UTC),
+	}
+
+	r.Overrides = []domain.Override{override}
+
+	blocks, err := r.Schedule(now, 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(blocks) != 1 {
+		t.Fatalf("expected 1 block, got %d", len(blocks))
+	}
+
+	wantStart := override.End
+	wantEnd := time.Date(2024, 1, 15, 9, 0, 0, 0, time.UTC)
+
+	if !blocks[0].Start.Equal(wantStart) || !blocks[0].End.Equal(wantEnd) {
+		t.Fatalf("expected %v – %v, got %v – %v", wantStart, wantEnd, blocks[0].Start, blocks[0].End)
+	}
+	if blocks[0].Member == nil || blocks[0].Member.ID != alice.ID {
+		t.Fatalf("expected member %s, got %+v", alice.ID, blocks[0].Member)
+	}
+	if blocks[0].IsOverride {
+		t.Fatal("expected returned block to be a regular block")
+	}
+}

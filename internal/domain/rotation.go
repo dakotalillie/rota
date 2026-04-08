@@ -92,7 +92,15 @@ func (r *Rotation) Schedule(now time.Time, numWeeks int) ([]ScheduleBlock, error
 		}
 	}
 
-	return applyOverrides(blocks, r.Overrides), nil
+	result := applyOverrides(blocks, r.Overrides)
+	filtered := make([]ScheduleBlock, 0, len(result))
+	for _, b := range result {
+		if b.End.After(now) {
+			filtered = append(filtered, b)
+		}
+	}
+
+	return filtered, nil
 }
 
 func (r *Rotation) NeedsAdvance(now time.Time) (bool, time.Time, error) {
