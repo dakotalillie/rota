@@ -48,7 +48,7 @@ func TestMemberRepository_CountByRotationID(t *testing.T) {
 			for i := range tt.seedCount {
 				user, err := userRepo.Create(t.Context(), "User", fmt.Sprintf("user%d@example.com", i))
 				require.NoError(t, err)
-				_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, i+1)
+				_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, i+1, domain.MemberColors[i%len(domain.MemberColors)])
 				require.NoError(t, err)
 			}
 
@@ -63,16 +63,19 @@ func TestMemberRepository_CreateMember(t *testing.T) {
 	tests := []struct {
 		name      string
 		order     int
+		color     string
 		wantOrder int
 	}{
 		{
 			name:      "success - first member",
 			order:     1,
+			color:     domain.MemberColors[0],
 			wantOrder: 1,
 		},
 		{
 			name:      "success - second member gets order 2",
 			order:     2,
+			color:     domain.MemberColors[1],
 			wantOrder: 2,
 		},
 	}
@@ -88,12 +91,13 @@ func TestMemberRepository_CreateMember(t *testing.T) {
 			user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 			require.NoError(t, err)
 
-			member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, tt.order)
+			member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, tt.order, tt.color)
 			require.NoError(t, err)
 			require.NotEmpty(t, member.ID)
 			require.Equal(t, rotationA.ID, member.RotationID)
 			require.Equal(t, user.ID, member.User.ID)
 			require.Equal(t, tt.wantOrder, member.Order)
+			require.Equal(t, tt.color, member.Color)
 		})
 	}
 }
@@ -108,10 +112,10 @@ func TestMemberRepository_CreateMember_DuplicateUser(t *testing.T) {
 	user, err := userRepo.Create(t.Context(), "Alice", "alice@example.com")
 	require.NoError(t, err)
 
-	_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+	_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 	require.NoError(t, err)
 
-	_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 2)
+	_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 2, domain.MemberColors[1])
 	require.ErrorIs(t, err, domain.ErrMemberAlreadyExists)
 }
 
@@ -125,7 +129,7 @@ func TestMemberRepository_GetByID(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 		user, err := userRepo.Create(t.Context(), "Alice", "alice@example.com")
 		require.NoError(t, err)
-		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		found, err := memberRepo.GetByID(t.Context(), rotationA.ID, created.ID)
@@ -134,6 +138,7 @@ func TestMemberRepository_GetByID(t *testing.T) {
 		require.Equal(t, rotationA.ID, found.RotationID)
 		require.Equal(t, user.ID, found.User.ID)
 		require.Equal(t, 1, found.Order)
+		require.Equal(t, domain.MemberColors[0], found.Color)
 	})
 
 	t.Run("not found", func(t *testing.T) {
@@ -158,7 +163,7 @@ func TestMemberRepository_GetByID(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotB))
 		user, err := userRepo.Create(t.Context(), "Alice", "alice@example.com")
 		require.NoError(t, err)
-		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		// Looking up the member using a different rotation ID should fail.
@@ -177,7 +182,7 @@ func TestMemberRepository_Delete(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 		user, err := userRepo.Create(t.Context(), "Alice", "alice@example.com")
 		require.NoError(t, err)
-		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		created, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		require.NoError(t, memberRepo.Delete(t.Context(), created.ID))
@@ -200,7 +205,7 @@ func TestMemberRepository_ReorderMembers(t *testing.T) {
 		for i := range count {
 			user, err := userRepo.Create(t.Context(), fmt.Sprintf("User%d", i+1), fmt.Sprintf("user%d@example.com", i+1))
 			require.NoError(t, err)
-			m, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, i+1)
+			m, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, i+1, domain.MemberColors[i%len(domain.MemberColors)])
 			require.NoError(t, err)
 			memberIDs[i] = m.ID
 		}
@@ -219,12 +224,17 @@ func TestMemberRepository_ReorderMembers(t *testing.T) {
 		require.NoError(t, err)
 
 		orderByID := make(map[string]int, len(rotation.Members))
+		colorByID := make(map[string]string, len(rotation.Members))
 		for _, m := range rotation.Members {
 			orderByID[m.ID] = m.Order
+			colorByID[m.ID] = m.Color
 		}
 		require.Equal(t, 1, orderByID[ids[2]], "ids[2] should now be order 1")
 		require.Equal(t, 2, orderByID[ids[1]], "ids[1] should remain order 2")
 		require.Equal(t, 3, orderByID[ids[0]], "ids[0] should now be order 3")
+		require.Equal(t, domain.MemberColors[2], colorByID[ids[2]])
+		require.Equal(t, domain.MemberColors[1], colorByID[ids[1]])
+		require.Equal(t, domain.MemberColors[0], colorByID[ids[0]])
 	})
 
 	t.Run("single member - no-op", func(t *testing.T) {

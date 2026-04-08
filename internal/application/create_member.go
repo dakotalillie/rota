@@ -54,6 +54,7 @@ func (uc *CreateMemberUseCase) Execute(ctx context.Context, input CreateMemberIn
 		if count >= 20 {
 			return domain.ErrRotationMembershipFull
 		}
+		color := domain.MemberColors[count%len(domain.MemberColors)]
 
 		var user *domain.User
 		if input.UserID != "" {
@@ -65,7 +66,7 @@ func (uc *CreateMemberUseCase) Execute(ctx context.Context, input CreateMemberIn
 			return err
 		}
 
-		member, err = uc.memberRepo.Create(ctx, input.RotationID, user.ID, count+1)
+		member, err = uc.memberRepo.Create(ctx, input.RotationID, user.ID, count+1, color)
 		if err != nil {
 			return err
 		}

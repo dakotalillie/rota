@@ -29,11 +29,11 @@ func (r *MemberRepository) CountByRotationID(ctx context.Context, rotationID str
 	return count, err
 }
 
-func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string, order int) (*domain.Member, error) {
+func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string, order int, color string) (*domain.Member, error) {
 	db := dbFromContext(ctx, r.db)
 
 	memberID := newID("mem")
-	rec := memberData{Order: order}
+	rec := memberData{Order: order, Color: color}
 	blob, err := json.Marshal(rec)
 	if err != nil {
 		return nil, err
@@ -55,6 +55,7 @@ func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string
 		RotationID: rotationID,
 		User:       domain.User{ID: userID},
 		Order:      order,
+		Color:      color,
 	}, nil
 }
 
@@ -80,6 +81,7 @@ func (r *MemberRepository) GetByID(ctx context.Context, rotationID, memberID str
 		return nil, err
 	}
 	m.Order = rec.Order
+	m.Color = rec.Color
 	return &m, nil
 }
 
@@ -102,7 +104,22 @@ func (r *MemberRepository) SetCurrentMember(ctx context.Context, rotationID stri
 func (r *MemberRepository) ReorderMembers(ctx context.Context, rotationID string, memberIDs []string) error {
 	db := dbFromContext(ctx, r.db)
 	for i, memberID := range memberIDs {
-		rec := memberData{Order: i + 1}
+		var rawData string
+		if err := db.QueryRowContext(
+			ctx,
+			`SELECT data FROM members WHERE id = ? AND rotation_id = ?`,
+			memberID,
+			rotationID,
+		).Scan(&rawData); err != nil {
+			return err
+		}
+
+		var rec memberData
+		if err := json.Unmarshal([]byte(rawData), &rec); err != nil {
+			return err
+		}
+		rec.Order = i + 1
+
 		blob, err := json.Marshal(rec)
 		if err != nil {
 			return err

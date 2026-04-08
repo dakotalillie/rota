@@ -180,7 +180,7 @@ func TestRotationRepository_GetRotationByID_WithScheduledMember(t *testing.T) {
 	require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 	user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 	require.NoError(t, err)
-	member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+	member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 	require.NoError(t, err)
 
 	_, err = db.ExecContext(t.Context(),

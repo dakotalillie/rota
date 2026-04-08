@@ -141,6 +141,7 @@ func (r *OverrideRepository) ListByRotationIDs(ctx context.Context, rotationIDs 
 				ID:         mID,
 				RotationID: mRotID,
 				Order:      mRec.Order,
+				Color:      mRec.Color,
 				User: domain.User{
 					ID:    uID,
 					Email: uEmail,

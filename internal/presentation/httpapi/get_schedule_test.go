@@ -25,6 +25,7 @@ func TestGetScheduleHandler(t *testing.T) {
 		ID:         "mem_01JQGF0000000000000000000",
 		RotationID: rotationID,
 		Order:      1,
+		Color:      "violet",
 		User: domain.User{
 			ID:    "usr_01JQGF0000000000000000000",
 			Name:  "Alice Smith",
@@ -35,6 +36,7 @@ func TestGetScheduleHandler(t *testing.T) {
 		ID:         "mem_02JQGF0000000000000000000",
 		RotationID: rotationID,
 		Order:      2,
+		Color:      "sky",
 		User: domain.User{
 			ID:    "usr_02JQGF0000000000000000000",
 			Name:  "Bob Jones",

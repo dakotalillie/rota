@@ -107,7 +107,7 @@ function createRotationResponse(withOverrides = true) {
       {
         type: "members",
         id: "mem_1",
-        attributes: { order: 2 },
+        attributes: { order: 2, color: "sky" },
         relationships: { user: { data: { id: "usr_1" } } },
       },
       {
@@ -118,7 +118,7 @@ function createRotationResponse(withOverrides = true) {
       {
         type: "members",
         id: "mem_2",
-        attributes: { order: 1 },
+        attributes: { order: 1, color: "violet" },
         relationships: { user: { data: { id: "usr_2" } } },
       },
       {

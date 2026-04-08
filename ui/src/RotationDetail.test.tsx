@@ -54,6 +54,7 @@ function mockRotationRequests(scheduleBlocks: ScheduleBlock[]) {
               {
                 type: "members",
                 id: "mem_1",
+                attributes: { order: 1, color: "violet" },
                 relationships: {
                   user: { data: { type: "users", id: "usr_1" } },
                 },
@@ -61,6 +62,7 @@ function mockRotationRequests(scheduleBlocks: ScheduleBlock[]) {
               {
                 type: "members",
                 id: "mem_2",
+                attributes: { order: 2, color: "sky" },
                 relationships: {
                   user: { data: { type: "users", id: "usr_2" } },
                 },
@@ -102,12 +104,17 @@ describe("RotationDetail", () => {
   });
 
   it("shows override badges in both the hero and schedule when the active block is an override", async () => {
+    const now = new Date();
+    const currentBlockStart = new Date(now.getTime() - 60 * 60 * 1000);
+    const currentBlockEnd = new Date(now.getTime() + 60 * 60 * 1000);
+    const nextBlockEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
     mockRotationRequests([
       {
         id: "blk_1",
         attributes: {
-          start: "2026-04-07T00:00:00Z",
-          end: "2026-04-08T00:00:00Z",
+          start: currentBlockStart.toISOString(),
+          end: currentBlockEnd.toISOString(),
           isOverride: true,
         },
         relationships: { member: { data: { type: "members", id: "mem_1" } } },
@@ -115,8 +122,8 @@ describe("RotationDetail", () => {
       {
         id: "blk_2",
         attributes: {
-          start: "2026-04-08T00:00:00Z",
-          end: "2026-04-09T00:00:00Z",
+          start: currentBlockEnd.toISOString(),
+          end: nextBlockEnd.toISOString(),
           isOverride: false,
         },
         relationships: { member: { data: { type: "members", id: "mem_2" } } },

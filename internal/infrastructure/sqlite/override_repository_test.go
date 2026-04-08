@@ -19,7 +19,7 @@ func TestOverrideRepository_Create(t *testing.T) {
 	require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 	user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 	require.NoError(t, err)
-	member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+	member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 	require.NoError(t, err)
 
 	start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
@@ -111,7 +111,7 @@ func TestOverrideRepository_HasOverlapping(t *testing.T) {
 			require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 			user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 			require.NoError(t, err)
-			member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+			member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 			require.NoError(t, err)
 
 			_, err = overrideRepo.Create(t.Context(), rotationA.ID, member.ID, baseStart, baseEnd)
@@ -135,7 +135,7 @@ func TestOverrideRepository_Delete(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 		user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 		require.NoError(t, err)
-		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
@@ -174,7 +174,7 @@ func TestOverrideRepository_Delete(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationB))
 		user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 		require.NoError(t, err)
-		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
@@ -211,12 +211,12 @@ func TestOverrideRepository_ListByRotationIDs(t *testing.T) {
 
 	userA, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 	require.NoError(t, err)
-	memberA, err := memberRepo.Create(t.Context(), rotationA.ID, userA.ID, 1)
+	memberA, err := memberRepo.Create(t.Context(), rotationA.ID, userA.ID, 1, "violet")
 	require.NoError(t, err)
 
 	userB, err := userRepo.Create(t.Context(), "Bob Jones", "bob@example.com")
 	require.NoError(t, err)
-	memberB, err := memberRepo.Create(t.Context(), rotationB.ID, userB.ID, 1)
+	memberB, err := memberRepo.Create(t.Context(), rotationB.ID, userB.ID, 1, "sky")
 	require.NoError(t, err)
 
 	start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
@@ -239,6 +239,7 @@ func TestOverrideRepository_ListByRotationIDs(t *testing.T) {
 			ID:         memberA.ID,
 			RotationID: rotationA.ID,
 			Order:      1,
+			Color:      "violet",
 			User: domain.User{
 				ID:    userA.ID,
 				Name:  "Alice Smith",
@@ -255,6 +256,7 @@ func TestOverrideRepository_ListByRotationIDs(t *testing.T) {
 			ID:         memberB.ID,
 			RotationID: rotationB.ID,
 			Order:      1,
+			Color:      "sky",
 			User: domain.User{
 				ID:    userB.ID,
 				Name:  "Bob Jones",
