@@ -21,10 +21,11 @@ func (f *fakeTransactor) RunInTx(ctx context.Context, fn func(context.Context) e
 }
 
 type fakeRotationRepo struct {
-	count    int
-	countErr error
-	rotation *domain.Rotation
-	err      error
+	count     int
+	countErr  error
+	rotation  *domain.Rotation
+	rotations []*domain.Rotation
+	err       error
 }
 
 func (f *fakeRotationRepo) Count(_ context.Context) (int, error) {
@@ -40,7 +41,7 @@ func (f *fakeRotationRepo) GetByID(_ context.Context, _ string) (*domain.Rotatio
 }
 
 func (f *fakeRotationRepo) List(_ context.Context) ([]*domain.Rotation, error) {
-	return nil, f.err
+	return f.rotations, f.err
 }
 
 type fakeUserRepo struct {

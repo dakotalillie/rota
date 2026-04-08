@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
@@ -68,27 +69,51 @@ func (r *OverrideRepository) DeleteByMemberID(ctx context.Context, memberID stri
 }
 
 func (r *OverrideRepository) ListByRotationID(ctx context.Context, rotationID string, now time.Time) ([]domain.Override, error) {
+	overridesByRotation, err := r.ListByRotationIDs(ctx, []string{rotationID}, now)
+	if err != nil {
+		return nil, err
+	}
+
+	return overridesByRotation[rotationID], nil
+}
+
+func (r *OverrideRepository) ListByRotationIDs(ctx context.Context, rotationIDs []string, now time.Time) (map[string][]domain.Override, error) {
+	overridesByRotation := make(map[string][]domain.Override, len(rotationIDs))
+	if len(rotationIDs) == 0 {
+		return overridesByRotation, nil
+	}
+	for _, rotationID := range rotationIDs {
+		overridesByRotation[rotationID] = []domain.Override{}
+	}
+
+	placeholders := make([]string, len(rotationIDs))
+	args := make([]any, 0, len(rotationIDs)+1)
+	for i, rotationID := range rotationIDs {
+		placeholders[i] = "?"
+		args = append(args, rotationID)
+	}
+	args = append(args, now.UTC().Format(time.RFC3339))
+
 	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
-		SELECT o.id, o.start_time, o.end_time, m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		SELECT o.id, o.rotation_id, o.start_time, o.end_time, m.id, m.rotation_id, m.data, u.id, u.email, u.data
 		FROM overrides o
 		JOIN members m ON o.member_id = m.id
 		JOIN users u ON m.user_id = u.id
-		WHERE o.rotation_id = ? AND o.end_time > ?
-		ORDER BY o.start_time
-	`, rotationID, now.UTC().Format(time.RFC3339))
+		WHERE o.rotation_id IN (`+strings.Join(placeholders, ", ")+`) AND o.end_time > ?
+		ORDER BY o.rotation_id, o.start_time
+	`, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close() //nolint:errcheck
 
-	var overrides []domain.Override
 	for rows.Next() {
 		var (
-			oID, oStart, oEnd string
-			mID, mRotID, rawM string
-			uID, uEmail, rawU string
+			oID, oRotationID, oStart, oEnd string
+			mID, mRotID, rawM              string
+			uID, uEmail, rawU              string
 		)
-		if err := rows.Scan(&oID, &oStart, &oEnd, &mID, &mRotID, &rawM, &uID, &uEmail, &rawU); err != nil {
+		if err := rows.Scan(&oID, &oRotationID, &oStart, &oEnd, &mID, &mRotID, &rawM, &uID, &uEmail, &rawU); err != nil {
 			return nil, err
 		}
 		start, err := time.Parse(time.RFC3339, oStart)
@@ -107,9 +132,9 @@ func (r *OverrideRepository) ListByRotationID(ctx context.Context, rotationID st
 		if err := json.Unmarshal([]byte(rawU), &uRec); err != nil {
 			return nil, err
 		}
-		overrides = append(overrides, domain.Override{
+		overridesByRotation[oRotationID] = append(overridesByRotation[oRotationID], domain.Override{
 			ID:         oID,
-			RotationID: rotationID,
+			RotationID: oRotationID,
 			Start:      start.UTC(),
 			End:        end.UTC(),
 			Member: domain.Member{
@@ -129,10 +154,7 @@ func (r *OverrideRepository) ListByRotationID(ctx context.Context, rotationID st
 		return nil, err
 	}
 
-	if overrides == nil {
-		overrides = []domain.Override{}
-	}
-	return overrides, nil
+	return overridesByRotation, nil
 }
 
 func (r *OverrideRepository) HasOverlapping(ctx context.Context, rotationID string, start, end time.Time) (bool, error) {

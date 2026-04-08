@@ -171,7 +171,7 @@ func TestRotationRepository_UpsertRotation(t *testing.T) {
 	}
 }
 
-func TestRotationRepository_GetRotationByID_WithCurrentMember(t *testing.T) {
+func TestRotationRepository_GetRotationByID_WithScheduledMember(t *testing.T) {
 	db := openTestDB(t)
 	rotRepo := sqlite.NewRotationRepository(db)
 	userRepo := sqlite.NewUserRepository(db)
@@ -191,11 +191,11 @@ func TestRotationRepository_GetRotationByID_WithCurrentMember(t *testing.T) {
 
 	got, err := rotRepo.GetByID(t.Context(), rotationA.ID)
 	require.NoError(t, err)
-	require.NotNil(t, got.CurrentMember)
-	require.Equal(t, member.ID, got.CurrentMember.ID)
-	require.Equal(t, rotationA.ID, got.CurrentMember.RotationID)
-	require.Equal(t, 1, got.CurrentMember.Order)
-	require.Equal(t, user.ID, got.CurrentMember.User.ID)
-	require.Equal(t, "Alice Smith", got.CurrentMember.User.Name)
-	require.Equal(t, "alice@example.com", got.CurrentMember.User.Email)
+	require.NotNil(t, got.ScheduledMember)
+	require.Equal(t, member.ID, got.ScheduledMember.ID)
+	require.Equal(t, rotationA.ID, got.ScheduledMember.RotationID)
+	require.Equal(t, 1, got.ScheduledMember.Order)
+	require.Equal(t, user.ID, got.ScheduledMember.User.ID)
+	require.Equal(t, "Alice Smith", got.ScheduledMember.User.Name)
+	require.Equal(t, "alice@example.com", got.ScheduledMember.User.Email)
 }
