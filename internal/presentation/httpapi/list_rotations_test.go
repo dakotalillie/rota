@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/dakotalillie/rota/internal/domain"
@@ -37,7 +38,7 @@ func TestListRotationsHandler(t *testing.T) {
 				TimeZone: "America/Chicago",
 			},
 		},
-		CurrentMember: &domain.Member{
+		ScheduledMember: &domain.Member{
 			ID:         "mem_01JQGF0000000000000000000",
 			RotationID: "rot_01JQGF1111111111111111111",
 			Order:      1,
@@ -79,8 +80,34 @@ func TestListRotationsHandler(t *testing.T) {
 			name: "success - deduplicated included",
 			lister: func(_ context.Context) ([]*domain.Rotation, error) {
 				rot1WithSameMember := *rot1
-				rot1WithSameMember.CurrentMember = rot2.CurrentMember
+				rot1WithSameMember.ScheduledMember = rot2.ScheduledMember
 				return []*domain.Rotation{&rot1WithSameMember, rot2}, nil
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name: "success - active override uses effective on-call member",
+			lister: func(_ context.Context) ([]*domain.Rotation, error) {
+				rot := *rot2
+				rot.Overrides = []domain.Override{
+					{
+						ID:         "ovr_01JQGF0000000000000000001",
+						RotationID: rot.ID,
+						Start:      time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
+						End:        time.Date(2100, 1, 1, 0, 0, 0, 0, time.UTC),
+						Member: domain.Member{
+							ID:         "mem_01JQGF9999999999999999999",
+							RotationID: rot.ID,
+							Order:      2,
+							User: domain.User{
+								ID:    "usr_01JQGF9999999999999999999",
+								Name:  "Bob Jones",
+								Email: "bob@example.com",
+							},
+						},
+					},
+				}
+				return []*domain.Rotation{&rot}, nil
 			},
 			wantStatusCode: http.StatusOK,
 		},

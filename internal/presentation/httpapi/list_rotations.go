@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
 )
@@ -62,8 +63,7 @@ func (h *ListRotationsHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 
-		if rot.CurrentMember != nil {
-			cm := rot.CurrentMember
+		if cm := rot.EffectiveOnCall(time.Now()); cm != nil {
 			resource.Relationships.CurrentMember.Data = &RelationshipData{
 				Type: "members",
 				ID:   cm.ID,

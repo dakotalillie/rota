@@ -36,10 +36,10 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 	}
 
 	rotation3 := &domain.Rotation{
-		ID:            rotationID,
-		Name:          "Platform On-Call",
-		Members:       []domain.Member{alice, bob, charlie},
-		CurrentMember: &alice,
+		ID:              rotationID,
+		Name:            "Platform On-Call",
+		Members:         []domain.Member{alice, bob, charlie},
+		ScheduledMember: &alice,
 	}
 
 	tests := []struct {
@@ -60,10 +60,10 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			name:  "success - non-current member, user has other memberships",
 			input: application.DeleteMemberInput{RotationID: rotationID, MemberID: bob.ID, Now: fixedNow},
 			rotationRepo: fakeRotationRepo{rotation: &domain.Rotation{
-				ID:            rotationID,
-				Name:          "Platform On-Call",
-				Members:       []domain.Member{alice, bob, charlie},
-				CurrentMember: &alice,
+				ID:              rotationID,
+				Name:            "Platform On-Call",
+				Members:         []domain.Member{alice, bob, charlie},
+				ScheduledMember: &alice,
 			}},
 			memberRepo: fakeMemberRepo{
 				getByIDMember: &bob,
@@ -79,10 +79,10 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			name:  "success - user's last membership, user deleted",
 			input: application.DeleteMemberInput{RotationID: rotationID, MemberID: bob.ID, Now: fixedNow},
 			rotationRepo: fakeRotationRepo{rotation: &domain.Rotation{
-				ID:            rotationID,
-				Name:          "Platform On-Call",
-				Members:       []domain.Member{alice, bob, charlie},
-				CurrentMember: &alice,
+				ID:              rotationID,
+				Name:            "Platform On-Call",
+				Members:         []domain.Member{alice, bob, charlie},
+				ScheduledMember: &alice,
 			}},
 			memberRepo: fakeMemberRepo{
 				getByIDMember: &bob,
@@ -115,10 +115,10 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			name:  "success - current member deleted, wrap-around to first",
 			input: application.DeleteMemberInput{RotationID: rotationID, MemberID: charlie.ID, Now: fixedNow},
 			rotationRepo: fakeRotationRepo{rotation: &domain.Rotation{
-				ID:            rotationID,
-				Name:          "Platform On-Call",
-				Members:       []domain.Member{alice, bob, charlie},
-				CurrentMember: &charlie,
+				ID:              rotationID,
+				Name:            "Platform On-Call",
+				Members:         []domain.Member{alice, bob, charlie},
+				ScheduledMember: &charlie,
 			}},
 			memberRepo: fakeMemberRepo{
 				getByIDMember: &charlie,
@@ -136,10 +136,10 @@ func TestDeleteMemberUseCase_Execute(t *testing.T) {
 			name:  "success - last member deleted",
 			input: application.DeleteMemberInput{RotationID: rotationID, MemberID: alice.ID, Now: fixedNow},
 			rotationRepo: fakeRotationRepo{rotation: &domain.Rotation{
-				ID:            rotationID,
-				Name:          "Platform On-Call",
-				Members:       []domain.Member{alice},
-				CurrentMember: &alice,
+				ID:              rotationID,
+				Name:            "Platform On-Call",
+				Members:         []domain.Member{alice},
+				ScheduledMember: &alice,
 			}},
 			memberRepo: fakeMemberRepo{
 				getByIDMember: &alice,

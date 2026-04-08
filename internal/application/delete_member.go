@@ -92,8 +92,8 @@ func (uc *DeleteMemberUseCase) Execute(ctx context.Context, input DeleteMemberIn
 			}
 		}
 
-		// If the deleted member was current, promote the next one in order (wrapping).
-		if rotation.CurrentMember != nil && rotation.CurrentMember.ID == input.MemberID && len(remainingIDs) > 0 {
+		// If the deleted member was scheduled, promote the next one in order (wrapping).
+		if rotation.ScheduledMember != nil && rotation.ScheduledMember.ID == input.MemberID && len(remainingIDs) > 0 {
 			nextIndex := deletedIndex % len(remainingIDs)
 			nextMemberID := remainingIDs[nextIndex]
 			if err := uc.memberRepo.SetCurrentMember(ctx, input.RotationID, nextMemberID, input.Now); err != nil {
