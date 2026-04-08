@@ -7,7 +7,7 @@ import (
 	"github.com/dakotalillie/rota/internal/domain"
 )
 
-func newWeeklyRotation(day, t, tz string, members []domain.Member, current *domain.Member) domain.Rotation {
+func newWeeklyRotation(day, t, tz string, members []domain.Member, scheduled *domain.Member) domain.Rotation {
 	return domain.Rotation{
 		ID:   "rot_test",
 		Name: "Test Rotation",
@@ -18,8 +18,8 @@ func newWeeklyRotation(day, t, tz string, members []domain.Member, current *doma
 				TimeZone: tz,
 			},
 		},
-		Members:       members,
-		CurrentMember: current,
+		Members:         members,
+		ScheduledMember: scheduled,
 	}
 }
 
@@ -140,7 +140,7 @@ func TestSchedule_ZeroWeeks(t *testing.T) {
 
 func TestSchedule_NoMembers(t *testing.T) {
 	r := newWeeklyRotation("Monday", "09:00", "UTC", nil, nil)
-	r.CurrentMember = &alice // CurrentMember set but Members list is empty
+	r.ScheduledMember = &alice // ScheduledMember set but Members list is empty
 
 	blocks, err := r.Schedule(fixedNow, 3)
 	if err != nil {
@@ -151,31 +151,31 @@ func TestSchedule_NoMembers(t *testing.T) {
 	}
 }
 
-func TestSchedule_NoCurrentMember(t *testing.T) {
+func TestSchedule_NoScheduledMember(t *testing.T) {
 	members := []domain.Member{alice, bob}
 	r := newWeeklyRotation("Monday", "09:00", "UTC", members, nil)
 
 	_, err := r.Schedule(fixedNow, 3)
 	if err == nil {
-		t.Error("expected error when CurrentMember is nil")
+		t.Error("expected error when ScheduledMember is nil")
 	}
 }
 
-func TestSchedule_CurrentMemberNotInMembers(t *testing.T) {
+func TestSchedule_ScheduledMemberNotInMembers(t *testing.T) {
 	outsider := domain.Member{ID: "m99", Order: 99, User: domain.User{Name: "Outsider"}}
 	members := []domain.Member{alice, bob}
 	r := newWeeklyRotation("Monday", "09:00", "UTC", members, &outsider)
 
 	_, err := r.Schedule(fixedNow, 3)
 	if err == nil {
-		t.Error("expected error when current member is not in members list")
+		t.Error("expected error when scheduled member is not in members list")
 	}
 }
 
 func TestSchedule_NilWeeklyCadence(t *testing.T) {
 	r := domain.Rotation{
-		Members:       []domain.Member{alice},
-		CurrentMember: &alice,
+		Members:         []domain.Member{alice},
+		ScheduledMember: &alice,
 	}
 
 	_, err := r.Schedule(fixedNow, 3)
@@ -279,6 +279,48 @@ func TestSchedule_OverridePartialBlock(t *testing.T) {
 	}
 	if !blocks[2].Start.Equal(override.End) || !blocks[2].End.Equal(periodStart.AddDate(0, 0, 7)) {
 		t.Errorf("block 2 times wrong: %v – %v", blocks[2].Start, blocks[2].End)
+	}
+}
+
+func TestEffectiveOnCall_UsesActiveOverride(t *testing.T) {
+	r := newWeeklyRotation("Monday", "09:00", "UTC", []domain.Member{alice, bob}, &alice)
+	r.Overrides = []domain.Override{
+		{
+			ID:     "ovr_1",
+			Member: bob,
+			Start:  fixedNow.Add(-time.Hour),
+			End:    fixedNow.Add(time.Hour),
+		},
+	}
+
+	got := r.EffectiveOnCall(fixedNow)
+
+	if got == nil {
+		t.Fatal("expected effective on-call member")
+	}
+	if got.ID != bob.ID {
+		t.Fatalf("expected override member %s, got %s", bob.ID, got.ID)
+	}
+}
+
+func TestEffectiveOnCall_FallsBackToScheduledMember(t *testing.T) {
+	r := newWeeklyRotation("Monday", "09:00", "UTC", []domain.Member{alice, bob}, &alice)
+	r.Overrides = []domain.Override{
+		{
+			ID:     "ovr_1",
+			Member: bob,
+			Start:  fixedNow.Add(time.Hour),
+			End:    fixedNow.Add(2 * time.Hour),
+		},
+	}
+
+	got := r.EffectiveOnCall(fixedNow)
+
+	if got == nil {
+		t.Fatal("expected effective on-call member")
+	}
+	if got.ID != alice.ID {
+		t.Fatalf("expected scheduled member %s, got %s", alice.ID, got.ID)
 	}
 }
 

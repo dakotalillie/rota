@@ -95,7 +95,7 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 		if err := json.Unmarshal([]byte(rawUser.String), &uRec); err != nil {
 			return nil, err
 		}
-		rot.CurrentMember = &domain.Member{
+		rot.ScheduledMember = &domain.Member{
 			ID:         memID.String,
 			RotationID: memRotID.String,
 			Order:      mRec.Order,
@@ -110,7 +110,7 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 			if err != nil {
 				return nil, fmt.Errorf("parsing became_current_at: %w", err)
 			}
-			rot.CurrentMember.BecameCurrentAt = t.UTC()
+			rot.ScheduledMember.BecameCurrentAt = t.UTC()
 		}
 	}
 
@@ -207,7 +207,7 @@ func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, erro
 			if err := json.Unmarshal([]byte(rawUser.String), &uRec); err != nil {
 				return nil, err
 			}
-			rot.CurrentMember = &domain.Member{
+			rot.ScheduledMember = &domain.Member{
 				ID:         memID.String,
 				RotationID: memRotID.String,
 				Order:      mRec.Order,
@@ -222,7 +222,7 @@ func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, erro
 				if err != nil {
 					return nil, fmt.Errorf("parsing became_current_at: %w", err)
 				}
-				rot.CurrentMember.BecameCurrentAt = t.UTC()
+				rot.ScheduledMember.BecameCurrentAt = t.UTC()
 			}
 		}
 

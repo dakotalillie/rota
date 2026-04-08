@@ -11,4 +11,5 @@ type OverrideRepository interface {
 	DeleteByMemberID(ctx context.Context, memberID string) error
 	HasOverlapping(ctx context.Context, rotationID string, start, end time.Time) (bool, error)
 	ListByRotationID(ctx context.Context, rotationID string, now time.Time) ([]Override, error)
+	ListByRotationIDs(ctx context.Context, rotationIDs []string, now time.Time) (map[string][]Override, error)
 }

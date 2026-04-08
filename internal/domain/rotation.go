@@ -10,12 +10,12 @@ import (
 )
 
 type Rotation struct {
-	ID            string
-	Name          string
-	Cadence       RotationCadence
-	CurrentMember *Member
-	Members       []Member
-	Overrides     []Override
+	ID              string
+	Name            string
+	Cadence         RotationCadence
+	ScheduledMember *Member
+	Members         []Member
+	Overrides       []Override
 }
 
 type RotationCadence struct {
@@ -42,8 +42,8 @@ func (r *Rotation) Schedule(now time.Time, numWeeks int) ([]ScheduleBlock, error
 	if len(r.Members) == 0 || numWeeks <= 0 {
 		return []ScheduleBlock{}, nil
 	}
-	if r.CurrentMember == nil {
-		return nil, errors.New("rotation has no current member")
+	if r.ScheduledMember == nil {
+		return nil, errors.New("rotation has no scheduled member")
 	}
 
 	loc, err := time.LoadLocation(r.Cadence.Weekly.TimeZone)
@@ -69,13 +69,13 @@ func (r *Rotation) Schedule(now time.Time, numWeeks int) ([]ScheduleBlock, error
 
 	currentIdx := -1
 	for i, m := range sorted {
-		if m.ID == r.CurrentMember.ID {
+		if m.ID == r.ScheduledMember.ID {
 			currentIdx = i
 			break
 		}
 	}
 	if currentIdx == -1 {
-		return nil, fmt.Errorf("current member %q not found in rotation members", r.CurrentMember.ID)
+		return nil, fmt.Errorf("scheduled member %q not found in rotation members", r.ScheduledMember.ID)
 	}
 
 	periodStart := mostRecentHandoff(now, weekday, hour, minute, loc)
@@ -96,7 +96,7 @@ func (r *Rotation) Schedule(now time.Time, numWeeks int) ([]ScheduleBlock, error
 }
 
 func (r *Rotation) NeedsAdvance(now time.Time) (bool, time.Time, error) {
-	if r.CurrentMember == nil || r.Cadence.Weekly == nil || r.CurrentMember.BecameCurrentAt.IsZero() {
+	if r.ScheduledMember == nil || r.Cadence.Weekly == nil || r.ScheduledMember.BecameCurrentAt.IsZero() {
 		return false, time.Time{}, nil
 	}
 
@@ -116,15 +116,15 @@ func (r *Rotation) NeedsAdvance(now time.Time) (bool, time.Time, error) {
 	}
 
 	handoff := mostRecentHandoff(now, weekday, hour, minute, loc)
-	if handoff.After(r.CurrentMember.BecameCurrentAt) {
+	if handoff.After(r.ScheduledMember.BecameCurrentAt) {
 		return true, handoff, nil
 	}
 	return false, time.Time{}, nil
 }
 
 func (r *Rotation) NextMember() (*Member, error) {
-	if r.CurrentMember == nil {
-		return nil, errors.New("rotation has no current member")
+	if r.ScheduledMember == nil {
+		return nil, errors.New("rotation has no scheduled member")
 	}
 	if len(r.Members) == 0 {
 		return nil, errors.New("rotation has no members")
@@ -137,12 +137,23 @@ func (r *Rotation) NextMember() (*Member, error) {
 	})
 
 	for i, m := range sorted {
-		if m.ID == r.CurrentMember.ID {
+		if m.ID == r.ScheduledMember.ID {
 			next := sorted[(i+1)%len(sorted)]
 			return &next, nil
 		}
 	}
-	return nil, fmt.Errorf("current member %q not found in rotation members", r.CurrentMember.ID)
+	return nil, fmt.Errorf("scheduled member %q not found in rotation members", r.ScheduledMember.ID)
+}
+
+func (r *Rotation) EffectiveOnCall(now time.Time) *Member {
+	for _, o := range r.Overrides {
+		if !now.Before(o.Start) && now.Before(o.End) {
+			member := o.Member
+			return &member
+		}
+	}
+
+	return r.ScheduledMember
 }
 
 func mostRecentHandoff(now time.Time, weekday time.Weekday, hour, minute int, loc *time.Location) time.Time {
@@ -208,7 +219,7 @@ func (r *Rotation) ValidateOverride(memberID string, start, end time.Time) error
 	}
 
 	// No active schedule — nothing to conflict with.
-	if r.Cadence.Weekly == nil || r.CurrentMember == nil || len(r.Members) == 0 {
+	if r.Cadence.Weekly == nil || r.ScheduledMember == nil || len(r.Members) == 0 {
 		return nil
 	}
 

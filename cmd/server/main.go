@@ -39,7 +39,7 @@ func main() {
 		overrideRepo          = sqlite.NewOverrideRepository(db)
 		createRotationUseCase = application.NewCreateRotationUseCase(transactor, rotationRepo)
 		getRotationUseCase    = application.NewGetRotationUseCase(rotationRepo, overrideRepo)
-		listRotationsUseCase  = application.NewListRotationsUseCase(rotationRepo)
+		listRotationsUseCase  = application.NewListRotationsUseCase(rotationRepo, overrideRepo)
 		createMemberUseCase   = application.NewCreateMemberUseCase(transactor, rotationRepo, userRepo, memberRepo)
 		reorderMembersUseCase = application.NewReorderMembersUseCase(transactor, rotationRepo, memberRepo)
 		deleteMemberUseCase   = application.NewDeleteMemberUseCase(transactor, rotationRepo, memberRepo, overrideRepo, userRepo)

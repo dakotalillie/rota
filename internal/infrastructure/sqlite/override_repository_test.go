@@ -186,3 +186,80 @@ func TestOverrideRepository_Delete(t *testing.T) {
 		require.ErrorIs(t, err, domain.ErrOverrideNotFound)
 	})
 }
+
+func TestOverrideRepository_ListByRotationIDs(t *testing.T) {
+	db := openTestDB(t)
+	rotRepo := sqlite.NewRotationRepository(db)
+	userRepo := sqlite.NewUserRepository(db)
+	memberRepo := sqlite.NewMemberRepository(db)
+	overrideRepo := sqlite.NewOverrideRepository(db)
+
+	rotationB := &domain.Rotation{
+		ID:   "rot_01JQGF0000000000000000001",
+		Name: "Database On-Call",
+		Cadence: domain.RotationCadence{
+			Weekly: &domain.RotationCadenceWeekly{
+				Day:      "Tuesday",
+				Time:     "10:00",
+				TimeZone: "America/Chicago",
+			},
+		},
+	}
+
+	require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
+	require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationB))
+
+	userA, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
+	require.NoError(t, err)
+	memberA, err := memberRepo.Create(t.Context(), rotationA.ID, userA.ID, 1)
+	require.NoError(t, err)
+
+	userB, err := userRepo.Create(t.Context(), "Bob Jones", "bob@example.com")
+	require.NoError(t, err)
+	memberB, err := memberRepo.Create(t.Context(), rotationB.ID, userB.ID, 1)
+	require.NoError(t, err)
+
+	start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
+	end := time.Date(2026, 4, 14, 9, 0, 0, 0, time.UTC)
+
+	createdOverrideA, err := overrideRepo.Create(t.Context(), rotationA.ID, memberA.ID, start, end)
+	require.NoError(t, err)
+	createdOverrideB, err := overrideRepo.Create(t.Context(), rotationB.ID, memberB.ID, start.Add(time.Hour), end.Add(time.Hour))
+	require.NoError(t, err)
+
+	got, err := overrideRepo.ListByRotationIDs(t.Context(), []string{rotationA.ID, rotationB.ID}, start.Add(-time.Hour))
+	require.NoError(t, err)
+	require.Len(t, got, 2)
+	require.Equal(t, []domain.Override{{
+		ID:         createdOverrideA.ID,
+		RotationID: rotationA.ID,
+		Start:      start,
+		End:        end,
+		Member: domain.Member{
+			ID:         memberA.ID,
+			RotationID: rotationA.ID,
+			Order:      1,
+			User: domain.User{
+				ID:    userA.ID,
+				Name:  "Alice Smith",
+				Email: "alice@example.com",
+			},
+		},
+	}}, got[rotationA.ID])
+	require.Equal(t, []domain.Override{{
+		ID:         createdOverrideB.ID,
+		RotationID: rotationB.ID,
+		Start:      start.Add(time.Hour),
+		End:        end.Add(time.Hour),
+		Member: domain.Member{
+			ID:         memberB.ID,
+			RotationID: rotationB.ID,
+			Order:      1,
+			User: domain.User{
+				ID:    userB.ID,
+				Name:  "Bob Jones",
+				Email: "bob@example.com",
+			},
+		},
+	}}, got[rotationB.ID])
+}

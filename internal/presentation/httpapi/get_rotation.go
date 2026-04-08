@@ -119,10 +119,10 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	response.Data.Relationships.Overrides = &OverridesRelationship{Data: overridesData}
 	response.Included = included
 
-	if rotation.CurrentMember != nil {
+	if currentMember := rotation.EffectiveOnCall(time.Now()); currentMember != nil {
 		response.Data.Relationships.CurrentMember.Data = &RelationshipData{
 			Type: "members",
-			ID:   rotation.CurrentMember.ID,
+			ID:   currentMember.ID,
 		}
 	}
 

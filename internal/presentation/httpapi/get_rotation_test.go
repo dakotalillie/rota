@@ -52,7 +52,7 @@ func TestGetRotationHandler(t *testing.T) {
 							TimeZone: "America/New_York",
 						},
 					},
-					CurrentMember: &domain.Member{
+					ScheduledMember: &domain.Member{
 						ID:         "mem_01JQGF0000000000000000000",
 						RotationID: rotationID,
 						Order:      1,
@@ -166,8 +166,8 @@ func TestGetRotationHandler(t *testing.T) {
 						{
 							ID:         "ovr_01JQGF0000000000000000001",
 							RotationID: rotationID,
-							Start:      time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC),
-							End:        time.Date(2026, 4, 14, 9, 0, 0, 0, time.UTC),
+							Start:      time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
+							End:        time.Date(2100, 1, 1, 0, 0, 0, 0, time.UTC),
 							Member: domain.Member{
 								ID:         "mem_01JQGF000000000000000000B",
 								RotationID: rotationID,

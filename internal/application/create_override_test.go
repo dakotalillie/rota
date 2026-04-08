@@ -13,11 +13,21 @@ import (
 )
 
 type fakeOverrideRepo struct {
-	hasOverlapping    bool
-	hasOverlappingErr error
-	createdOverride   *domain.Override
-	createErr         error
-	deleteCalls       []struct {
+	hasOverlapping      bool
+	hasOverlappingErr   error
+	createdOverride     *domain.Override
+	createErr           error
+	listByRotationID    map[string][]domain.Override
+	listByRotationErr   error
+	listByRotationCalls []struct {
+		rotationID string
+		now        time.Time
+	}
+	listByRotationIDsCalls []struct {
+		rotationIDs []string
+		now         time.Time
+	}
+	deleteCalls []struct {
 		rotationID string
 		overrideID string
 	}
@@ -59,8 +69,40 @@ func (f *fakeOverrideRepo) DeleteByMemberID(_ context.Context, memberID string) 
 	return f.deleteByMemberIDErr
 }
 
-func (f *fakeOverrideRepo) ListByRotationID(_ context.Context, _ string, _ time.Time) ([]domain.Override, error) {
-	return []domain.Override{}, nil
+func (f *fakeOverrideRepo) ListByRotationID(_ context.Context, rotationID string, now time.Time) ([]domain.Override, error) {
+	f.listByRotationCalls = append(f.listByRotationCalls, struct {
+		rotationID string
+		now        time.Time
+	}{rotationID, now})
+	if f.listByRotationErr != nil {
+		return nil, f.listByRotationErr
+	}
+	if f.listByRotationID == nil {
+		return []domain.Override{}, nil
+	}
+	return f.listByRotationID[rotationID], nil
+}
+
+func (f *fakeOverrideRepo) ListByRotationIDs(_ context.Context, rotationIDs []string, now time.Time) (map[string][]domain.Override, error) {
+	f.listByRotationIDsCalls = append(f.listByRotationIDsCalls, struct {
+		rotationIDs []string
+		now         time.Time
+	}{append([]string(nil), rotationIDs...), now})
+	if f.listByRotationErr != nil {
+		return nil, f.listByRotationErr
+	}
+	result := make(map[string][]domain.Override, len(rotationIDs))
+	for _, rotationID := range rotationIDs {
+		if f.listByRotationID == nil {
+			result[rotationID] = []domain.Override{}
+			continue
+		}
+		result[rotationID] = f.listByRotationID[rotationID]
+		if result[rotationID] == nil {
+			result[rotationID] = []domain.Override{}
+		}
+	}
+	return result, nil
 }
 
 func TestCreateOverrideUseCase_Execute(t *testing.T) {
