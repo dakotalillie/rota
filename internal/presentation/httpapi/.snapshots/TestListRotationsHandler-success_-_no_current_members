@@ -1,2 +1,2 @@
-{"links":{"self":"http://localhost:8080/api/rotations"},"data":[{"type":"rotations","id":"rot_01JQGF0000000000000000000","attributes":{"name":"Platform On-Call","cadence":{"weekly":{"day":"Monday","time":"09:00","timeZone":"America/New_York"}}},"relationships":{"currentMember":{"data":null}}}]}
+{"links":{"self":"http://localhost:8080/api/rotations"},"data":[{"type":"rotations","id":"rot_01JQGF0000000000000000000","attributes":{"name":"Platform On-Call","cadence":{"weekly":{"day":"Monday","time":"09:00","timeZone":"America/New_York"}}},"relationships":{"currentMember":{"data":null},"scheduledMember":{"data":null}}}]}
 

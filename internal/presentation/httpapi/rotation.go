@@ -8,9 +8,10 @@ type Rotation struct {
 }
 
 type RotationRelationships struct {
-	CurrentMember CurrentMemberRelationship `json:"currentMember"`
-	Members       *MembersRelationship      `json:"members,omitempty"`
-	Overrides     *OverridesRelationship    `json:"overrides,omitempty"`
+	CurrentMember   CurrentMemberRelationship   `json:"currentMember"`
+	ScheduledMember ScheduledMemberRelationship `json:"scheduledMember"`
+	Members         *MembersRelationship        `json:"members,omitempty"`
+	Overrides       *OverridesRelationship      `json:"overrides,omitempty"`
 }
 
 type OverridesRelationship struct {
@@ -22,6 +23,10 @@ type MembersRelationship struct {
 }
 
 type CurrentMemberRelationship struct {
+	Data *RelationshipData `json:"data"`
+}
+
+type ScheduledMemberRelationship struct {
 	Data *RelationshipData `json:"data"`
 }
 

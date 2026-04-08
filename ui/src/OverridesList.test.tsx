@@ -2,8 +2,10 @@
 
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useLayoutEffect } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { AppStateProvider, useAppState } from "./AppStateContext";
 import OverridesList from "./OverridesList";
 import type { Member, Override } from "./types";
 
@@ -59,6 +61,20 @@ function createDeferredResponse() {
   return { promise, resolve };
 }
 
+function SeedState({
+  scheduledMemberId,
+}: {
+  scheduledMemberId: string | null;
+}) {
+  const { setScheduledMemberId } = useAppState();
+
+  useLayoutEffect(() => {
+    setScheduledMemberId(scheduledMemberId);
+  }, [scheduledMemberId, setScheduledMemberId]);
+
+  return null;
+}
+
 describe("OverridesList", () => {
   afterEach(() => {
     cleanup();
@@ -68,11 +84,14 @@ describe("OverridesList", () => {
 
   function renderComponent(setOverrides = vi.fn()) {
     render(
-      <OverridesList
-        members={members}
-        overrides={overrides}
-        setOverrides={setOverrides}
-      />,
+      <AppStateProvider>
+        <SeedState scheduledMemberId="mem_2" />
+        <OverridesList
+          members={members}
+          overrides={overrides}
+          setOverrides={setOverrides}
+        />
+      </AppStateProvider>,
     );
 
     return { setOverrides };

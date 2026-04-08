@@ -57,23 +57,40 @@ function createDeferredResponse() {
 function SeedState({
   members,
   overrides,
+  scheduledMemberId,
 }: {
   members: Member[];
   overrides: Override[];
+  scheduledMemberId?: string | null;
 }) {
-  const { setMembers, setOverrides } = useAppState();
+  const { setMembers, setOverrides, setScheduledMemberId } = useAppState();
 
   useLayoutEffect(() => {
     setMembers(members);
     setOverrides(overrides);
-  }, [members, overrides, setMembers, setOverrides]);
+    setScheduledMemberId(scheduledMemberId ?? null);
+  }, [
+    members,
+    overrides,
+    scheduledMemberId,
+    setMembers,
+    setOverrides,
+    setScheduledMemberId,
+  ]);
 
   return null;
+}
+
+function ScheduledMemberObserver() {
+  const { scheduledMemberId } = useAppState();
+
+  return <span data-testid="scheduled-member-id">{scheduledMemberId}</span>;
 }
 
 function renderSettings(options?: {
   initialMembers?: Member[];
   initialOverrides?: Override[];
+  initialScheduledMemberId?: string | null;
 }) {
   render(
     <AppStateProvider>
@@ -81,8 +98,10 @@ function renderSettings(options?: {
         <SeedState
           members={options.initialMembers ?? []}
           overrides={options.initialOverrides ?? []}
+          scheduledMemberId={options.initialScheduledMemberId}
         />
       ) : null}
+      <ScheduledMemberObserver />
       <Settings />
     </AppStateProvider>,
   );
@@ -95,6 +114,9 @@ function createRotationResponse(withOverrides = true) {
       id: "rot_123",
       attributes: { name: "Platform On-Call" },
       relationships: {
+        scheduledMember: {
+          data: { id: "mem_2" },
+        },
         members: {
           data: [{ id: "mem_1" }, { id: "mem_2" }],
         },
@@ -168,6 +190,7 @@ describe("Settings", () => {
     expect(screen.getAllByText("Alice Adams").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Bob Brown").length).toBeGreaterThan(1);
     expect(screen.getByText("Replaces:")).toBeTruthy();
+    expect(screen.getByTestId("scheduled-member-id").textContent).toBe("mem_2");
     expect(screen.queryByText("No overrides scheduled.")).toBeNull();
   });
 
@@ -197,10 +220,14 @@ describe("Settings", () => {
     renderSettings({
       initialMembers: staleMembers,
       initialOverrides: staleOverrides,
+      initialScheduledMemberId: "mem_stale",
     });
 
     await screen.findAllByText("Stale Member");
     expect(screen.getByText("Apr 1, 9:00 AM – Apr 2, 9:00 AM")).toBeTruthy();
+    expect(screen.getByTestId("scheduled-member-id").textContent).toBe(
+      "mem_stale",
+    );
 
     deferred.resolve(
       new Response(
@@ -219,5 +246,6 @@ describe("Settings", () => {
 
     expect(screen.queryByText("Stale Member")).toBeNull();
     expect(screen.queryByText("Apr 1, 9:00 AM – Apr 2, 9:00 AM")).toBeNull();
+    expect(screen.getByTestId("scheduled-member-id").textContent).toBe("");
   });
 });

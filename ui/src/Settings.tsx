@@ -35,6 +35,7 @@ type GetRotationResponse = {
     relationships: {
       members: { data: { id: string }[] };
       overrides: { data: { id: string }[] };
+      scheduledMember?: { data: { id: string } | null };
     };
   };
   included?: (ApiMember | ApiUser | ApiOverride)[];
@@ -139,7 +140,8 @@ function Settings() {
     { label: "Settings" },
   ]);
 
-  const { members, setMembers, overrides, setOverrides } = useAppState();
+  const { members, setMembers, overrides, setOverrides, setScheduledMemberId } =
+    useAppState();
 
   useEffect(() => {
     let cancelled = false;
@@ -149,6 +151,7 @@ function Settings() {
       setRotationName(null);
       setMembers([]);
       setOverrides([]);
+      setScheduledMemberId(null);
     }
 
     void (async () => {
@@ -171,10 +174,13 @@ function Settings() {
           body.data.relationships.overrides.data,
           includedMaps,
         );
+        const scheduledMemberId =
+          body.data.relationships.scheduledMember?.data?.id ?? null;
 
         setRotationName(body.data.attributes.name);
         setMembers(loadedMembers);
         setOverrides(loadedOverrides);
+        setScheduledMemberId(scheduledMemberId);
       } catch {
         clearState();
       }
@@ -183,7 +189,7 @@ function Settings() {
     return () => {
       cancelled = true;
     };
-  }, [rotationId, setMembers, setOverrides]);
+  }, [rotationId, setMembers, setOverrides, setScheduledMemberId]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">

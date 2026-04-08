@@ -2,6 +2,7 @@ import { useParams } from "@tanstack/react-router";
 import { ArrowRight, X } from "lucide-react";
 import { useState } from "react";
 
+import { useAppState } from "./AppStateContext";
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
 import type { Member, Override } from "./types";
@@ -22,6 +23,7 @@ function OverridesList({
   overrides,
   setOverrides,
 }: OverridesListProps) {
+  const { scheduledMemberId } = useAppState();
   const { rotationId } = useParams({ strict: false });
   const [deletingOverrideId, setDeletingOverrideId] = useState<string | null>(
     null,
@@ -75,6 +77,7 @@ function OverridesList({
           baseOverrides,
           override.start,
           override.end,
+          scheduledMemberId,
         );
         return (
           <div
