@@ -181,7 +181,7 @@ func (h *CreateOverrideHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			Member{
 				Type:       "members",
 				ID:         override.Member.ID,
-				Attributes: MemberAttributes{Order: override.Member.Order},
+				Attributes: MemberAttributes{Order: override.Member.Order, Color: override.Member.Color},
 				Relationships: MemberRelationships{
 					User: MemberUserRelationship{
 						Data: MemberUserRelationshipData{Type: "users", ID: override.Member.User.ID},

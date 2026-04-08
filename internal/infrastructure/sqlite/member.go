@@ -5,5 +5,6 @@ type userData struct {
 }
 
 type memberData struct {
-	Order int `json:"order"`
+	Order int    `json:"order"`
+	Color string `json:"color"`
 }

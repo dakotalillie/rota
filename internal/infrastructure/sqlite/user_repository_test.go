@@ -60,7 +60,7 @@ func TestUserRepository_CountMemberships(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 		user, err := userRepo.Create(t.Context(), userA.Name, userA.Email)
 		require.NoError(t, err)
-		_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		count, err := userRepo.CountMemberships(t.Context(), user.ID)
@@ -79,9 +79,9 @@ func TestUserRepository_CountMemberships(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotB))
 		user, err := userRepo.Create(t.Context(), userA.Name, userA.Email)
 		require.NoError(t, err)
-		_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		_, err = memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
-		_, err = memberRepo.Create(t.Context(), rotB.ID, user.ID, 1)
+		_, err = memberRepo.Create(t.Context(), rotB.ID, user.ID, 1, domain.MemberColors[1])
 		require.NoError(t, err)
 
 		count, err := userRepo.CountMemberships(t.Context(), user.ID)
@@ -146,12 +146,12 @@ func TestUserRepository_Create(t *testing.T) {
 
 		u1, err := userRepo.Create(t.Context(), "Alice", userA.Email)
 		require.NoError(t, err)
-		_, err = memberRepo.Create(t.Context(), rotationA.ID, u1.ID, 1)
+		_, err = memberRepo.Create(t.Context(), rotationA.ID, u1.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		u2, err := userRepo.Create(t.Context(), "Alice", userA.Email)
 		require.NoError(t, err)
-		_, err = memberRepo.Create(t.Context(), rotB.ID, u2.ID, 1)
+		_, err = memberRepo.Create(t.Context(), rotB.ID, u2.ID, 1, domain.MemberColors[1])
 		require.NoError(t, err)
 
 		require.Equal(t, u1.ID, u2.ID, "same email should resolve to same user ID")

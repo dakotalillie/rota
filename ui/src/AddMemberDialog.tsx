@@ -4,6 +4,7 @@ import { UserPlus, X } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "./Button";
+import { colorsForName } from "./colorPalette";
 import { Input } from "./Input";
 import type { Member } from "./types";
 
@@ -12,60 +13,10 @@ type AddMemberDialogProps = {
   setMembers: (members: Member[]) => void;
 };
 
-const COLOR_PALETTE = [
-  {
-    color: "bg-violet-500",
-    lightColor: "bg-violet-50",
-    darkColor: "dark:bg-violet-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-sky-500",
-    lightColor: "bg-sky-50",
-    darkColor: "dark:bg-sky-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-emerald-500",
-    lightColor: "bg-emerald-50",
-    darkColor: "dark:bg-emerald-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-orange-400",
-    lightColor: "bg-orange-50",
-    darkColor: "dark:bg-orange-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-rose-500",
-    lightColor: "bg-rose-50",
-    darkColor: "dark:bg-rose-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-teal-500",
-    lightColor: "bg-teal-50",
-    darkColor: "dark:bg-teal-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-amber-500",
-    lightColor: "bg-amber-50",
-    darkColor: "dark:bg-amber-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-pink-500",
-    lightColor: "bg-pink-50",
-    darkColor: "dark:bg-pink-950/50",
-    textColor: "text-white",
-  },
-];
-
 type CreateMemberResponse = {
   data: {
     id: string;
+    attributes: { color: string };
   };
   included: {
     id: string;
@@ -111,13 +62,12 @@ function AddMemberDialog({ members, setMembers }: AddMemberDialogProps) {
         return;
       }
       const user = body.included[0];
-      const palette = COLOR_PALETTE[members.length % COLOR_PALETTE.length];
       const newMember: Member = {
         id: body.data.id,
         userId: user.id,
         name: user.attributes.name,
         email: user.attributes.email,
-        ...palette,
+        ...colorsForName(body.data.attributes.color),
       };
       setMembers([...members, newMember]);
       setOpen(false);

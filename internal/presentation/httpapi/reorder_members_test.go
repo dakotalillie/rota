@@ -26,16 +26,19 @@ func TestReorderMembersHandler(t *testing.T) {
 			{
 				ID:    "mem_01JQGF0000000000000000003",
 				Order: 1,
+				Color: "emerald",
 				User:  domain.User{ID: "usr_01JQGF0000000000000000003", Name: "Charlie", Email: "charlie@example.com"},
 			},
 			{
 				ID:    "mem_01JQGF0000000000000000001",
 				Order: 2,
+				Color: "violet",
 				User:  domain.User{ID: "usr_01JQGF0000000000000000001", Name: "Alice", Email: "alice@example.com"},
 			},
 			{
 				ID:    "mem_01JQGF0000000000000000002",
 				Order: 3,
+				Color: "sky",
 				User:  domain.User{ID: "usr_01JQGF0000000000000000002", Name: "Bob", Email: "bob@example.com"},
 			},
 		},

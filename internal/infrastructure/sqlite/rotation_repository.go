@@ -99,6 +99,7 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 			ID:         memID.String,
 			RotationID: memRotID.String,
 			Order:      mRec.Order,
+			Color:      mRec.Color,
 			User: domain.User{
 				ID:    userID.String,
 				Email: userEmail.String,
@@ -145,6 +146,7 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 			ID:         mID,
 			RotationID: mRotID,
 			Order:      mRec.Order,
+			Color:      mRec.Color,
 			User: domain.User{
 				ID:    uID,
 				Email: uEmail,
@@ -211,6 +213,7 @@ func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, erro
 				ID:         memID.String,
 				RotationID: memRotID.String,
 				Order:      mRec.Order,
+				Color:      mRec.Color,
 				User: domain.User{
 					ID:    userID.String,
 					Email: userEmail.String,

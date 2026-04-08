@@ -32,7 +32,8 @@ func TestCreateOverrideHandler(t *testing.T) {
 		ID:         "ovr_01JQGF0000000000000000001",
 		RotationID: rotationID,
 		Member: domain.Member{
-			ID: "mem_01JQGF0000000000000000001",
+			ID:    "mem_01JQGF0000000000000000001",
+			Color: "violet",
 			User: domain.User{
 				ID:    "usr_01JQGF0000000000000000000",
 				Name:  "Alice Smith",

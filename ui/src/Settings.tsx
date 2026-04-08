@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { useAppState } from "./AppStateContext";
 import { useBreadcrumbs } from "./BreadcrumbContext";
+import { colorsForName } from "./colorPalette";
 import Members from "./Members";
 import Overrides from "./Overrides";
 import PageHeader from "./PageHeader";
@@ -11,7 +12,7 @@ import type { Member, Override } from "./types";
 type ApiMember = {
   type: "members";
   id: string;
-  attributes: { order: number };
+  attributes: { order: number; color: string };
   relationships: { user: { data: { id: string } } };
 };
 
@@ -46,57 +47,6 @@ type IncludedMaps = {
   overrideMap: Map<string, ApiOverride>;
 };
 
-const COLOR_PALETTE = [
-  {
-    color: "bg-violet-500",
-    lightColor: "bg-violet-50",
-    darkColor: "dark:bg-violet-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-sky-500",
-    lightColor: "bg-sky-50",
-    darkColor: "dark:bg-sky-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-emerald-500",
-    lightColor: "bg-emerald-50",
-    darkColor: "dark:bg-emerald-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-orange-400",
-    lightColor: "bg-orange-50",
-    darkColor: "dark:bg-orange-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-rose-500",
-    lightColor: "bg-rose-50",
-    darkColor: "dark:bg-rose-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-teal-500",
-    lightColor: "bg-teal-50",
-    darkColor: "dark:bg-teal-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-amber-500",
-    lightColor: "bg-amber-50",
-    darkColor: "dark:bg-amber-950/50",
-    textColor: "text-white",
-  },
-  {
-    color: "bg-pink-500",
-    lightColor: "bg-pink-50",
-    darkColor: "dark:bg-pink-950/50",
-    textColor: "text-white",
-  },
-];
-
 function buildIncludedMaps(
   included: (ApiMember | ApiUser | ApiOverride)[],
 ): IncludedMaps {
@@ -123,7 +73,7 @@ function loadMembers(
     return orderA - orderB;
   });
 
-  return sortedRefs.flatMap((ref, index) => {
+  return sortedRefs.flatMap((ref) => {
     const member = memberMap.get(ref.id);
     if (!member) return [];
 
@@ -137,7 +87,7 @@ function loadMembers(
         userId,
         name: user.attributes.name,
         email: user.attributes.email,
-        ...COLOR_PALETTE[index % COLOR_PALETTE.length],
+        ...colorsForName(member.attributes.color),
       },
     ];
   });

@@ -19,7 +19,7 @@ func TestOverrideRepository_Create(t *testing.T) {
 	require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 	user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 	require.NoError(t, err)
-	member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+	member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 	require.NoError(t, err)
 
 	start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
@@ -111,7 +111,7 @@ func TestOverrideRepository_HasOverlapping(t *testing.T) {
 			require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 			user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 			require.NoError(t, err)
-			member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+			member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 			require.NoError(t, err)
 
 			_, err = overrideRepo.Create(t.Context(), rotationA.ID, member.ID, baseStart, baseEnd)
@@ -135,7 +135,7 @@ func TestOverrideRepository_Delete(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationA))
 		user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 		require.NoError(t, err)
-		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)
@@ -174,7 +174,7 @@ func TestOverrideRepository_Delete(t *testing.T) {
 		require.NoError(t, rotRepo.UpsertRotation(t.Context(), rotationB))
 		user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 		require.NoError(t, err)
-		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1)
+		member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, 1, domain.MemberColors[0])
 		require.NoError(t, err)
 
 		start := time.Date(2026, 4, 7, 9, 0, 0, 0, time.UTC)

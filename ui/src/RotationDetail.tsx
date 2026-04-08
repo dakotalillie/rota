@@ -4,57 +4,17 @@ import { useEffect, useState } from "react";
 
 import { useBreadcrumbs } from "./BreadcrumbContext";
 import { Button } from "./Button";
+import { colorsForName } from "./colorPalette";
 import HomeHero from "./OnCallHero";
 import OnCallHeroEmpty from "./OnCallHeroEmpty";
 import PageHeader from "./PageHeader";
 import Schedule from "./Schedule";
 import type { Member, TimeSegment } from "./types";
 
-const COLORS: Pick<
-  Member,
-  "color" | "textColor" | "lightColor" | "darkColor"
->[] = [
-  {
-    color: "bg-indigo-500",
-    textColor: "text-white",
-    lightColor: "bg-indigo-50",
-    darkColor: "dark:bg-indigo-950",
-  },
-  {
-    color: "bg-emerald-500",
-    textColor: "text-white",
-    lightColor: "bg-emerald-50",
-    darkColor: "dark:bg-emerald-950",
-  },
-  {
-    color: "bg-rose-500",
-    textColor: "text-white",
-    lightColor: "bg-rose-50",
-    darkColor: "dark:bg-rose-950",
-  },
-  {
-    color: "bg-amber-500",
-    textColor: "text-white",
-    lightColor: "bg-amber-50",
-    darkColor: "dark:bg-amber-950",
-  },
-  {
-    color: "bg-sky-500",
-    textColor: "text-white",
-    lightColor: "bg-sky-50",
-    darkColor: "dark:bg-sky-950",
-  },
-  {
-    color: "bg-violet-500",
-    textColor: "text-white",
-    lightColor: "bg-violet-50",
-    darkColor: "dark:bg-violet-950",
-  },
-];
-
 interface ApiMember {
   type: "members";
   id: string;
+  attributes: { order: number; color: string };
   relationships: { user: { data: { type: "users"; id: string } } };
 }
 
@@ -87,32 +47,29 @@ function buildTimelineFromSchedule(
   included: (ApiMember | ApiUser)[] | undefined,
 ): TimeSegment[] {
   const userMap = new Map<string, ApiUser>();
-  const memberUserMap = new Map<string, string>();
+  const memberMap = new Map<string, ApiMember>();
 
   for (const item of included ?? []) {
     if (item.type === "users") userMap.set(item.id, item);
-    if (item.type === "members")
-      memberUserMap.set(item.id, item.relationships.user.data.id);
+    if (item.type === "members") memberMap.set(item.id, item);
   }
 
-  const memberColorIndex = new Map<string, number>();
   const members = new Map<string, Member>();
 
   for (const block of data) {
     const memberId = block.relationships.member.data.id;
     if (!members.has(memberId)) {
-      const userId = memberUserMap.get(memberId);
+      const apiMember = memberMap.get(memberId);
+      const userId = apiMember?.relationships.user.data.id;
       if (!userId) continue;
       const user = userMap.get(userId);
       if (!user) continue;
-      const idx = memberColorIndex.size;
-      memberColorIndex.set(memberId, idx);
       members.set(memberId, {
         id: memberId,
         userId,
         name: user.attributes.name,
         email: user.attributes.email,
-        ...COLORS[idx % COLORS.length],
+        ...colorsForName(apiMember.attributes.color),
       });
     }
   }
@@ -124,7 +81,7 @@ function buildTimelineFromSchedule(
       userId: "",
       name: "Unknown",
       email: "",
-      ...COLORS[0],
+      ...colorsForName(""),
     };
     return {
       start: new Date(block.attributes.start),

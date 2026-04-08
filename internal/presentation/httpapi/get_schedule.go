@@ -103,7 +103,7 @@ func (h *GetScheduleHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			included = append(included, Member{
 				Type:       "members",
 				ID:         m.ID,
-				Attributes: MemberAttributes{Order: m.Order},
+				Attributes: MemberAttributes{Order: m.Order, Color: m.Color},
 				Relationships: MemberRelationships{
 					User: MemberUserRelationship{
 						Data: MemberUserRelationshipData{Type: "users", ID: m.User.ID},

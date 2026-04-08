@@ -21,6 +21,7 @@ func TestCreateMemberHandler(t *testing.T) {
 	successMember := &domain.Member{
 		ID:         "mem_01JQGF0000000000000000001",
 		RotationID: rotationID,
+		Color:      "violet",
 		User: domain.User{
 			ID:    "usr_01JQGF0000000000000000000",
 			Name:  "Alice Smith",
