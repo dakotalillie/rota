@@ -26,7 +26,7 @@ type ScheduleBlock = {
 
 function mockRotationRequests(scheduleBlocks: ScheduleBlock[]) {
   return vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-    const url = typeof input === "string" ? input : input.url;
+    const url = typeof input === "string" ? input : (input as Request).url;
 
     if (url === "/api/rotations/rot_123") {
       return Promise.resolve(

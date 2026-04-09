@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -69,7 +70,19 @@ func main() {
 	mux.HandleFunc("POST /api/rotations/{rotationID}/overrides", createOverrideHandler.Handle)
 	mux.HandleFunc("DELETE /api/rotations/{rotationID}/overrides/{overrideID}", deleteOverrideHandler.Handle)
 
-	server := &http.Server{Addr: ":8080", Handler: mux}
+	if conf.StaticDir != "" {
+		fs := http.FileServer(http.Dir(conf.StaticDir))
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			path := filepath.Join(conf.StaticDir, r.URL.Path)
+			if _, err := os.Stat(path); os.IsNotExist(err) {
+				http.ServeFile(w, r, filepath.Join(conf.StaticDir, "index.html"))
+				return
+			}
+			fs.ServeHTTP(w, r)
+		})
+	}
+
+	server := &http.Server{Addr: ":" + conf.Port, Handler: mux}
 
 	workerCtx, cancelWorker := context.WithCancel(context.Background())
 	defer cancelWorker()
