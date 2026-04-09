@@ -12,5 +12,6 @@ Rota is an on-call rotation management app with a Go backend and a React/TypeScr
 
 - Use `task test:server` for Go tests.
 - Use `task test:ui` for UI tests.
+- Use `task test:e2e` for E2E tests (requires `task test:e2e:install` first).
 - Use `task format:server` for Go formatting.
 - Use `task lint:server` and `task lint:ui` for linting.

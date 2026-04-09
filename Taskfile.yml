@@ -85,3 +85,26 @@ tasks:
     cmds:
       - npm run test
     silent: true
+
+  build:e2e:
+    desc: Builds the UI and server binary for E2E tests
+    cmds:
+      - cd ui && npm run build
+      - go build -o e2e/bin/server cmd/server/main.go
+    silent: true
+
+  test:e2e:install:
+    desc: Installs E2E test dependencies
+    dir: e2e
+    cmds:
+      - npm install
+      - npx playwright install chromium
+    silent: true
+
+  test:e2e:
+    desc: Runs E2E tests
+    deps: [build:e2e]
+    dir: e2e
+    cmds:
+      - npx playwright test
+    silent: true

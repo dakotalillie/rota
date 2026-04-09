@@ -171,7 +171,9 @@ describe("OverridesList", () => {
   it("renders an unexpected error when the rotation id is unavailable", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.spyOn(globalThis, "fetch");
-    useParamsMock.mockReturnValue({});
+    useParamsMock.mockReturnValue({
+      rotationId: undefined as unknown as string,
+    });
     const { setOverrides } = renderComponent();
 
     await user.click(
