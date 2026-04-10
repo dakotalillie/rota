@@ -1,4 +1,5 @@
 import * as path from "path";
+
 import { expect, test } from "../fixtures";
 
 test.describe("adding members to an empty rotation", () => {
@@ -38,7 +39,9 @@ test.describe("adding members to an empty rotation", () => {
       await page.getByRole("button", { name: "Add person" }).click();
     }
 
-    const memberRows = page.getByTestId("members-list").getByTestId("member-row");
+    const memberRows = page
+      .getByTestId("members-list")
+      .getByTestId("member-row");
     await expect(memberRows).toHaveText([
       /Alice Smith/,
       /Bob Jones/,
@@ -48,7 +51,9 @@ test.describe("adding members to an empty rotation", () => {
 });
 
 test.describe("with seeded members", () => {
-  test.use({ seedFile: path.join(__dirname, "../seed/rotation-with-members.json") });
+  test.use({
+    seedFile: path.join(__dirname, "../seed/rotation-with-members.json"),
+  });
 
   test("delete a non-current member removes them from the list", async ({
     page,

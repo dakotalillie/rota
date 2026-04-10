@@ -1,4 +1,5 @@
 import * as path from "path";
+
 import { expect, test } from "../fixtures";
 
 test("shows empty state when no rotations exist", async ({
@@ -38,7 +39,9 @@ test("navigates to rotation detail after clicking a rotation", async ({
 });
 
 test.describe("rotation list shows current on-call member", () => {
-  test.use({ seedFile: path.join(__dirname, "../seed/rotation-with-members.json") });
+  test.use({
+    seedFile: path.join(__dirname, "../seed/rotation-with-members.json"),
+  });
 
   test("shows the current on-call member name in the list", async ({
     page,

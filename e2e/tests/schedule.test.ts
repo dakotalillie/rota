@@ -1,8 +1,11 @@
 import * as path from "path";
+
 import { expect, test } from "../fixtures";
 
 test.describe("schedule", () => {
-  test.use({ seedFile: path.join(__dirname, "../seed/rotation-with-members.json") });
+  test.use({
+    seedFile: path.join(__dirname, "../seed/rotation-with-members.json"),
+  });
 
   test("schedule shows members in rotation order", async ({
     page,
@@ -21,7 +24,9 @@ test.describe("schedule", () => {
 });
 
 test.describe("schedule reflects overrides", () => {
-  test.use({ seedFile: path.join(__dirname, "../seed/rotation-with-override.json") });
+  test.use({
+    seedFile: path.join(__dirname, "../seed/rotation-with-override.json"),
+  });
 
   test("schedule shows override member in override time window", async ({
     page,
