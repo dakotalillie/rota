@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -18,9 +20,19 @@ import (
 	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/dakotalillie/rota/internal/infrastructure/sqlite"
 	"github.com/dakotalillie/rota/internal/presentation/httpapi"
+	"github.com/dakotalillie/rota/internal/ui"
 )
 
+var version = "dev"
+
 func main() {
+	showVersion := flag.Bool("version", false, "print version and exit")
+	flag.Parse()
+	if *showVersion {
+		fmt.Println(version)
+		return
+	}
+
 	conf, err := config.Load()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
@@ -79,17 +91,23 @@ func main() {
 	mux.HandleFunc("POST /api/rotations/{rotationID}/overrides", createOverrideHandler.Handle)
 	mux.HandleFunc("DELETE /api/rotations/{rotationID}/overrides/{overrideID}", deleteOverrideHandler.Handle)
 
-	if conf.StaticDir != "" {
-		fs := http.FileServer(http.Dir(conf.StaticDir))
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			path := filepath.Join(conf.StaticDir, r.URL.Path)
-			if _, err := os.Stat(path); os.IsNotExist(err) {
-				http.ServeFile(w, r, filepath.Join(conf.StaticDir, "index.html"))
-				return
-			}
-			fs.ServeHTTP(w, r)
-		})
+	uiFS, err := fs.Sub(ui.FS, "dist")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading embedded UI: %v\n", err)
+		os.Exit(1)
 	}
+	fileServer := http.FileServerFS(uiFS)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		p := strings.TrimPrefix(r.URL.Path, "/")
+		if p == "" {
+			p = "index.html"
+		}
+		if _, err := fs.Stat(uiFS, p); err != nil {
+			r = r.Clone(r.Context())
+			r.URL.Path = "/"
+		}
+		fileServer.ServeHTTP(w, r)
+	})
 
 	server := &http.Server{Addr: ":" + conf.Port, Handler: mux}
 

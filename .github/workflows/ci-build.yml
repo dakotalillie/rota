@@ -1,0 +1,33 @@
+name: CI (Build)
+
+on:
+  pull_request:
+    paths:
+      - "internal/**/*.go"
+      - "cmd/**/*.go"
+      - "ui/**"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - uses: arduino/setup-task@v2
+
+      - name: Install UI deps
+        run: npm ci
+        working-directory: ui
+
+      - name: Build
+        run: task build
