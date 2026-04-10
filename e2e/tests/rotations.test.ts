@@ -1,3 +1,4 @@
+import * as path from "path";
 import { expect, test } from "../fixtures";
 
 test("shows empty state when no rotations exist", async ({
@@ -34,4 +35,18 @@ test("navigates to rotation detail after clicking a rotation", async ({
   await page.getByText("Infra On-Call").click();
 
   await expect(page).toHaveURL(/\/rotations\/.+/);
+});
+
+test.describe("rotation list shows current on-call member", () => {
+  test.use({ seedFile: path.join(__dirname, "../seed/rotation-with-members.json") });
+
+  test("shows the current on-call member name in the list", async ({
+    page,
+    serverUrl,
+    setTime,
+  }) => {
+    setTime("2026-04-07T12:00:00Z");
+    await page.goto(`${serverUrl}/rotations`);
+    await expect(page.getByText("Alice Smith")).toBeVisible();
+  });
 });

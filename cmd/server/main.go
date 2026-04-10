@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/dakotalillie/rota/internal/application"
+	"github.com/dakotalillie/rota/internal/clock"
 	"github.com/dakotalillie/rota/internal/config"
+	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/dakotalillie/rota/internal/infrastructure/sqlite"
 	"github.com/dakotalillie/rota/internal/presentation/httpapi"
 )
@@ -32,6 +34,13 @@ func main() {
 	}
 	defer db.Close() //nolint:errcheck
 
+	var clk domain.Clock
+	if conf.TimeOverrideFile != "" {
+		clk = clock.NewFS(conf.TimeOverrideFile)
+	} else {
+		clk = clock.New()
+	}
+
 	var (
 		transactor            = sqlite.NewTransactor(db)
 		rotationRepo          = sqlite.NewRotationRepository(db)
@@ -39,22 +48,22 @@ func main() {
 		memberRepo            = sqlite.NewMemberRepository(db)
 		overrideRepo          = sqlite.NewOverrideRepository(db)
 		createRotationUseCase = application.NewCreateRotationUseCase(transactor, rotationRepo)
-		getRotationUseCase    = application.NewGetRotationUseCase(rotationRepo, overrideRepo)
-		listRotationsUseCase  = application.NewListRotationsUseCase(rotationRepo, overrideRepo)
+		getRotationUseCase    = application.NewGetRotationUseCase(rotationRepo, overrideRepo, clk)
+		listRotationsUseCase  = application.NewListRotationsUseCase(rotationRepo, overrideRepo, clk)
 		createMemberUseCase   = application.NewCreateMemberUseCase(transactor, rotationRepo, userRepo, memberRepo)
 		reorderMembersUseCase = application.NewReorderMembersUseCase(transactor, rotationRepo, memberRepo)
 		deleteMemberUseCase   = application.NewDeleteMemberUseCase(transactor, rotationRepo, memberRepo, overrideRepo, userRepo)
 		getScheduleUseCase    = application.NewGetScheduleUseCase(rotationRepo, overrideRepo)
 		createOverrideUseCase = application.NewCreateOverrideUseCase(transactor, rotationRepo, overrideRepo)
 		deleteOverrideUseCase = application.NewDeleteOverrideUseCase(transactor, rotationRepo, overrideRepo)
-		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, 5*time.Second, slog.Default().With("component", "advance_rotation_worker"))
+		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, clk, 5*time.Second, slog.Default().With("component", "advance_rotation_worker"))
 		createRotationHandler = httpapi.NewCreateRotationHandler(conf.Hostname, createRotationUseCase.Execute)
-		getRotationHandler    = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute)
-		listRotationsHandler  = httpapi.NewListRotationsHandler(conf.Hostname, listRotationsUseCase.Execute)
-		createMemberHandler   = httpapi.NewCreateMemberHandler(conf.Hostname, createMemberUseCase.Execute)
+		getRotationHandler    = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute, clk)
+		listRotationsHandler  = httpapi.NewListRotationsHandler(conf.Hostname, listRotationsUseCase.Execute, clk)
+		createMemberHandler   = httpapi.NewCreateMemberHandler(conf.Hostname, createMemberUseCase.Execute, clk)
 		reorderMembersHandler = httpapi.NewReorderMembersHandler(conf.Hostname, reorderMembersUseCase.Execute)
-		deleteMemberHandler   = httpapi.NewDeleteMemberHandler(conf.Hostname, deleteMemberUseCase.Execute)
-		getScheduleHandler    = httpapi.NewGetScheduleHandler(conf.Hostname, getScheduleUseCase.Execute)
+		deleteMemberHandler   = httpapi.NewDeleteMemberHandler(conf.Hostname, deleteMemberUseCase.Execute, clk)
+		getScheduleHandler    = httpapi.NewGetScheduleHandler(conf.Hostname, getScheduleUseCase.Execute, clk)
 		createOverrideHandler = httpapi.NewCreateOverrideHandler(conf.Hostname, createOverrideUseCase.Execute)
 		deleteOverrideHandler = httpapi.NewDeleteOverrideHandler(conf.Hostname, deleteOverrideUseCase.Execute)
 	)

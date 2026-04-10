@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dakotalillie/rota/internal/application"
+	"github.com/dakotalillie/rota/internal/clock"
 	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ func TestListRotationsUseCase_Execute(t *testing.T) {
 		}
 		rotationRepo := fakeRotationRepo{rotations: []*domain.Rotation{rotation1, rotation2}}
 
-		uc := application.NewListRotationsUseCase(&rotationRepo, &overrideRepo)
+		uc := application.NewListRotationsUseCase(&rotationRepo, &overrideRepo, clock.New())
 
 		got, err := uc.Execute(context.Background())
 
@@ -45,7 +46,7 @@ func TestListRotationsUseCase_Execute(t *testing.T) {
 	t.Run("list error propagates", func(t *testing.T) {
 		rotationRepo := fakeRotationRepo{err: errors.New("db error")}
 
-		uc := application.NewListRotationsUseCase(&rotationRepo, &fakeOverrideRepo{})
+		uc := application.NewListRotationsUseCase(&rotationRepo, &fakeOverrideRepo{}, clock.New())
 
 		got, err := uc.Execute(context.Background())
 
@@ -58,7 +59,7 @@ func TestListRotationsUseCase_Execute(t *testing.T) {
 		rotationRepo := fakeRotationRepo{rotations: []*domain.Rotation{rotation1}}
 		overrideRepo := fakeOverrideRepo{listByRotationErr: errors.New("override error")}
 
-		uc := application.NewListRotationsUseCase(&rotationRepo, &overrideRepo)
+		uc := application.NewListRotationsUseCase(&rotationRepo, &overrideRepo, clock.New())
 
 		got, err := uc.Execute(context.Background())
 

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/dakotalillie/rota/internal/application"
 	"github.com/dakotalillie/rota/internal/domain"
@@ -26,10 +25,11 @@ type DeleteMember = func(ctx context.Context, input application.DeleteMemberInpu
 type DeleteMemberHandler struct {
 	hostname     string
 	deleteMember DeleteMember
+	clock        domain.Clock
 }
 
-func NewDeleteMemberHandler(hostname string, deleteMember DeleteMember) *DeleteMemberHandler {
-	return &DeleteMemberHandler{hostname: hostname, deleteMember: deleteMember}
+func NewDeleteMemberHandler(hostname string, deleteMember DeleteMember, clock domain.Clock) *DeleteMemberHandler {
+	return &DeleteMemberHandler{hostname: hostname, deleteMember: deleteMember, clock: clock}
 }
 
 func (h *DeleteMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func (h *DeleteMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	err := h.deleteMember(r.Context(), application.DeleteMemberInput{
 		RotationID: rotationID,
 		MemberID:   memberID,
-		Now:        time.Now(),
+		Now:        h.clock.Now(),
 	})
 	if errors.Is(err, domain.ErrRotationNotFound) {
 		errorResponse(http.StatusNotFound, "Rotation not found")

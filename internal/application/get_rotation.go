@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
 )
@@ -10,10 +9,11 @@ import (
 type GetRotationUseCase struct {
 	repo         domain.RotationRepository
 	overrideRepo domain.OverrideRepository
+	clock        domain.Clock
 }
 
-func NewGetRotationUseCase(repo domain.RotationRepository, overrideRepo domain.OverrideRepository) *GetRotationUseCase {
-	return &GetRotationUseCase{repo: repo, overrideRepo: overrideRepo}
+func NewGetRotationUseCase(repo domain.RotationRepository, overrideRepo domain.OverrideRepository, clock domain.Clock) *GetRotationUseCase {
+	return &GetRotationUseCase{repo: repo, overrideRepo: overrideRepo, clock: clock}
 }
 
 func (uc *GetRotationUseCase) Execute(ctx context.Context, id string) (*domain.Rotation, error) {
@@ -22,7 +22,7 @@ func (uc *GetRotationUseCase) Execute(ctx context.Context, id string) (*domain.R
 		return nil, err
 	}
 
-	overrides, err := uc.overrideRepo.ListByRotationID(ctx, id, time.Now())
+	overrides, err := uc.overrideRepo.ListByRotationID(ctx, id, uc.clock.Now())
 	if err != nil {
 		return nil, err
 	}

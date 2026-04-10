@@ -1,13 +1,18 @@
-[
-  {
-    "id": "rot_01JQGF0000000000000000000",
-    "name": "Platform On-Call",
-    "cadence": {
-      "weekly": {
-        "day": "Monday",
-        "time": "09:00",
-        "timeZone": "America/Los_Angeles"
+{
+  "users": [],
+  "rotations": [
+    {
+      "id": "rot_01JQGF0000000000000000000",
+      "name": "Platform On-Call",
+      "cadence": {
+        "weekly": {
+          "day": "Monday",
+          "time": "09:00",
+          "timeZone": "America/Los_Angeles"
+        }
       }
     }
-  }
-]
+  ],
+  "members": [],
+  "overrides": []
+}
