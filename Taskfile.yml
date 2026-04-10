@@ -65,6 +65,13 @@ tasks:
       - lefthook install
     silent: true
 
+  install:ui:
+    desc: Installs UI dependencies
+    dir: ui
+    cmds:
+      - npm install
+    silent: true
+
   lint:server:
     desc: Lints the Go code
     cmds:

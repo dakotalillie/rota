@@ -1,3 +1,8 @@
+post-checkout:
+  scripts:
+    "install-worktree-deps.sh":
+      runner: bash
+
 pre-commit:
   parallel: true
   commands:
