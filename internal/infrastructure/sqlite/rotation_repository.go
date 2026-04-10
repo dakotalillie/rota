@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -27,23 +26,17 @@ func (r *RotationRepository) Count(ctx context.Context) (int, error) {
 
 func (r *RotationRepository) Create(ctx context.Context, rot *domain.Rotation) (*domain.Rotation, error) {
 	rot.ID = newID("rot")
-	rec := rotationData{Name: rot.Name}
+
+	var weeklyDay, weeklyTime, weeklyTimezone sql.NullString
 	if rot.Cadence.Weekly != nil {
-		rec.Cadence.Weekly = &rotationCadenceWeekly{
-			Day:      rot.Cadence.Weekly.Day,
-			Time:     rot.Cadence.Weekly.Time,
-			TimeZone: rot.Cadence.Weekly.TimeZone,
-		}
+		weeklyDay = sql.NullString{String: rot.Cadence.Weekly.Day, Valid: true}
+		weeklyTime = sql.NullString{String: rot.Cadence.Weekly.Time, Valid: true}
+		weeklyTimezone = sql.NullString{String: rot.Cadence.Weekly.TimeZone, Valid: true}
 	}
 
-	blob, err := json.Marshal(rec)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = dbFromContext(ctx, r.db).ExecContext(ctx,
-		`INSERT INTO rotations (id, data) VALUES (?, ?)`,
-		rot.ID, string(blob),
+	_, err := dbFromContext(ctx, r.db).ExecContext(ctx,
+		`INSERT INTO rotations (id, name, weekly_day, weekly_time, weekly_timezone) VALUES (?, ?, ?, ?, ?)`,
+		rot.ID, rot.Name, weeklyDay, weeklyTime, weeklyTimezone,
 	)
 	if err != nil {
 		return nil, err
@@ -53,7 +46,9 @@ func (r *RotationRepository) Create(ctx context.Context, rot *domain.Rotation) (
 
 func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Rotation, error) {
 	row := dbFromContext(ctx, r.db).QueryRowContext(ctx, `
-		SELECT r.id, r.data, m.id, m.rotation_id, m.data, m.became_current_at, u.id, u.email, u.data
+		SELECT r.id, r.name, r.weekly_day, r.weekly_time, r.weekly_timezone,
+		       m.id, m.rotation_id, m.position, m.color, m.became_current_at,
+		       u.id, u.email, u.name
 		FROM rotations r
 		LEFT JOIN members m ON m.rotation_id = r.id AND m.is_current = 1
 		LEFT JOIN users u ON u.id = m.user_id
@@ -61,49 +56,42 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 	`, id)
 
 	var (
-		rotID, rawRotData          string
-		memID, memRotID, rawMem    sql.NullString
-		becameCurrentAt            sql.NullString
-		userID, userEmail, rawUser sql.NullString
+		rotID, rotName                        string
+		weeklyDay, weeklyTime, weeklyTimezone sql.NullString
+		memID, memRotID                       sql.NullString
+		memPosition                           sql.NullInt64
+		memColor, becameCurrentAt             sql.NullString
+		userID, userEmail, userName           sql.NullString
 	)
-	if err := row.Scan(&rotID, &rawRotData, &memID, &memRotID, &rawMem, &becameCurrentAt, &userID, &userEmail, &rawUser); errors.Is(err, sql.ErrNoRows) {
+	if err := row.Scan(
+		&rotID, &rotName, &weeklyDay, &weeklyTime, &weeklyTimezone,
+		&memID, &memRotID, &memPosition, &memColor, &becameCurrentAt,
+		&userID, &userEmail, &userName,
+	); errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrRotationNotFound
 	} else if err != nil {
 		return nil, err
 	}
 
-	var rec rotationData
-	if err := json.Unmarshal([]byte(rawRotData), &rec); err != nil {
-		return nil, err
-	}
-
-	rot := &domain.Rotation{ID: rotID, Name: rec.Name}
-	if rec.Cadence.Weekly != nil {
+	rot := &domain.Rotation{ID: rotID, Name: rotName}
+	if weeklyDay.Valid && weeklyTime.Valid && weeklyTimezone.Valid {
 		rot.Cadence.Weekly = &domain.RotationCadenceWeekly{
-			Day:      rec.Cadence.Weekly.Day,
-			Time:     rec.Cadence.Weekly.Time,
-			TimeZone: rec.Cadence.Weekly.TimeZone,
+			Day:      weeklyDay.String,
+			Time:     weeklyTime.String,
+			TimeZone: weeklyTimezone.String,
 		}
 	}
 
 	if memID.Valid {
-		var mRec memberData
-		if err := json.Unmarshal([]byte(rawMem.String), &mRec); err != nil {
-			return nil, err
-		}
-		var uRec userData
-		if err := json.Unmarshal([]byte(rawUser.String), &uRec); err != nil {
-			return nil, err
-		}
 		rot.ScheduledMember = &domain.Member{
 			ID:         memID.String,
 			RotationID: memRotID.String,
-			Order:      mRec.Order,
-			Color:      mRec.Color,
+			Position:   int(memPosition.Int64),
+			Color:      memColor.String,
 			User: domain.User{
 				ID:    userID.String,
 				Email: userEmail.String,
-				Name:  uRec.Name,
+				Name:  userName.String,
 			},
 		}
 		if becameCurrentAt.Valid {
@@ -116,7 +104,7 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 	}
 
 	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
-		SELECT m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		SELECT m.id, m.rotation_id, m.position, m.color, u.id, u.email, u.name
 		FROM members m
 		JOIN users u ON u.id = m.user_id
 		WHERE m.rotation_id = ?
@@ -128,29 +116,23 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 
 	for rows.Next() {
 		var (
-			mID, mRotID, rawM string
-			uID, uEmail, rawU string
+			mID, mRotID        string
+			mPosition          int
+			mColor             string
+			uID, uEmail, uName string
 		)
-		if err := rows.Scan(&mID, &mRotID, &rawM, &uID, &uEmail, &rawU); err != nil {
-			return nil, err
-		}
-		var mRec memberData
-		if err := json.Unmarshal([]byte(rawM), &mRec); err != nil {
-			return nil, err
-		}
-		var uRec userData
-		if err := json.Unmarshal([]byte(rawU), &uRec); err != nil {
+		if err := rows.Scan(&mID, &mRotID, &mPosition, &mColor, &uID, &uEmail, &uName); err != nil {
 			return nil, err
 		}
 		rot.Members = append(rot.Members, domain.Member{
 			ID:         mID,
 			RotationID: mRotID,
-			Order:      mRec.Order,
-			Color:      mRec.Color,
+			Position:   mPosition,
+			Color:      mColor,
 			User: domain.User{
 				ID:    uID,
 				Email: uEmail,
-				Name:  uRec.Name,
+				Name:  uName,
 			},
 		})
 	}
@@ -163,7 +145,9 @@ func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Ro
 
 func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, error) {
 	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
-		SELECT r.id, r.data, m.id, m.rotation_id, m.data, m.became_current_at, u.id, u.email, u.data
+		SELECT r.id, r.name, r.weekly_day, r.weekly_time, r.weekly_timezone,
+		       m.id, m.rotation_id, m.position, m.color, m.became_current_at,
+		       u.id, u.email, u.name
 		FROM rotations r
 		LEFT JOIN members m ON m.rotation_id = r.id AND m.is_current = 1
 		LEFT JOIN users u ON u.id = m.user_id
@@ -177,47 +161,40 @@ func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, erro
 	var rotations []*domain.Rotation
 	for rows.Next() {
 		var (
-			rotID, rawRotData          string
-			memID, memRotID, rawMem    sql.NullString
-			becameCurrentAt            sql.NullString
-			userID, userEmail, rawUser sql.NullString
+			rotID, rotName                        string
+			weeklyDay, weeklyTime, weeklyTimezone sql.NullString
+			memID, memRotID                       sql.NullString
+			memPosition                           sql.NullInt64
+			memColor, becameCurrentAt             sql.NullString
+			userID, userEmail, userName           sql.NullString
 		)
-		if err := rows.Scan(&rotID, &rawRotData, &memID, &memRotID, &rawMem, &becameCurrentAt, &userID, &userEmail, &rawUser); err != nil {
+		if err := rows.Scan(
+			&rotID, &rotName, &weeklyDay, &weeklyTime, &weeklyTimezone,
+			&memID, &memRotID, &memPosition, &memColor, &becameCurrentAt,
+			&userID, &userEmail, &userName,
+		); err != nil {
 			return nil, err
 		}
 
-		var rec rotationData
-		if err := json.Unmarshal([]byte(rawRotData), &rec); err != nil {
-			return nil, err
-		}
-
-		rot := &domain.Rotation{ID: rotID, Name: rec.Name}
-		if rec.Cadence.Weekly != nil {
+		rot := &domain.Rotation{ID: rotID, Name: rotName}
+		if weeklyDay.Valid && weeklyTime.Valid && weeklyTimezone.Valid {
 			rot.Cadence.Weekly = &domain.RotationCadenceWeekly{
-				Day:      rec.Cadence.Weekly.Day,
-				Time:     rec.Cadence.Weekly.Time,
-				TimeZone: rec.Cadence.Weekly.TimeZone,
+				Day:      weeklyDay.String,
+				Time:     weeklyTime.String,
+				TimeZone: weeklyTimezone.String,
 			}
 		}
 
 		if memID.Valid {
-			var mRec memberData
-			if err := json.Unmarshal([]byte(rawMem.String), &mRec); err != nil {
-				return nil, err
-			}
-			var uRec userData
-			if err := json.Unmarshal([]byte(rawUser.String), &uRec); err != nil {
-				return nil, err
-			}
 			rot.ScheduledMember = &domain.Member{
 				ID:         memID.String,
 				RotationID: memRotID.String,
-				Order:      mRec.Order,
-				Color:      mRec.Color,
+				Position:   int(memPosition.Int64),
+				Color:      memColor.String,
 				User: domain.User{
 					ID:    userID.String,
 					Email: userEmail.String,
-					Name:  uRec.Name,
+					Name:  userName.String,
 				},
 			}
 			if becameCurrentAt.Valid {
@@ -242,25 +219,22 @@ func (r *RotationRepository) List(ctx context.Context) ([]*domain.Rotation, erro
 }
 
 func (r *RotationRepository) UpsertRotation(ctx context.Context, rot *domain.Rotation) error {
-	rec := rotationData{Name: rot.Name}
+	var weeklyDay, weeklyTime, weeklyTimezone sql.NullString
 	if rot.Cadence.Weekly != nil {
-		rec.Cadence.Weekly = &rotationCadenceWeekly{
-			Day:      rot.Cadence.Weekly.Day,
-			Time:     rot.Cadence.Weekly.Time,
-			TimeZone: rot.Cadence.Weekly.TimeZone,
-		}
+		weeklyDay = sql.NullString{String: rot.Cadence.Weekly.Day, Valid: true}
+		weeklyTime = sql.NullString{String: rot.Cadence.Weekly.Time, Valid: true}
+		weeklyTimezone = sql.NullString{String: rot.Cadence.Weekly.TimeZone, Valid: true}
 	}
 
-	blob, err := json.Marshal(rec)
-	if err != nil {
-		return err
-	}
-
-	_, err = dbFromContext(ctx, r.db).ExecContext(
+	_, err := dbFromContext(ctx, r.db).ExecContext(
 		ctx,
-		`INSERT INTO rotations (id, data) VALUES (?, ?)
-		 ON CONFLICT(id) DO UPDATE SET data = excluded.data`,
-		rot.ID, string(blob),
+		`INSERT INTO rotations (id, name, weekly_day, weekly_time, weekly_timezone) VALUES (?, ?, ?, ?, ?)
+		 ON CONFLICT(id) DO UPDATE SET
+		   name = excluded.name,
+		   weekly_day = excluded.weekly_day,
+		   weekly_time = excluded.weekly_time,
+		   weekly_timezone = excluded.weekly_timezone`,
+		rot.ID, rot.Name, weeklyDay, weeklyTime, weeklyTimezone,
 	)
 	return err
 }

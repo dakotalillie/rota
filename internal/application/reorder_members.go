@@ -49,13 +49,13 @@ func (uc *ReorderMembersUseCase) Execute(ctx context.Context, input ReorderMembe
 		return nil, err
 	}
 
-	// Reload to pick up the updated order values.
+	// Reload to pick up the updated position values.
 	rotation, err = uc.rotationRepo.GetByID(ctx, input.RotationID)
 	if err != nil {
 		return nil, err
 	}
 	sort.Slice(rotation.Members, func(i, j int) bool {
-		return rotation.Members[i].Order < rotation.Members[j].Order
+		return rotation.Members[i].Position < rotation.Members[j].Position
 	})
 	return rotation, nil
 }

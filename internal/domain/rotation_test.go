@@ -24,9 +24,9 @@ func newWeeklyRotation(day, t, tz string, members []domain.Member, scheduled *do
 }
 
 var (
-	alice   = domain.Member{ID: "m1", Order: 1, User: domain.User{Name: "Alice"}}
-	bob     = domain.Member{ID: "m2", Order: 2, User: domain.User{Name: "Bob"}}
-	charlie = domain.Member{ID: "m3", Order: 3, User: domain.User{Name: "Charlie"}}
+	alice   = domain.Member{ID: "m1", Position: 1, User: domain.User{Name: "Alice"}}
+	bob     = domain.Member{ID: "m2", Position: 2, User: domain.User{Name: "Bob"}}
+	charlie = domain.Member{ID: "m3", Position: 3, User: domain.User{Name: "Charlie"}}
 )
 
 // Monday 2024-01-08 10:00 UTC — a Monday, after the 09:00 handoff
@@ -162,7 +162,7 @@ func TestSchedule_NoScheduledMember(t *testing.T) {
 }
 
 func TestSchedule_ScheduledMemberNotInMembers(t *testing.T) {
-	outsider := domain.Member{ID: "m99", Order: 99, User: domain.User{Name: "Outsider"}}
+	outsider := domain.Member{ID: "m99", Position: 99, User: domain.User{Name: "Outsider"}}
 	members := []domain.Member{alice, bob}
 	r := newWeeklyRotation("Monday", "09:00", "UTC", members, &outsider)
 

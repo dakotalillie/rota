@@ -194,7 +194,7 @@ func TestRotationRepository_GetRotationByID_WithScheduledMember(t *testing.T) {
 	require.NotNil(t, got.ScheduledMember)
 	require.Equal(t, member.ID, got.ScheduledMember.ID)
 	require.Equal(t, rotationA.ID, got.ScheduledMember.RotationID)
-	require.Equal(t, 1, got.ScheduledMember.Order)
+	require.Equal(t, 1, got.ScheduledMember.Position)
 	require.Equal(t, user.ID, got.ScheduledMember.User.ID)
 	require.Equal(t, "Alice Smith", got.ScheduledMember.User.Name)
 	require.Equal(t, "alice@example.com", got.ScheduledMember.User.Email)

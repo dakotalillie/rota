@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -95,7 +94,7 @@ func (r *OverrideRepository) ListByRotationIDs(ctx context.Context, rotationIDs 
 	args = append(args, now.UTC().Format(time.RFC3339))
 
 	rows, err := dbFromContext(ctx, r.db).QueryContext(ctx, `
-		SELECT o.id, o.rotation_id, o.start_time, o.end_time, m.id, m.rotation_id, m.data, u.id, u.email, u.data
+		SELECT o.id, o.rotation_id, o.start_time, o.end_time, m.id, m.rotation_id, m.position, m.color, u.id, u.email, u.name
 		FROM overrides o
 		JOIN members m ON o.member_id = m.id
 		JOIN users u ON m.user_id = u.id
@@ -110,10 +109,12 @@ func (r *OverrideRepository) ListByRotationIDs(ctx context.Context, rotationIDs 
 	for rows.Next() {
 		var (
 			oID, oRotationID, oStart, oEnd string
-			mID, mRotID, rawM              string
-			uID, uEmail, rawU              string
+			mID, mRotID                    string
+			mPosition                      int
+			mColor                         string
+			uID, uEmail, uName             string
 		)
-		if err := rows.Scan(&oID, &oRotationID, &oStart, &oEnd, &mID, &mRotID, &rawM, &uID, &uEmail, &rawU); err != nil {
+		if err := rows.Scan(&oID, &oRotationID, &oStart, &oEnd, &mID, &mRotID, &mPosition, &mColor, &uID, &uEmail, &uName); err != nil {
 			return nil, err
 		}
 		start, err := time.Parse(time.RFC3339, oStart)
@@ -124,14 +125,6 @@ func (r *OverrideRepository) ListByRotationIDs(ctx context.Context, rotationIDs 
 		if err != nil {
 			return nil, fmt.Errorf("parsing override end_time: %w", err)
 		}
-		var mRec memberData
-		if err := json.Unmarshal([]byte(rawM), &mRec); err != nil {
-			return nil, err
-		}
-		var uRec userData
-		if err := json.Unmarshal([]byte(rawU), &uRec); err != nil {
-			return nil, err
-		}
 		overridesByRotation[oRotationID] = append(overridesByRotation[oRotationID], domain.Override{
 			ID:         oID,
 			RotationID: oRotationID,
@@ -140,12 +133,12 @@ func (r *OverrideRepository) ListByRotationIDs(ctx context.Context, rotationIDs 
 			Member: domain.Member{
 				ID:         mID,
 				RotationID: mRotID,
-				Order:      mRec.Order,
-				Color:      mRec.Color,
+				Position:   mPosition,
+				Color:      mColor,
 				User: domain.User{
 					ID:    uID,
 					Email: uEmail,
-					Name:  uRec.Name,
+					Name:  uName,
 				},
 			},
 		})

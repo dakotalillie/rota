@@ -12,7 +12,7 @@ import type { Member, Override } from "./types";
 type ApiMember = {
   type: "members";
   id: string;
-  attributes: { order: number; color: string };
+  attributes: { position: number; color: string };
   relationships: { user: { data: { id: string } } };
 };
 
@@ -69,9 +69,9 @@ function loadMembers(
   { memberMap, userMap }: IncludedMaps,
 ): Member[] {
   const sortedRefs = [...memberRefs].sort((a, b) => {
-    const orderA = memberMap.get(a.id)?.attributes.order ?? 0;
-    const orderB = memberMap.get(b.id)?.attributes.order ?? 0;
-    return orderA - orderB;
+    const positionA = memberMap.get(a.id)?.attributes.position ?? 0;
+    const positionB = memberMap.get(b.id)?.attributes.position ?? 0;
+    return positionA - positionB;
   });
 
   return sortedRefs.flatMap((ref) => {

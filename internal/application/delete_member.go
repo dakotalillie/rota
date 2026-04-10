@@ -68,14 +68,14 @@ func (uc *DeleteMemberUseCase) Execute(ctx context.Context, input DeleteMemberIn
 			}
 		}
 
-		// Sort the full member list by order so we can compute positions.
+		// Sort the full member list by position so we can compute positions.
 		sorted := make([]domain.Member, len(rotation.Members))
 		copy(sorted, rotation.Members)
 		sort.Slice(sorted, func(i, j int) bool {
-			return sorted[i].Order < sorted[j].Order
+			return sorted[i].Position < sorted[j].Position
 		})
 
-		// Build remaining IDs in order (excluding the deleted member).
+		// Build remaining IDs in position (excluding the deleted member).
 		remainingIDs := make([]string, 0, len(sorted)-1)
 		deletedIndex := -1
 		for i, m := range sorted {
@@ -92,7 +92,7 @@ func (uc *DeleteMemberUseCase) Execute(ctx context.Context, input DeleteMemberIn
 			}
 		}
 
-		// If the deleted member was scheduled, promote the next one in order (wrapping).
+		// If the deleted member was scheduled, promote the next one in position (wrapping).
 		if rotation.ScheduledMember != nil && rotation.ScheduledMember.ID == input.MemberID && len(remainingIDs) > 0 {
 			nextIndex := deletedIndex % len(remainingIDs)
 			nextMemberID := remainingIDs[nextIndex]

@@ -74,7 +74,7 @@ type fakeMemberRepo struct {
 	createCalls  []struct {
 		rotationID string
 		userID     string
-		order      int
+		position   int
 		color      string
 	}
 	getByIDMember     *domain.Member
@@ -94,13 +94,13 @@ func (f *fakeMemberRepo) CountByRotationID(_ context.Context, _ string) (int, er
 	return f.count, f.countErr
 }
 
-func (f *fakeMemberRepo) Create(_ context.Context, rotationID, userID string, order int, color string) (*domain.Member, error) {
+func (f *fakeMemberRepo) Create(_ context.Context, rotationID, userID string, position int, color string) (*domain.Member, error) {
 	f.createCalls = append(f.createCalls, struct {
 		rotationID string
 		userID     string
-		order      int
+		position   int
 		color      string
-	}{rotationID, userID, order, color})
+	}{rotationID, userID, position, color})
 	return f.createMember, f.createErr
 }
 

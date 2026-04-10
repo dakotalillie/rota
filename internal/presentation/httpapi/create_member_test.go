@@ -28,7 +28,7 @@ func TestCreateMemberHandler(t *testing.T) {
 			Name:  "Alice Smith",
 			Email: "alice@example.com",
 		},
-		Order: 1,
+		Position: 1,
 	}
 
 	tests := []struct {

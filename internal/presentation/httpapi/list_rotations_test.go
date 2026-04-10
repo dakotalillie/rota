@@ -42,7 +42,7 @@ func TestListRotationsHandler(t *testing.T) {
 		ScheduledMember: &domain.Member{
 			ID:         "mem_01JQGF0000000000000000000",
 			RotationID: "rot_01JQGF1111111111111111111",
-			Order:      1,
+			Position:   1,
 			Color:      "violet",
 			User: domain.User{
 				ID:    "usr_01JQGF0000000000000000000",
@@ -100,7 +100,7 @@ func TestListRotationsHandler(t *testing.T) {
 						Member: domain.Member{
 							ID:         "mem_01JQGF9999999999999999999",
 							RotationID: rot.ID,
-							Order:      2,
+							Position:   2,
 							Color:      "sky",
 							User: domain.User{
 								ID:    "usr_01JQGF9999999999999999999",

@@ -44,7 +44,7 @@ type seedMember struct {
 	ID              string `json:"id"`
 	RotationID      string `json:"rotationID"`
 	UserID          string `json:"userID"`
-	Order           int    `json:"order"`
+	Position        int    `json:"position"`
 	Color           string `json:"color"`
 	IsCurrent       bool   `json:"isCurrent"`
 	BecameCurrentAt string `json:"becameCurrentAt"`
@@ -108,13 +108,9 @@ func seedUsers(db *sql.DB, users []seedUser) error {
 		if u.ID == "" {
 			return fmt.Errorf("user missing id (name=%q)", u.Name)
 		}
-		data, err := json.Marshal(map[string]string{"name": u.Name})
-		if err != nil {
-			return err
-		}
-		_, err = db.ExecContext(context.Background(),
-			`INSERT INTO users (id, email, data) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET email=excluded.email, data=excluded.data`,
-			u.ID, u.Email, string(data),
+		_, err := db.ExecContext(context.Background(),
+			`INSERT INTO users (id, email, name) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET email=excluded.email, name=excluded.name`,
+			u.ID, u.Email, u.Name,
 		)
 		if err != nil {
 			return fmt.Errorf("upsert user %q: %w", u.ID, err)
@@ -129,23 +125,20 @@ func seedRotations(db *sql.DB, rotations []seedRotation) error {
 		if rot.ID == "" {
 			return fmt.Errorf("rotation missing id (name=%q)", rot.Name)
 		}
-		rec := map[string]any{"name": rot.Name}
+		var weeklyDay, weeklyTime, weeklyTimezone any
 		if rot.Cadence.Weekly != nil {
-			rec["cadence"] = map[string]any{
-				"weekly": map[string]string{
-					"day":      rot.Cadence.Weekly.Day,
-					"time":     rot.Cadence.Weekly.Time,
-					"timeZone": rot.Cadence.Weekly.TimeZone,
-				},
-			}
+			weeklyDay = rot.Cadence.Weekly.Day
+			weeklyTime = rot.Cadence.Weekly.Time
+			weeklyTimezone = rot.Cadence.Weekly.TimeZone
 		}
-		data, err := json.Marshal(rec)
-		if err != nil {
-			return err
-		}
-		_, err = db.ExecContext(context.Background(),
-			`INSERT INTO rotations (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data=excluded.data`,
-			rot.ID, string(data),
+		_, err := db.ExecContext(context.Background(),
+			`INSERT INTO rotations (id, name, weekly_day, weekly_time, weekly_timezone) VALUES (?, ?, ?, ?, ?)
+			 ON CONFLICT(id) DO UPDATE SET
+			   name=excluded.name,
+			   weekly_day=excluded.weekly_day,
+			   weekly_time=excluded.weekly_time,
+			   weekly_timezone=excluded.weekly_timezone`,
+			rot.ID, rot.Name, weeklyDay, weeklyTime, weeklyTimezone,
 		)
 		if err != nil {
 			return fmt.Errorf("upsert rotation %q: %w", rot.ID, err)
@@ -160,10 +153,6 @@ func seedMembers(db *sql.DB, members []seedMember) error {
 		if m.ID == "" {
 			return fmt.Errorf("member missing id (rotationID=%q)", m.RotationID)
 		}
-		data, err := json.Marshal(map[string]any{"order": m.Order, "color": m.Color})
-		if err != nil {
-			return err
-		}
 		isCurrent := 0
 		if m.IsCurrent {
 			isCurrent = 1
@@ -172,16 +161,17 @@ func seedMembers(db *sql.DB, members []seedMember) error {
 		if m.BecameCurrentAt != "" {
 			becameCurrentAt = m.BecameCurrentAt
 		}
-		_, err = db.ExecContext(context.Background(),
-			`INSERT INTO members (id, rotation_id, user_id, data, is_current, became_current_at)
-			 VALUES (?, ?, ?, ?, ?, ?)
+		_, err := db.ExecContext(context.Background(),
+			`INSERT INTO members (id, rotation_id, user_id, position, color, is_current, became_current_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   rotation_id=excluded.rotation_id,
 			   user_id=excluded.user_id,
-			   data=excluded.data,
+			   position=excluded.position,
+			   color=excluded.color,
 			   is_current=excluded.is_current,
 			   became_current_at=excluded.became_current_at`,
-			m.ID, m.RotationID, m.UserID, string(data), isCurrent, becameCurrentAt,
+			m.ID, m.RotationID, m.UserID, m.Position, m.Color, isCurrent, becameCurrentAt,
 		)
 		if err != nil {
 			return fmt.Errorf("upsert member %q: %w", m.ID, err)

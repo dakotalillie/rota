@@ -17,14 +17,14 @@ func TestCreateOverrideUseCase_Execute(t *testing.T) {
 	const memberID = "mem_01JQGF0000000000000000001"
 
 	aliceMember := domain.Member{
-		ID:    memberID,
-		Order: 1,
-		User:  domain.User{ID: "usr_01JQGF0000000000000000000", Name: "Alice Smith", Email: "alice@example.com"},
+		ID:       memberID,
+		Position: 1,
+		User:     domain.User{ID: "usr_01JQGF0000000000000000000", Name: "Alice Smith", Email: "alice@example.com"},
 	}
 	bobMember := domain.Member{
-		ID:    "mem_01JQGF0000000000000000002",
-		Order: 2,
-		User:  domain.User{ID: "usr_01JQGF0000000000000000001", Name: "Bob Jones", Email: "bob@example.com"},
+		ID:       "mem_01JQGF0000000000000000002",
+		Position: 2,
+		User:     domain.User{ID: "usr_01JQGF0000000000000000001", Name: "Bob Jones", Email: "bob@example.com"},
 	}
 
 	// A rotation with two members but no active schedule (no current member)
