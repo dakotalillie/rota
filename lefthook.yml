@@ -7,9 +7,6 @@ pre-commit:
     test-server:
       glob: "**/*.go"
       run: task test:server
-    format-check-ui:
-      glob: "ui/**/*.{ts,tsx}"
-      run: task format:check:ui
     lint-ui:
       glob: "ui/**/*.{ts,tsx}"
       run: task lint:ui

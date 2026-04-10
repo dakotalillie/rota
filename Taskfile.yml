@@ -3,6 +3,21 @@
 version: "3"
 
 tasks:
+  build:e2e:
+    desc: Builds the UI and server binary for E2E tests
+    deps: [build:ui]
+    cmds:
+      - go build -o e2e/bin/server cmd/server/main.go
+      - go build -o e2e/bin/seed internal/cmd/seed/main.go
+    silent: true
+
+  build:ui:
+    desc: Builds the UI for production
+    dir: ui
+    cmds:
+      - npm run build
+    silent: true
+
   dev:
     desc: Runs the dev servers
     deps:
@@ -23,13 +38,6 @@ tasks:
       - npm run dev
     silent: true
 
-  format:check:ui:
-    desc: Checks the formatting of the UI code
-    dir: ui
-    cmds:
-      - npm run format:check
-    silent: true
-
   format:server:
     desc: Formats Go code with goimports
     cmds:
@@ -43,10 +51,19 @@ tasks:
       - npm run format
     silent: true
 
-  hooks:install:
+  install:e2e:
+    desc: Installs E2E test dependencies
+    dir: e2e
+    cmds:
+      - npm install
+      - npx playwright install chromium
+    silent: true
+
+  install:hooks:
     desc: Installs git hooks via lefthook
     cmds:
       - lefthook install
+    silent: true
 
   lint:server:
     desc: Lints the Go code
@@ -58,6 +75,7 @@ tasks:
     desc: Lints the UI code
     dir: ui
     cmds:
+      - npm run format:check
       - npm run lint
     silent: true
 
@@ -67,16 +85,18 @@ tasks:
       - go run internal/cmd/seed/main.go
     silent: true
 
+  test:e2e:
+    desc: Runs E2E tests
+    deps: [build:e2e, install:e2e]
+    dir: e2e
+    cmds:
+      - npx playwright test
+    silent: true
+
   test:server:
     desc: Runs the Go tests
     cmds:
       - go test ./...
-    silent: true
-
-  test:server:update-snapshots:
-    desc: Regenerates snapshot golden files for Go tests
-    cmds:
-      - UPDATE_SNAPSHOTS=true go test ./...
     silent: true
 
   test:ui:
@@ -86,26 +106,8 @@ tasks:
       - npm run test
     silent: true
 
-  build:e2e:
-    desc: Builds the UI and server binary for E2E tests
+  update-snapshots:
+    desc: Regenerates snapshot golden files for Go tests
     cmds:
-      - cd ui && npm run build
-      - go build -o e2e/bin/server cmd/server/main.go
-      - go build -o e2e/bin/seed internal/cmd/seed/main.go
-    silent: true
-
-  test:e2e:install:
-    desc: Installs E2E test dependencies
-    dir: e2e
-    cmds:
-      - npm install
-      - npx playwright install chromium
-    silent: true
-
-  test:e2e:
-    desc: Runs E2E tests
-    deps: [build:e2e]
-    dir: e2e
-    cmds:
-      - npx playwright test
+      - UPDATE_SNAPSHOTS=true go test ./...
     silent: true

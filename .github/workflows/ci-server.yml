@@ -16,10 +16,10 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - uses: arduino/setup-task@v2
+
       - name: Lint
         uses: golangci/golangci-lint-action@v9
-
-      - uses: arduino/setup-task@v2
 
       - name: Test
         run: task test:server

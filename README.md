@@ -14,7 +14,7 @@ A simple on call application.
 Install git hooks (one-time, after cloning):
 
 ```sh
-task hooks:install
+task install:hooks
 ```
 
 Run both UI and API dev servers:
@@ -46,7 +46,7 @@ task lint:ui      # UI (ESLint)
 After intentionally changing an API response, regenerate the snapshot golden files:
 
 ```sh
-task test:server:update-snapshots
+task update-snapshots
 ```
 
 Open the UI at http://localhost:5173. Any requests to /api are proxied to the

@@ -9,9 +9,6 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        check: [format:check:ui, lint:ui, test:ui]
     steps:
       - uses: actions/checkout@v6
 
@@ -23,9 +20,12 @@ jobs:
 
       - uses: arduino/setup-task@v2
 
-      - name: Install dependencies
+      - name: Install
         run: npm ci
         working-directory: ui
 
-      - name: ${{ matrix.check }}
-        run: task ${{ matrix.check }}
+      - name: Lint
+        run: task lint:ui
+
+      - name: Test
+        run: task test:ui
