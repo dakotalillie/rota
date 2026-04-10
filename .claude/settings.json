@@ -31,7 +31,8 @@
       "Bash(git show:*)",
       "Bash(git blame:*)",
       "Bash(git branch:*)",
-      "Bash(git ls-files:*)"
+      "Bash(git ls-files:*)",
+      "Bash(task:*)"
     ]
   }
 }
