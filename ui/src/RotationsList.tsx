@@ -12,9 +12,6 @@ interface ApiRotation {
   id: string;
   attributes: {
     name: string;
-    cadence: {
-      weekly?: { day: string; time: string; timeZone: string };
-    };
   };
   relationships: {
     currentMember: { data: { type: "members"; id: string } | null };
@@ -36,14 +33,6 @@ interface ApiUser {
 interface ListRotationsResponse {
   data: ApiRotation[];
   included?: (ApiMember | ApiUser)[];
-}
-
-function cadenceSummary(rotation: ApiRotation): string {
-  const { weekly } = rotation.attributes.cadence;
-  if (weekly) {
-    return `Weekly · ${weekly.day} · ${weekly.time} ${weekly.timeZone}`;
-  }
-  return "Unknown cadence";
 }
 
 function currentMemberName(
@@ -201,9 +190,6 @@ function RotationsList() {
                   <div className="min-w-0">
                     <p className="font-medium truncate">
                       {rotation.attributes.name}
-                    </p>
-                    <p className="text-sm text-neutral-500 truncate">
-                      {cadenceSummary(rotation)}
                     </p>
                   </div>
                   <div className="shrink-0 text-sm text-neutral-500">

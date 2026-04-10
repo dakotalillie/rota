@@ -3,11 +3,16 @@ import { useEffect, useState } from "react";
 
 import { useAppState } from "./AppStateContext";
 import { useBreadcrumbs } from "./BreadcrumbContext";
+import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import { colorsForName } from "./colorPalette";
 import Members from "./Members";
 import Overrides from "./Overrides";
 import PageHeader from "./PageHeader";
 import type { Member, Override } from "./types";
+
+type Cadence = {
+  weekly?: { day: string; time: string; timeZone: string };
+};
 
 type ApiMember = {
   type: "members";
@@ -31,7 +36,7 @@ type ApiOverride = {
 
 type GetRotationResponse = {
   data?: {
-    attributes: { name: string };
+    attributes: { name: string; cadence: Cadence };
     relationships: {
       members: { data: { id: string }[] };
       overrides: { data: { id: string }[] };
@@ -94,6 +99,32 @@ function loadMembers(
   });
 }
 
+function cadenceSummary(cadence: Cadence): string {
+  const { weekly } = cadence;
+  if (!weekly) return "Unknown cadence";
+
+  const { day, time, timeZone } = weekly;
+  const [hourStr, minuteStr] = time.split(":");
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
+
+  const refDate = new Date(2024, 0, 1, hour, minute);
+  const timeText = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(refDate);
+
+  const tzParts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortGeneric",
+  }).formatToParts(new Date());
+  const tzText =
+    tzParts.find((p) => p.type === "timeZoneName")?.value ?? timeZone;
+
+  return `Rotates weekly on ${day}s at ${timeText} ${tzText}`;
+}
+
 function toDateTimeLocalValue(dateTime: string): string {
   const date = new Date(dateTime);
   if (Number.isNaN(date.getTime())) return dateTime;
@@ -129,6 +160,7 @@ function loadOverrides(
 function Settings() {
   const { rotationId } = useParams({ from: "/rotations/$rotationId/settings" });
   const [rotationName, setRotationName] = useState<string | null>(null);
+  const [cadence, setCadence] = useState<Cadence | null>(null);
 
   useBreadcrumbs([
     { label: "Rotations", to: "/rotations" },
@@ -149,6 +181,7 @@ function Settings() {
     function clearState() {
       if (cancelled) return;
       setRotationName(null);
+      setCadence(null);
       setMembers([]);
       setOverrides([]);
       setScheduledMemberId(null);
@@ -178,6 +211,7 @@ function Settings() {
           body.data.relationships.scheduledMember?.data?.id ?? null;
 
         setRotationName(body.data.attributes.name);
+        setCadence(body.data.attributes.cadence);
         setMembers(loadedMembers);
         setOverrides(loadedOverrides);
         setScheduledMemberId(scheduledMemberId);
@@ -194,6 +228,16 @@ function Settings() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
       <PageHeader title="Settings" />
+      <Card className="shadow-sm border-border bg-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">Cadence</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {cadence ? cadenceSummary(cadence) : "…"}
+          </p>
+        </CardContent>
+      </Card>
       <Members
         members={members}
         setMembers={setMembers}
