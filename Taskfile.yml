@@ -3,11 +3,18 @@
 version: "3"
 
 tasks:
-  build:e2e:
-    desc: Builds the UI and server binary for E2E tests
+  build:
+    desc: Builds the production binary with the UI embedded
     deps: [build:ui]
     cmds:
-      - go build -o e2e/bin/server cmd/server/main.go
+      - go build -ldflags "-X main.version=$(git describe --tags --always --dirty)" -o bin/rota cmd/server/main.go
+
+  build:e2e:
+    desc: Builds the server and seed binaries for E2E tests
+    deps: [build]
+    cmds:
+      - mkdir -p e2e/bin
+      - cp bin/rota e2e/bin/server
       - go build -o e2e/bin/seed internal/cmd/seed/main.go
     silent: true
 

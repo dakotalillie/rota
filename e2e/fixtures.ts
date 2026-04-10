@@ -7,7 +7,6 @@ import * as path from "path";
 
 const SERVER_BINARY = path.resolve(__dirname, "bin/server");
 const SEED_BINARY = path.resolve(__dirname, "bin/seed");
-const STATIC_DIR = path.resolve(__dirname, "../ui/dist");
 
 function getFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -89,7 +88,6 @@ export const test = base.extend<Fixtures>({
         DATABASE_PATH: dbPath,
         PORT: String(port),
         HOSTNAME: baseUrl,
-        STATIC_DIR: STATIC_DIR,
         TIME_OVERRIDE_FILE: timeOverrideFile,
       },
       stdio: "pipe",

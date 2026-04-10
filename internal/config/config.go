@@ -6,7 +6,6 @@ type Config struct {
 	Hostname         string
 	DatabasePath     string
 	Port             string
-	StaticDir        string
 	TimeOverrideFile string
 }
 
@@ -15,7 +14,6 @@ func Load() (*Config, error) {
 		Hostname:         envOr("HOSTNAME", "http://localhost:5173"),
 		DatabasePath:     envOr("DATABASE_PATH", "rota.db"),
 		Port:             envOr("PORT", "8080"),
-		StaticDir:        os.Getenv("STATIC_DIR"),
 		TimeOverrideFile: os.Getenv("TIME_OVERRIDE_FILE"),
 	}, nil
 }

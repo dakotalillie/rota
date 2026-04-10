@@ -1,3 +1,7 @@
 *.db
 .worktrees
+bin/
+ui/dist
+internal/ui/dist/*
+!internal/ui/dist/.gitkeep
 
