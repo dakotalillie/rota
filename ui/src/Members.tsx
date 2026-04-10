@@ -96,7 +96,10 @@ function Members({
   }
 
   return (
-    <Card className="shadow-sm border-border bg-card">
+    <Card
+      className="shadow-sm border-border bg-card"
+      data-testid="members-list"
+    >
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold">Members</CardTitle>
         <CardAction>
@@ -108,6 +111,7 @@ function Members({
           members.map((member, index) => (
             <div
               key={member.id}
+              data-testid="member-row"
               draggable
               onDragStart={() => handleDragStart(index)}
               onDragOver={(e) => handleDragOver(e, index)}

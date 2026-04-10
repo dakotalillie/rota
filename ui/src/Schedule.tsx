@@ -10,7 +10,7 @@ type ScheduleProps = {
 
 function Schedule({ timeline }: ScheduleProps) {
   return (
-    <Card className="shadow-sm border-border bg-card">
+    <Card className="shadow-sm border-border bg-card" data-testid="schedule">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <CalendarDays className="h-4 w-4 text-indigo-500" />

@@ -17,10 +17,11 @@ test.describe("overrides", () => {
 
     await page.getByRole("button", { name: "Add override" }).click();
 
-    await page.locator('input[type="datetime-local"]').first().fill("2026-04-08T10:00");
-    await page.locator('input[type="datetime-local"]').last().fill("2026-04-09T10:00");
-    await page.getByRole("combobox").selectOption({ label: "Bob Jones" });
-    await page.getByRole("button", { name: "Add override" }).last().click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Override start").fill("2026-04-08T10:00");
+    await dialog.getByLabel("Override end").fill("2026-04-09T10:00");
+    await dialog.getByLabel("Override member").selectOption({ label: "Bob Jones" });
+    await dialog.getByRole("button", { name: "Add override" }).click();
 
     await expect(page.getByRole("button", { name: "Remove override" })).toBeVisible();
   });
@@ -40,7 +41,6 @@ test.describe("override changes effective on-call display", () => {
     await page.getByText("Platform On-Call").click();
 
     await expect(page.getByRole("heading", { name: "Bob Jones", level: 2 })).toBeVisible();
-    await expect(page.getByText("Override").first()).toBeVisible();
   });
 
   test("rotation list shows override member as on-call", async ({

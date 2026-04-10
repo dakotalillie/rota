@@ -1,0 +1,18 @@
+{
+  "users": [],
+  "rotations": [
+    {
+      "id": "rot_01SEED000000000000000ROT1",
+      "name": "Backend On-Call",
+      "cadence": {
+        "weekly": {
+          "day": "Monday",
+          "time": "09:00",
+          "timeZone": "America/Los_Angeles"
+        }
+      }
+    }
+  ],
+  "members": [],
+  "overrides": []
+}

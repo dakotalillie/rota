@@ -20,6 +20,7 @@ function ScheduleRow({ segment, index }: ScheduleRowProps) {
 
   return (
     <div
+      data-testid="schedule-row"
       className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${
         isActive
           ? `${member.lightColor} ${member.darkColor} ring-1 ring-inset ring-current/10`

@@ -183,6 +183,7 @@ function AddOverrideDialog({
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <Input
                   type="datetime-local"
+                  aria-label="Override start"
                   value={overrideStart}
                   className="min-w-0"
                   onFocus={() => {
@@ -193,6 +194,7 @@ function AddOverrideDialog({
                 <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Input
                   type="datetime-local"
+                  aria-label="Override end"
                   value={overrideEnd}
                   className="min-w-0"
                   onFocus={() => {
@@ -203,6 +205,7 @@ function AddOverrideDialog({
               </div>
               <div className="relative">
                 <select
+                  aria-label="Override member"
                   value={validMemberId}
                   onChange={(e) => setOverrideMemberId(e.target.value)}
                   className={selectClass + " appearance-none pr-8"}

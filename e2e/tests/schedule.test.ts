@@ -4,17 +4,19 @@ import { expect, test } from "../fixtures";
 test.describe("schedule", () => {
   test.use({ seedFile: path.join(__dirname, "../seed/rotation-with-members.json") });
 
-  test("schedule shows correct member blocks in rotation order", async ({
+  test("schedule shows members in rotation order", async ({
     page,
     serverUrl,
     setTime,
   }) => {
     setTime("2026-04-07T12:00:00Z");
-    await page.goto(`${serverUrl}/rotations/rot_01SEED000000000000000ROT1`);
+    await page.goto(`${serverUrl}/rotations`);
+    await page.getByText("Platform On-Call").click();
 
-    // The schedule section should show members in order: Alice, Bob, Carol, Alice...
-    await expect(page.getByText("Alice Smith").first()).toBeVisible();
-    await expect(page.getByText("Bob Jones").first()).toBeVisible();
+    const rows = page.getByTestId("schedule").getByTestId("schedule-row");
+    await expect(rows.nth(0)).toContainText("Alice Smith");
+    await expect(rows.nth(1)).toContainText("Bob Jones");
+    await expect(rows.nth(2)).toContainText("Carol White");
   });
 });
 
@@ -27,10 +29,13 @@ test.describe("schedule reflects overrides", () => {
     setTime,
   }) => {
     setTime("2026-04-07T12:00:00Z");
-    await page.goto(`${serverUrl}/rotations/rot_01SEED000000000000000ROT1`);
+    await page.goto(`${serverUrl}/rotations`);
+    await page.getByText("Platform On-Call").click();
 
-    // Bob's override block should be visible in the schedule
-    await expect(page.getByText("Bob Jones").first()).toBeVisible();
-    await expect(page.getByText("Override").first()).toBeVisible();
+    const schedule = page.getByTestId("schedule");
+    const overrideRow = schedule
+      .getByTestId("schedule-row")
+      .filter({ hasText: "Override" });
+    await expect(overrideRow).toContainText("Bob Jones");
   });
 });
