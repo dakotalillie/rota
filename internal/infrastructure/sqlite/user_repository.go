@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 
 	"github.com/dakotalillie/rota/internal/domain"
@@ -20,23 +19,14 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 func (r *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
 	db := dbFromContext(ctx, r.db)
 
-	var (
-		user    domain.User
-		rawData string
-	)
-	err := db.QueryRowContext(ctx, `SELECT id, email, data FROM users WHERE id = ?`, id).
-		Scan(&user.ID, &user.Email, &rawData)
+	var user domain.User
+	err := db.QueryRowContext(ctx, `SELECT id, email, name FROM users WHERE id = ?`, id).
+		Scan(&user.ID, &user.Email, &user.Name)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrUserNotFound
 	} else if err != nil {
 		return nil, err
 	}
-
-	var rec userData
-	if err := json.Unmarshal([]byte(rawData), &rec); err != nil {
-		return nil, err
-	}
-	user.Name = rec.Name
 	return &user, nil
 }
 
@@ -57,16 +47,10 @@ func (r *UserRepository) Delete(ctx context.Context, userID string) error {
 func (r *UserRepository) Create(ctx context.Context, name, email string) (*domain.User, error) {
 	db := dbFromContext(ctx, r.db)
 
-	rec := userData{Name: name}
-	blob, err := json.Marshal(rec)
-	if err != nil {
-		return nil, err
-	}
-
 	newUserID := newID("usr")
-	_, err = db.ExecContext(ctx,
-		`INSERT OR IGNORE INTO users (id, email, data) VALUES (?, ?, ?)`,
-		newUserID, email, string(blob),
+	_, err := db.ExecContext(ctx,
+		`INSERT OR IGNORE INTO users (id, email, name) VALUES (?, ?, ?)`,
+		newUserID, email, name,
 	)
 	if err != nil {
 		return nil, err

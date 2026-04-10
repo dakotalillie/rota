@@ -29,7 +29,7 @@
       "id": "mem_01SEED000000000000000MEM1",
       "rotationID": "rot_01SEED000000000000000ROT1",
       "userID": "usr_01SEED000000000000000ALICE",
-      "order": 1,
+      "position": 1,
       "color": "violet",
       "isCurrent": true,
       "becameCurrentAt": "2026-03-30T16:00:00Z"
@@ -38,7 +38,7 @@
       "id": "mem_01SEED000000000000000MEM2",
       "rotationID": "rot_01SEED000000000000000ROT1",
       "userID": "usr_01SEED0000000000000000BOB",
-      "order": 2,
+      "position": 2,
       "color": "sky",
       "isCurrent": false,
       "becameCurrentAt": ""

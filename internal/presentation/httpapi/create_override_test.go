@@ -39,7 +39,7 @@ func TestCreateOverrideHandler(t *testing.T) {
 				Name:  "Alice Smith",
 				Email: "alice@example.com",
 			},
-			Order: 1,
+			Position: 1,
 		},
 		Start: mustParseTime("2026-04-07T09:00:00Z"),
 		End:   mustParseTime("2026-04-14T09:00:00Z"),

@@ -47,19 +47,19 @@ func TestReorderMembersUseCase_Execute(t *testing.T) {
 	alice := domain.Member{
 		ID:         "mem_01JQGF0000000000000000001",
 		RotationID: rotationID,
-		Order:      1,
+		Position:   1,
 		User:       domain.User{ID: "usr_01JQGF0000000000000000001", Name: "Alice", Email: "alice@example.com"},
 	}
 	bob := domain.Member{
 		ID:         "mem_01JQGF0000000000000000002",
 		RotationID: rotationID,
-		Order:      2,
+		Position:   2,
 		User:       domain.User{ID: "usr_01JQGF0000000000000000002", Name: "Bob", Email: "bob@example.com"},
 	}
 	charlie := domain.Member{
 		ID:         "mem_01JQGF0000000000000000003",
 		RotationID: rotationID,
-		Order:      3,
+		Position:   3,
 		User:       domain.User{ID: "usr_01JQGF0000000000000000003", Name: "Charlie", Email: "charlie@example.com"},
 	}
 
@@ -89,9 +89,9 @@ func TestReorderMembersUseCase_Execute(t *testing.T) {
 					ID:   rotationID,
 					Name: "Platform On-Call",
 					Members: []domain.Member{
-						{ID: charlie.ID, Order: 1, User: charlie.User},
-						{ID: alice.ID, Order: 2, User: alice.User},
-						{ID: bob.ID, Order: 3, User: bob.User},
+						{ID: charlie.ID, Position: 1, User: charlie.User},
+						{ID: alice.ID, Position: 2, User: alice.User},
+						{ID: bob.ID, Position: 3, User: bob.User},
 					},
 				}},
 			}},

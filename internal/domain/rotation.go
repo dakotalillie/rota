@@ -64,7 +64,7 @@ func (r *Rotation) Schedule(now time.Time, numWeeks int) ([]ScheduleBlock, error
 	sorted := make([]Member, len(r.Members))
 	copy(sorted, r.Members)
 	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Order < sorted[j].Order
+		return sorted[i].Position < sorted[j].Position
 	})
 
 	currentIdx := -1
@@ -141,7 +141,7 @@ func (r *Rotation) NextMember() (*Member, error) {
 	sorted := make([]Member, len(r.Members))
 	copy(sorted, r.Members)
 	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Order < sorted[j].Order
+		return sorted[i].Position < sorted[j].Position
 	})
 
 	for i, m := range sorted {

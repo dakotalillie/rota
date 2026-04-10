@@ -125,7 +125,7 @@ func (h *CreateMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		Data: &Member{
 			Type:       "members",
 			ID:         member.ID,
-			Attributes: MemberAttributes{Order: member.Order, Color: member.Color},
+			Attributes: MemberAttributes{Position: member.Position, Color: member.Color},
 			Relationships: MemberRelationships{
 				User: MemberUserRelationship{
 					Data: MemberUserRelationshipData{Type: "users", ID: member.User.ID},

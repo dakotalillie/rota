@@ -238,7 +238,7 @@ func TestOverrideRepository_ListByRotationIDs(t *testing.T) {
 		Member: domain.Member{
 			ID:         memberA.ID,
 			RotationID: rotationA.ID,
-			Order:      1,
+			Position:   1,
 			Color:      "violet",
 			User: domain.User{
 				ID:    userA.ID,
@@ -255,7 +255,7 @@ func TestOverrideRepository_ListByRotationIDs(t *testing.T) {
 		Member: domain.Member{
 			ID:         memberB.ID,
 			RotationID: rotationB.ID,
-			Order:      1,
+			Position:   1,
 			Color:      "sky",
 			User: domain.User{
 				ID:    userB.ID,

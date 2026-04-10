@@ -56,7 +56,7 @@ func TestGetRotationHandler(t *testing.T) {
 					ScheduledMember: &domain.Member{
 						ID:         "mem_01JQGF0000000000000000000",
 						RotationID: rotationID,
-						Order:      1,
+						Position:   1,
 						Color:      "violet",
 						User: domain.User{
 							ID:    "usr_01JQGF0000000000000000000",
@@ -68,7 +68,7 @@ func TestGetRotationHandler(t *testing.T) {
 						{
 							ID:         "mem_01JQGF0000000000000000000",
 							RotationID: rotationID,
-							Order:      1,
+							Position:   1,
 							Color:      "violet",
 							User: domain.User{
 								ID:    "usr_01JQGF0000000000000000000",
@@ -79,7 +79,7 @@ func TestGetRotationHandler(t *testing.T) {
 						{
 							ID:         "mem_01JQGF000000000000000000B",
 							RotationID: rotationID,
-							Order:      2,
+							Position:   2,
 							Color:      "sky",
 							User: domain.User{
 								ID:    "usr_01JQGF000000000000000000B",
@@ -109,7 +109,7 @@ func TestGetRotationHandler(t *testing.T) {
 						{
 							ID:         "mem_01JQGF0000000000000000000",
 							RotationID: rotationID,
-							Order:      1,
+							Position:   1,
 							Color:      "violet",
 							User: domain.User{
 								ID:    "usr_01JQGF0000000000000000000",
@@ -120,7 +120,7 @@ func TestGetRotationHandler(t *testing.T) {
 						{
 							ID:         "mem_01JQGF000000000000000000B",
 							RotationID: rotationID,
-							Order:      2,
+							Position:   2,
 							Color:      "sky",
 							User: domain.User{
 								ID:    "usr_01JQGF000000000000000000B",
@@ -150,7 +150,7 @@ func TestGetRotationHandler(t *testing.T) {
 						{
 							ID:         "mem_01JQGF0000000000000000000",
 							RotationID: rotationID,
-							Order:      1,
+							Position:   1,
 							Color:      "violet",
 							User: domain.User{
 								ID:    "usr_01JQGF0000000000000000000",
@@ -161,7 +161,7 @@ func TestGetRotationHandler(t *testing.T) {
 						{
 							ID:         "mem_01JQGF000000000000000000B",
 							RotationID: rotationID,
-							Order:      2,
+							Position:   2,
 							Color:      "sky",
 							User: domain.User{
 								ID:    "usr_01JQGF000000000000000000B",
@@ -179,7 +179,7 @@ func TestGetRotationHandler(t *testing.T) {
 							Member: domain.Member{
 								ID:         "mem_01JQGF000000000000000000B",
 								RotationID: rotationID,
-								Order:      2,
+								Position:   2,
 								Color:      "sky",
 								User: domain.User{
 									ID:    "usr_01JQGF000000000000000000B",

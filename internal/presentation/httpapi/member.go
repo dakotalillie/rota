@@ -8,8 +8,8 @@ type Member struct {
 }
 
 type MemberAttributes struct {
-	Order int    `json:"order"`
-	Color string `json:"color"`
+	Position int    `json:"position"`
+	Color    string `json:"color"`
 }
 
 type MemberRelationships struct {

@@ -54,7 +54,7 @@ function mockRotationRequests(scheduleBlocks: ScheduleBlock[]) {
               {
                 type: "members",
                 id: "mem_1",
-                attributes: { order: 1, color: "violet" },
+                attributes: { position: 1, color: "violet" },
                 relationships: {
                   user: { data: { type: "users", id: "usr_1" } },
                 },
@@ -62,7 +62,7 @@ function mockRotationRequests(scheduleBlocks: ScheduleBlock[]) {
               {
                 type: "members",
                 id: "mem_2",
-                attributes: { order: 2, color: "sky" },
+                attributes: { position: 2, color: "sky" },
                 relationships: {
                   user: { data: { type: "users", id: "usr_2" } },
                 },

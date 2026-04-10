@@ -61,22 +61,22 @@ func TestMemberRepository_CountByRotationID(t *testing.T) {
 
 func TestMemberRepository_CreateMember(t *testing.T) {
 	tests := []struct {
-		name      string
-		order     int
-		color     string
-		wantOrder int
+		name         string
+		position     int
+		color        string
+		wantPosition int
 	}{
 		{
-			name:      "success - first member",
-			order:     1,
-			color:     domain.MemberColors[0],
-			wantOrder: 1,
+			name:         "success - first member",
+			position:     1,
+			color:        domain.MemberColors[0],
+			wantPosition: 1,
 		},
 		{
-			name:      "success - second member gets order 2",
-			order:     2,
-			color:     domain.MemberColors[1],
-			wantOrder: 2,
+			name:         "success - second member gets position 2",
+			position:     2,
+			color:        domain.MemberColors[1],
+			wantPosition: 2,
 		},
 	}
 
@@ -91,12 +91,12 @@ func TestMemberRepository_CreateMember(t *testing.T) {
 			user, err := userRepo.Create(t.Context(), "Alice Smith", "alice@example.com")
 			require.NoError(t, err)
 
-			member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, tt.order, tt.color)
+			member, err := memberRepo.Create(t.Context(), rotationA.ID, user.ID, tt.position, tt.color)
 			require.NoError(t, err)
 			require.NotEmpty(t, member.ID)
 			require.Equal(t, rotationA.ID, member.RotationID)
 			require.Equal(t, user.ID, member.User.ID)
-			require.Equal(t, tt.wantOrder, member.Order)
+			require.Equal(t, tt.wantPosition, member.Position)
 			require.Equal(t, tt.color, member.Color)
 		})
 	}
@@ -137,7 +137,7 @@ func TestMemberRepository_GetByID(t *testing.T) {
 		require.Equal(t, created.ID, found.ID)
 		require.Equal(t, rotationA.ID, found.RotationID)
 		require.Equal(t, user.ID, found.User.ID)
-		require.Equal(t, 1, found.Order)
+		require.Equal(t, 1, found.Position)
 		require.Equal(t, domain.MemberColors[0], found.Color)
 	})
 
@@ -212,26 +212,26 @@ func TestMemberRepository_ReorderMembers(t *testing.T) {
 		return rotRepo, memberRepo, memberIDs
 	}
 
-	t.Run("reorders members and persists new order", func(t *testing.T) {
+	t.Run("reorders members and persists new position", func(t *testing.T) {
 		db := openTestDB(t)
 		rotRepo, memberRepo, ids := seedMembers(t, db, 3)
 
-		// Reverse the order: [1,2,3] → [3,2,1]
+		// Reverse the position: [1,2,3] → [3,2,1]
 		reversed := []string{ids[2], ids[1], ids[0]}
 		require.NoError(t, memberRepo.ReorderMembers(t.Context(), rotationA.ID, reversed))
 
 		rotation, err := rotRepo.GetByID(t.Context(), rotationA.ID)
 		require.NoError(t, err)
 
-		orderByID := make(map[string]int, len(rotation.Members))
+		positionByID := make(map[string]int, len(rotation.Members))
 		colorByID := make(map[string]string, len(rotation.Members))
 		for _, m := range rotation.Members {
-			orderByID[m.ID] = m.Order
+			positionByID[m.ID] = m.Position
 			colorByID[m.ID] = m.Color
 		}
-		require.Equal(t, 1, orderByID[ids[2]], "ids[2] should now be order 1")
-		require.Equal(t, 2, orderByID[ids[1]], "ids[1] should remain order 2")
-		require.Equal(t, 3, orderByID[ids[0]], "ids[0] should now be order 3")
+		require.Equal(t, 1, positionByID[ids[2]], "ids[2] should now be position 1")
+		require.Equal(t, 2, positionByID[ids[1]], "ids[1] should remain position 2")
+		require.Equal(t, 3, positionByID[ids[0]], "ids[0] should now be position 3")
 		require.Equal(t, domain.MemberColors[2], colorByID[ids[2]])
 		require.Equal(t, domain.MemberColors[1], colorByID[ids[1]])
 		require.Equal(t, domain.MemberColors[0], colorByID[ids[0]])

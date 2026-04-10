@@ -73,7 +73,7 @@ func (h *ListRotationsHandler) Handle(w http.ResponseWriter, r *http.Request) {
 				response.Included = append(response.Included, Member{
 					Type:       "members",
 					ID:         cm.ID,
-					Attributes: MemberAttributes{Order: cm.Order, Color: cm.Color},
+					Attributes: MemberAttributes{Position: cm.Position, Color: cm.Color},
 					Relationships: MemberRelationships{
 						User: MemberUserRelationship{
 							Data: MemberUserRelationshipData{Type: "users", ID: cm.User.ID},

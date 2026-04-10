@@ -94,14 +94,14 @@ func (h *ReorderMembersHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	sorted := make([]domain.Member, len(rotation.Members))
 	copy(sorted, rotation.Members)
 	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Order < sorted[j].Order
+		return sorted[i].Position < sorted[j].Position
 	})
 
 	for _, m := range sorted {
 		members = append(members, Member{
 			Type:       "members",
 			ID:         m.ID,
-			Attributes: MemberAttributes{Order: m.Order, Color: m.Color},
+			Attributes: MemberAttributes{Position: m.Position, Color: m.Color},
 			Relationships: MemberRelationships{
 				User: MemberUserRelationship{
 					Data: MemberUserRelationshipData{Type: "users", ID: m.User.ID},

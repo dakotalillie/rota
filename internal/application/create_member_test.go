@@ -80,7 +80,7 @@ type fakeMemberRepo struct {
 	createCalls  []struct {
 		rotationID string
 		userID     string
-		order      int
+		position   int
 		color      string
 	}
 	getByIDMember     *domain.Member
@@ -100,13 +100,13 @@ func (f *fakeMemberRepo) CountByRotationID(_ context.Context, _ string) (int, er
 	return f.count, f.countErr
 }
 
-func (f *fakeMemberRepo) Create(_ context.Context, rotationID, userID string, order int, color string) (*domain.Member, error) {
+func (f *fakeMemberRepo) Create(_ context.Context, rotationID, userID string, position int, color string) (*domain.Member, error) {
 	f.createCalls = append(f.createCalls, struct {
 		rotationID string
 		userID     string
-		order      int
+		position   int
 		color      string
-	}{rotationID, userID, order, color})
+	}{rotationID, userID, position, color})
 	return f.createMember, f.createErr
 }
 
@@ -141,28 +141,28 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 	firstCreatedMember := &domain.Member{
 		ID:         "mem_01JQGF0000000000000000000",
 		RotationID: existingRotation.ID,
-		Order:      1,
+		Position:   1,
 		Color:      domain.MemberColors[0],
 	}
 	secondCreatedMember := &domain.Member{
 		ID:         "mem_01JQGF0000000000000000001",
 		RotationID: existingRotation.ID,
-		Order:      2,
+		Position:   2,
 		Color:      domain.MemberColors[1],
 	}
 	fixedNow := time.Date(2026, 4, 5, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
-		name              string
-		input             application.CreateMemberInput
-		rotationRepo      fakeRotationRepo
-		userRepo          fakeUserRepo
-		memberRepo        fakeMemberRepo
-		wantMember        *domain.Member
-		wantErr           error
-		wantCreateOrder   int
-		wantCreateColor   string
-		wantSetCurrCalled bool
+		name               string
+		input              application.CreateMemberInput
+		rotationRepo       fakeRotationRepo
+		userRepo           fakeUserRepo
+		memberRepo         fakeMemberRepo
+		wantMember         *domain.Member
+		wantErr            error
+		wantCreatePosition int
+		wantCreateColor    string
+		wantSetCurrCalled  bool
 	}{
 		{
 			name: "success - first member becomes current",
@@ -180,13 +180,13 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 			wantMember: &domain.Member{
 				ID:         firstCreatedMember.ID,
 				RotationID: firstCreatedMember.RotationID,
-				Order:      firstCreatedMember.Order,
+				Position:   firstCreatedMember.Position,
 				Color:      firstCreatedMember.Color,
 				User:       *existingUser,
 			},
-			wantCreateOrder:   1,
-			wantCreateColor:   domain.MemberColors[0],
-			wantSetCurrCalled: true,
+			wantCreatePosition: 1,
+			wantCreateColor:    domain.MemberColors[0],
+			wantSetCurrCalled:  true,
 		},
 		{
 			name: "success - subsequent member does not become current",
@@ -204,13 +204,13 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 			wantMember: &domain.Member{
 				ID:         secondCreatedMember.ID,
 				RotationID: secondCreatedMember.RotationID,
-				Order:      secondCreatedMember.Order,
+				Position:   secondCreatedMember.Position,
 				Color:      secondCreatedMember.Color,
 				User:       *existingUser,
 			},
-			wantCreateOrder:   2,
-			wantCreateColor:   domain.MemberColors[1],
-			wantSetCurrCalled: false,
+			wantCreatePosition: 2,
+			wantCreateColor:    domain.MemberColors[1],
+			wantSetCurrCalled:  false,
 		},
 		{
 			name: "success - new user",
@@ -229,13 +229,13 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 			wantMember: &domain.Member{
 				ID:         firstCreatedMember.ID,
 				RotationID: firstCreatedMember.RotationID,
-				Order:      firstCreatedMember.Order,
+				Position:   firstCreatedMember.Position,
 				Color:      firstCreatedMember.Color,
 				User:       *newUser,
 			},
-			wantCreateOrder:   1,
-			wantCreateColor:   domain.MemberColors[0],
-			wantSetCurrCalled: true,
+			wantCreatePosition: 1,
+			wantCreateColor:    domain.MemberColors[0],
+			wantSetCurrCalled:  true,
 		},
 		{
 			name: "set current member error propagates",
@@ -354,7 +354,7 @@ func TestCreateMemberUseCase_Execute(t *testing.T) {
 			assert.Equal(t, tc.wantMember, got)
 			require.Len(t, tc.memberRepo.createCalls, 1)
 			assert.Equal(t, tc.input.RotationID, tc.memberRepo.createCalls[0].rotationID)
-			assert.Equal(t, tc.wantCreateOrder, tc.memberRepo.createCalls[0].order)
+			assert.Equal(t, tc.wantCreatePosition, tc.memberRepo.createCalls[0].position)
 			assert.Equal(t, tc.wantCreateColor, tc.memberRepo.createCalls[0].color)
 			if tc.wantSetCurrCalled {
 				require.Len(t, tc.memberRepo.setCurrCalls, 1)

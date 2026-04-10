@@ -8,7 +8,7 @@ type Member struct {
 	ID              string
 	RotationID      string
 	User            User
-	Order           int
+	Position        int
 	Color           string
 	BecameCurrentAt time.Time
 }

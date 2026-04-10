@@ -14,7 +14,7 @@ import type { Member, TimeSegment } from "./types";
 interface ApiMember {
   type: "members";
   id: string;
-  attributes: { order: number; color: string };
+  attributes: { position: number; color: string };
   relationships: { user: { data: { type: "users"; id: string } } };
 }
 

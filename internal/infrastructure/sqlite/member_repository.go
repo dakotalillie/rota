@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -29,19 +28,13 @@ func (r *MemberRepository) CountByRotationID(ctx context.Context, rotationID str
 	return count, err
 }
 
-func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string, order int, color string) (*domain.Member, error) {
+func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string, position int, color string) (*domain.Member, error) {
 	db := dbFromContext(ctx, r.db)
 
 	memberID := newID("mem")
-	rec := memberData{Order: order, Color: color}
-	blob, err := json.Marshal(rec)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = db.ExecContext(ctx,
-		`INSERT INTO members (id, rotation_id, user_id, data) VALUES (?, ?, ?, ?)`,
-		memberID, rotationID, userID, string(blob),
+	_, err := db.ExecContext(ctx,
+		`INSERT INTO members (id, rotation_id, user_id, position, color) VALUES (?, ?, ?, ?, ?)`,
+		memberID, rotationID, userID, position, color,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
@@ -54,7 +47,7 @@ func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string
 		ID:         memberID,
 		RotationID: rotationID,
 		User:       domain.User{ID: userID},
-		Order:      order,
+		Position:   position,
 		Color:      color,
 	}, nil
 }
@@ -62,26 +55,16 @@ func (r *MemberRepository) Create(ctx context.Context, rotationID, userID string
 func (r *MemberRepository) GetByID(ctx context.Context, rotationID, memberID string) (*domain.Member, error) {
 	db := dbFromContext(ctx, r.db)
 
-	var (
-		m       domain.Member
-		rawData string
-	)
+	var m domain.Member
 	err := db.QueryRowContext(ctx,
-		`SELECT id, rotation_id, user_id, data FROM members WHERE id = ? AND rotation_id = ?`,
+		`SELECT id, rotation_id, user_id, position, color FROM members WHERE id = ? AND rotation_id = ?`,
 		memberID, rotationID,
-	).Scan(&m.ID, &m.RotationID, &m.User.ID, &rawData)
+	).Scan(&m.ID, &m.RotationID, &m.User.ID, &m.Position, &m.Color)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrMemberNotFound
 	} else if err != nil {
 		return nil, err
 	}
-
-	var rec memberData
-	if err := json.Unmarshal([]byte(rawData), &rec); err != nil {
-		return nil, err
-	}
-	m.Order = rec.Order
-	m.Color = rec.Color
 	return &m, nil
 }
 
@@ -104,29 +87,9 @@ func (r *MemberRepository) SetCurrentMember(ctx context.Context, rotationID stri
 func (r *MemberRepository) ReorderMembers(ctx context.Context, rotationID string, memberIDs []string) error {
 	db := dbFromContext(ctx, r.db)
 	for i, memberID := range memberIDs {
-		var rawData string
-		if err := db.QueryRowContext(
-			ctx,
-			`SELECT data FROM members WHERE id = ? AND rotation_id = ?`,
-			memberID,
-			rotationID,
-		).Scan(&rawData); err != nil {
-			return err
-		}
-
-		var rec memberData
-		if err := json.Unmarshal([]byte(rawData), &rec); err != nil {
-			return err
-		}
-		rec.Order = i + 1
-
-		blob, err := json.Marshal(rec)
-		if err != nil {
-			return err
-		}
-		_, err = db.ExecContext(ctx,
-			`UPDATE members SET data = ? WHERE id = ? AND rotation_id = ?`,
-			string(blob), memberID, rotationID,
+		_, err := db.ExecContext(ctx,
+			`UPDATE members SET position = ? WHERE id = ? AND rotation_id = ?`,
+			i+1, memberID, rotationID,
 		)
 		if err != nil {
 			return err
