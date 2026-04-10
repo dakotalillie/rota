@@ -1,0 +1,43 @@
+name: CI (E2E)
+
+on:
+  pull_request:
+    paths:
+      - "e2e/**"
+      - "internal/**/*.go"
+      - "cmd/**/*.go"
+      - "ui/**"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: |
+            ui/package-lock.json
+            e2e/package-lock.json
+
+      - uses: arduino/setup-task@v2
+
+      - name: Install UI deps
+        run: npm ci
+        working-directory: ui
+
+      - name: Install E2E deps
+        run: npm ci
+        working-directory: e2e
+
+      - name: Lint
+        run: task lint:e2e
+
+      - name: Test
+        run: task test:e2e

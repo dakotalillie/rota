@@ -71,9 +71,13 @@ export const test = base.extend<Fixtures>({
     const baseUrl = `http://localhost:${port}`;
 
     if (seedFile) {
-      const result = spawnSync(SEED_BINARY, [`-db=${dbPath}`, `-seed-file=${seedFile}`], {
-        encoding: "utf8",
-      });
+      const result = spawnSync(
+        SEED_BINARY,
+        [`-db=${dbPath}`, `-seed-file=${seedFile}`],
+        {
+          encoding: "utf8",
+        },
+      );
       if (result.status !== 0) {
         throw new Error(`Seed binary failed:\n${result.stderr}`);
       }

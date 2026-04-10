@@ -1,7 +1,15 @@
 {
   "users": [
-    { "id": "usr_01SEED000000000000000ALICE", "name": "Alice Smith", "email": "alice@example.com" },
-    { "id": "usr_01SEED0000000000000000BOB", "name": "Bob Jones", "email": "bob@example.com" }
+    {
+      "id": "usr_01SEED000000000000000ALICE",
+      "name": "Alice Smith",
+      "email": "alice@example.com"
+    },
+    {
+      "id": "usr_01SEED0000000000000000BOB",
+      "name": "Bob Jones",
+      "email": "bob@example.com"
+    }
   ],
   "rotations": [
     {

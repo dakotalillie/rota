@@ -38,6 +38,13 @@ tasks:
       - npm run dev
     silent: true
 
+  format:e2e:
+    desc: Formats the E2E code
+    dir: e2e
+    cmds:
+      - npm run format
+    silent: true
+
   format:server:
     desc: Formats Go code with goimports
     cmds:
@@ -70,6 +77,14 @@ tasks:
     dir: ui
     cmds:
       - npm install
+    silent: true
+
+  lint:e2e:
+    desc: Lints the E2E code
+    dir: e2e
+    cmds:
+      - npm run format:check
+      - npm run lint
     silent: true
 
   lint:server:
