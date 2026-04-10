@@ -12,6 +12,7 @@ import (
 type AdvanceRotationWorker struct {
 	rotationRepo domain.RotationRepository
 	memberRepo   domain.MemberRepository
+	clock        domain.Clock
 	interval     time.Duration
 	logger       *slog.Logger
 }
@@ -19,12 +20,14 @@ type AdvanceRotationWorker struct {
 func NewAdvanceRotationWorker(
 	rotationRepo domain.RotationRepository,
 	memberRepo domain.MemberRepository,
+	clock domain.Clock,
 	interval time.Duration,
 	logger *slog.Logger,
 ) *AdvanceRotationWorker {
 	return &AdvanceRotationWorker{
 		rotationRepo: rotationRepo,
 		memberRepo:   memberRepo,
+		clock:        clock,
 		interval:     interval,
 		logger:       logger,
 	}
@@ -62,7 +65,7 @@ func (w *AdvanceRotationWorker) tick(ctx context.Context) {
 }
 
 func (w *AdvanceRotationWorker) processRotation(ctx context.Context, rot *domain.Rotation) {
-	needs, handoffTime, err := rot.NeedsAdvance(time.Now().UTC())
+	needs, handoffTime, err := rot.NeedsAdvance(w.clock.Now().UTC())
 	if err != nil {
 		w.logger.Error("failed to check if rotation needs advance", "rotation_id", rot.ID, "error", err)
 		return

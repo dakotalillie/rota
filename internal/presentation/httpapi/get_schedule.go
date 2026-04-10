@@ -28,10 +28,11 @@ type GetSchedule = func(ctx context.Context, rotationID string, now time.Time, n
 type GetScheduleHandler struct {
 	hostname    string
 	getSchedule GetSchedule
+	clock       domain.Clock
 }
 
-func NewGetScheduleHandler(hostname string, getSchedule GetSchedule) *GetScheduleHandler {
-	return &GetScheduleHandler{hostname: hostname, getSchedule: getSchedule}
+func NewGetScheduleHandler(hostname string, getSchedule GetSchedule, clock domain.Clock) *GetScheduleHandler {
+	return &GetScheduleHandler{hostname: hostname, getSchedule: getSchedule, clock: clock}
 }
 
 func (h *GetScheduleHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +54,7 @@ func (h *GetScheduleHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		numWeeks = n
 	}
 
-	blocks, err := h.getSchedule(r.Context(), rotationID, time.Now(), numWeeks)
+	blocks, err := h.getSchedule(r.Context(), rotationID, h.clock.Now(), numWeeks)
 	if errors.Is(err, domain.ErrRotationNotFound) {
 		response := GetScheduleResponse{
 			Links:  GetScheduleResponseLinks{Self: h.hostname + r.URL.Path},

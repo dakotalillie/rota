@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
 )
@@ -25,6 +24,7 @@ type ListRotations = func(ctx context.Context) ([]*domain.Rotation, error)
 type ListRotationsHandler struct {
 	hostname      string
 	listRotations ListRotations
+	clock         domain.Clock
 }
 
 func (h *ListRotationsHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +63,7 @@ func (h *ListRotationsHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 
-		if cm := rot.EffectiveOnCall(time.Now()); cm != nil {
+		if cm := rot.EffectiveOnCall(h.clock.Now()); cm != nil {
 			resource.Relationships.CurrentMember.Data = &RelationshipData{
 				Type: "members",
 				ID:   cm.ID,
@@ -100,6 +100,6 @@ func (h *ListRotationsHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(response)
 }
 
-func NewListRotationsHandler(hostname string, listRotations ListRotations) *ListRotationsHandler {
-	return &ListRotationsHandler{hostname: hostname, listRotations: listRotations}
+func NewListRotationsHandler(hostname string, listRotations ListRotations, clock domain.Clock) *ListRotationsHandler {
+	return &ListRotationsHandler{hostname: hostname, listRotations: listRotations, clock: clock}
 }

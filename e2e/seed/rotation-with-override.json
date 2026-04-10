@@ -1,0 +1,58 @@
+{
+  "users": [
+    { "id": "usr_01SEED000000000000000ALICE", "name": "Alice Smith", "email": "alice@example.com" },
+    { "id": "usr_01SEED0000000000000000BOB", "name": "Bob Jones", "email": "bob@example.com" },
+    { "id": "usr_01SEED000000000000000CAROL", "name": "Carol White", "email": "carol@example.com" }
+  ],
+  "rotations": [
+    {
+      "id": "rot_01SEED000000000000000ROT1",
+      "name": "Platform On-Call",
+      "cadence": {
+        "weekly": {
+          "day": "Monday",
+          "time": "09:00",
+          "timeZone": "America/Los_Angeles"
+        }
+      }
+    }
+  ],
+  "members": [
+    {
+      "id": "mem_01SEED000000000000000MEM1",
+      "rotationID": "rot_01SEED000000000000000ROT1",
+      "userID": "usr_01SEED000000000000000ALICE",
+      "order": 1,
+      "color": "violet",
+      "isCurrent": true,
+      "becameCurrentAt": "2026-04-06T16:00:00Z"
+    },
+    {
+      "id": "mem_01SEED000000000000000MEM2",
+      "rotationID": "rot_01SEED000000000000000ROT1",
+      "userID": "usr_01SEED0000000000000000BOB",
+      "order": 2,
+      "color": "sky",
+      "isCurrent": false,
+      "becameCurrentAt": ""
+    },
+    {
+      "id": "mem_01SEED000000000000000MEM3",
+      "rotationID": "rot_01SEED000000000000000ROT1",
+      "userID": "usr_01SEED000000000000000CAROL",
+      "order": 3,
+      "color": "emerald",
+      "isCurrent": false,
+      "becameCurrentAt": ""
+    }
+  ],
+  "overrides": [
+    {
+      "id": "ovr_01SEED000000000000000OVR1",
+      "rotationID": "rot_01SEED000000000000000ROT1",
+      "memberID": "mem_01SEED000000000000000MEM2",
+      "start": "2026-04-07T08:00:00Z",
+      "end": "2026-04-09T08:00:00Z"
+    }
+  ]
+}

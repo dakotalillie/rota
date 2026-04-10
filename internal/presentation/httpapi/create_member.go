@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/dakotalillie/rota/internal/application"
 	"github.com/dakotalillie/rota/internal/domain"
@@ -55,10 +54,11 @@ type CreateMember = func(ctx context.Context, input application.CreateMemberInpu
 type CreateMemberHandler struct {
 	hostname     string
 	createMember CreateMember
+	clock        domain.Clock
 }
 
-func NewCreateMemberHandler(hostname string, createMember CreateMember) *CreateMemberHandler {
-	return &CreateMemberHandler{hostname: hostname, createMember: createMember}
+func NewCreateMemberHandler(hostname string, createMember CreateMember, clock domain.Clock) *CreateMemberHandler {
+	return &CreateMemberHandler{hostname: hostname, createMember: createMember, clock: clock}
 }
 
 func (h *CreateMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +83,7 @@ func (h *CreateMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := application.CreateMemberInput{RotationID: rotationID, Now: time.Now()}
+	input := application.CreateMemberInput{RotationID: rotationID, Now: h.clock.Now()}
 	if req.Data.Relationships.User != nil {
 		input.UserID = req.Data.Relationships.User.Data.ID
 	} else {

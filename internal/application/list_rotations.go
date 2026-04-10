@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"time"
 
 	"github.com/dakotalillie/rota/internal/domain"
 )
@@ -10,10 +9,11 @@ import (
 type ListRotationsUseCase struct {
 	repo         domain.RotationRepository
 	overrideRepo domain.OverrideRepository
+	clock        domain.Clock
 }
 
-func NewListRotationsUseCase(repo domain.RotationRepository, overrideRepo domain.OverrideRepository) *ListRotationsUseCase {
-	return &ListRotationsUseCase{repo: repo, overrideRepo: overrideRepo}
+func NewListRotationsUseCase(repo domain.RotationRepository, overrideRepo domain.OverrideRepository, clock domain.Clock) *ListRotationsUseCase {
+	return &ListRotationsUseCase{repo: repo, overrideRepo: overrideRepo, clock: clock}
 }
 
 func (uc *ListRotationsUseCase) Execute(ctx context.Context) ([]*domain.Rotation, error) {
@@ -22,7 +22,7 @@ func (uc *ListRotationsUseCase) Execute(ctx context.Context) ([]*domain.Rotation
 		return nil, err
 	}
 
-	now := time.Now()
+	now := uc.clock.Now()
 	rotationIDs := make([]string, 0, len(rotations))
 	for _, rotation := range rotations {
 		rotationIDs = append(rotationIDs, rotation.ID)

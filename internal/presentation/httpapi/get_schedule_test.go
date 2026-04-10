@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bradleyjkemp/cupaloy/v2"
+	"github.com/dakotalillie/rota/internal/clock"
 	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/dakotalillie/rota/internal/presentation/httpapi"
 	"github.com/stretchr/testify/require"
@@ -158,7 +159,7 @@ func TestGetScheduleHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := httpapi.NewGetScheduleHandler(hostname, tt.getter)
+			handler := httpapi.NewGetScheduleHandler(hostname, tt.getter, clock.New())
 
 			r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tt.url, nil)
 			r.SetPathValue("rotationID", rotationID)

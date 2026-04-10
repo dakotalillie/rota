@@ -32,7 +32,12 @@ interface ApiScheduleBlock {
 }
 
 interface GetRotationResponse {
-  data?: { attributes: { name: string } };
+  data?: {
+    attributes: { name: string };
+    relationships?: {
+      currentMember?: { data: { type: "members"; id: string } | null };
+    };
+  };
   errors?: { detail?: string }[];
 }
 
@@ -99,6 +104,7 @@ function RotationDetail() {
   const [error, setError] = useState<string | null>(null);
   const [rotationName, setRotationName] = useState<string | null>(null);
   const [timeline, setTimeline] = useState<TimeSegment[]>([]);
+  const [currentMemberId, setCurrentMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -114,6 +120,9 @@ function RotationDetail() {
       .then(([rotationRes, scheduleRes]) => {
         if (rotationRes.data) {
           setRotationName(rotationRes.data.attributes.name);
+          setCurrentMemberId(
+            rotationRes.data.relationships?.currentMember?.data?.id ?? null,
+          );
         }
         setTimeline(
           buildTimelineFromSchedule(scheduleRes.data, scheduleRes.included),
@@ -131,9 +140,9 @@ function RotationDetail() {
     { label: rotationName ?? "…" },
   ]);
 
-  const now = new Date();
-  const activeSegment =
-    timeline.find((s) => now >= s.start && now < s.end) ?? timeline[0];
+  const activeSegment = currentMemberId
+    ? (timeline.find((s) => s.member.id === currentMemberId) ?? timeline[0])
+    : timeline[0];
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">

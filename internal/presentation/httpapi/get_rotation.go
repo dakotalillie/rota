@@ -26,6 +26,7 @@ type GetRotation = func(ctx context.Context, id string) (*domain.Rotation, error
 type GetRotationHandler struct {
 	hostname    string
 	getRotation GetRotation
+	clock       domain.Clock
 }
 
 func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -119,7 +120,7 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	response.Data.Relationships.Overrides = &OverridesRelationship{Data: overridesData}
 	response.Included = included
 
-	if currentMember := rotation.EffectiveOnCall(time.Now()); currentMember != nil {
+	if currentMember := rotation.EffectiveOnCall(h.clock.Now()); currentMember != nil {
 		response.Data.Relationships.CurrentMember.Data = &RelationshipData{
 			Type: "members",
 			ID:   currentMember.ID,
@@ -135,6 +136,6 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(response)
 }
 
-func NewGetRotationHandler(hostname string, getRotation GetRotation) *GetRotationHandler {
-	return &GetRotationHandler{hostname: hostname, getRotation: getRotation}
+func NewGetRotationHandler(hostname string, getRotation GetRotation, clock domain.Clock) *GetRotationHandler {
+	return &GetRotationHandler{hostname: hostname, getRotation: getRotation, clock: clock}
 }

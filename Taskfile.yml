@@ -91,6 +91,7 @@ tasks:
     cmds:
       - cd ui && npm run build
       - go build -o e2e/bin/server cmd/server/main.go
+      - go build -o e2e/bin/seed internal/cmd/seed/main.go
     silent: true
 
   test:e2e:install:

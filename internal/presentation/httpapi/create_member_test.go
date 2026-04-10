@@ -9,6 +9,7 @@ import (
 
 	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/dakotalillie/rota/internal/application"
+	"github.com/dakotalillie/rota/internal/clock"
 	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/dakotalillie/rota/internal/presentation/httpapi"
 	"github.com/stretchr/testify/require"
@@ -102,7 +103,7 @@ func TestCreateMemberHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := httpapi.NewCreateMemberHandler(hostname, tt.creator)
+			handler := httpapi.NewCreateMemberHandler(hostname, tt.creator, clock.New())
 
 			r := httptest.NewRequestWithContext(t.Context(), http.MethodPost,
 				"/api/rotations/"+rotationID+"/members",
