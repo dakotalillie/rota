@@ -6,7 +6,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY bin/rota /app/rota
+ARG TARGETPLATFORM
+COPY $TARGETPLATFORM/bin/rota /app/rota
 
 EXPOSE 8080
 

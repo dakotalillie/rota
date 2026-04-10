@@ -42,41 +42,24 @@ changelog:
       - "^test:"
       - "^chore:"
 
-dockers:
-  - image_templates:
-      - "dakotalillie/rota:{{ .Version }}-amd64"
-    use: buildx
-    goos: linux
-    goarch: amd64
+dockers_v2:
+  - id: rota
+    ids:
+      - rota
     dockerfile: Dockerfile
-    build_flag_templates:
-      - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
-      - "--label=org.opencontainers.image.version={{ .Version }}"
-      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
-      - "--label=org.opencontainers.image.source={{ .GitURL }}"
-  - image_templates:
-      - "dakotalillie/rota:{{ .Version }}-arm64"
-    use: buildx
-    goos: linux
-    goarch: arm64
-    dockerfile: Dockerfile
-    build_flag_templates:
-      - "--platform=linux/arm64"
-      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
-      - "--label=org.opencontainers.image.version={{ .Version }}"
-      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
-      - "--label=org.opencontainers.image.source={{ .GitURL }}"
-
-docker_manifests:
-  - name_template: "dakotalillie/rota:{{ .Version }}"
-    image_templates:
-      - "dakotalillie/rota:{{ .Version }}-amd64"
-      - "dakotalillie/rota:{{ .Version }}-arm64"
-  - name_template: "dakotalillie/rota:latest"
-    image_templates:
-      - "dakotalillie/rota:{{ .Version }}-amd64"
-      - "dakotalillie/rota:{{ .Version }}-arm64"
+    images:
+      - dakotalillie/rota
+    tags:
+      - "{{ .Version }}"
+      - "latest"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.title: "{{ .ProjectName }}"
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.source: "{{ .GitURL }}"
 
 release:
   draft: false
