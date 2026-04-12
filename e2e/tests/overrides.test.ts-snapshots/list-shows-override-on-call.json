@@ -1,0 +1,89 @@
+{
+  "links": {
+    "self": "http://localhost:TEST_PORT/api/rotations"
+  },
+  "data": [
+    {
+      "type": "rotations",
+      "id": "rot_01SEED000000000000000ROT1",
+      "links": {
+        "self": "http://localhost:TEST_PORT/api/rotations/rot_01SEED000000000000000ROT1",
+        "schedule": "http://localhost:TEST_PORT/api/rotations/rot_01SEED000000000000000ROT1/schedule"
+      },
+      "attributes": {
+        "name": "Platform On-Call",
+        "cadence": {
+          "weekly": {
+            "day": "Monday",
+            "time": "09:00",
+            "timeZone": "America/Los_Angeles"
+          }
+        }
+      },
+      "relationships": {
+        "currentMember": {
+          "data": {
+            "type": "members",
+            "id": "mem_01SEED000000000000000MEM2"
+          }
+        },
+        "scheduledMember": {
+          "data": {
+            "type": "members",
+            "id": "mem_01SEED000000000000000MEM1"
+          }
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "members",
+      "id": "mem_01SEED000000000000000MEM2",
+      "attributes": {
+        "position": 2,
+        "color": "sky"
+      },
+      "relationships": {
+        "user": {
+          "data": {
+            "type": "users",
+            "id": "usr_01SEED0000000000000000BOB"
+          }
+        }
+      }
+    },
+    {
+      "type": "users",
+      "id": "usr_01SEED0000000000000000BOB",
+      "attributes": {
+        "name": "Bob Jones",
+        "email": "bob@example.com"
+      }
+    },
+    {
+      "type": "members",
+      "id": "mem_01SEED000000000000000MEM1",
+      "attributes": {
+        "position": 1,
+        "color": "violet"
+      },
+      "relationships": {
+        "user": {
+          "data": {
+            "type": "users",
+            "id": "usr_01SEED000000000000000ALICE"
+          }
+        }
+      }
+    },
+    {
+      "type": "users",
+      "id": "usr_01SEED000000000000000ALICE",
+      "attributes": {
+        "name": "Alice Smith",
+        "email": "alice@example.com"
+      }
+    }
+  ]
+}

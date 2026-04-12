@@ -1,11 +1,18 @@
 import * as path from "path";
 
 import { expect, test } from "../fixtures";
+import { sanitizeApiResponse } from "../snapshot-utils";
+
+const SEED_ROT_ID = "rot_01SEED000000000000000ROT1";
 
 test.describe("adding members to an empty rotation", () => {
   test.use({ seedFile: path.join(__dirname, "../seed/rotation-empty.json") });
 
-  test("add a member and verify they appear", async ({ page, serverUrl }) => {
+  test("add a member and verify they appear", async ({
+    page,
+    serverUrl,
+    api,
+  }) => {
     await page.goto(`${serverUrl}/rotations`);
     await page.getByText("Backend On-Call").click();
     await page.getByRole("button", { name: "Settings" }).click();
@@ -19,9 +26,19 @@ test.describe("adding members to an empty rotation", () => {
     await expect(membersList.getByTestId("member-row")).toHaveText([
       /Alice Smith/,
     ]);
+
+    const res = await api("GET", `/api/rotations/${SEED_ROT_ID}`);
+    const body = await res.json();
+    expect(sanitizeApiResponse(body, { maskNewIds: true })).toMatchSnapshot(
+      "add-one-member.json",
+    );
   });
 
-  test("add multiple members and verify order", async ({ page, serverUrl }) => {
+  test("add multiple members and verify order", async ({
+    page,
+    serverUrl,
+    api,
+  }) => {
     await page.goto(`${serverUrl}/rotations`);
     await page.getByText("Backend On-Call").click();
     await page.getByRole("button", { name: "Settings" }).click();
@@ -47,6 +64,12 @@ test.describe("adding members to an empty rotation", () => {
       /Bob Jones/,
       /Carol White/,
     ]);
+
+    const res = await api("GET", `/api/rotations/${SEED_ROT_ID}`);
+    const body = await res.json();
+    expect(sanitizeApiResponse(body, { maskNewIds: true })).toMatchSnapshot(
+      "add-multiple-members.json",
+    );
   });
 });
 
@@ -59,6 +82,7 @@ test.describe("with seeded members", () => {
     page,
     serverUrl,
     setTime,
+    api,
   }) => {
     setTime("2026-04-07T12:00:00Z");
     await page.goto(`${serverUrl}/rotations`);
@@ -71,12 +95,19 @@ test.describe("with seeded members", () => {
 
     await expect(membersList.getByText("Carol White")).toHaveCount(0);
     await expect(membersList.getByText("Alice Smith")).toBeVisible();
+
+    const res = await api("GET", `/api/rotations/${SEED_ROT_ID}`);
+    const body = await res.json();
+    expect(sanitizeApiResponse(body)).toMatchSnapshot(
+      "delete-non-current-member.json",
+    );
   });
 
   test("delete current on-call member promotes next", async ({
     page,
     serverUrl,
     setTime,
+    api,
   }) => {
     setTime("2026-04-07T12:00:00Z");
     await page.goto(`${serverUrl}/rotations`);
@@ -89,5 +120,11 @@ test.describe("with seeded members", () => {
 
     await expect(membersList.getByText("Bob Jones")).toBeVisible();
     await expect(membersList.getByText("Alice Smith")).toHaveCount(0);
+
+    const res = await api("GET", `/api/rotations/${SEED_ROT_ID}`);
+    const body = await res.json();
+    expect(sanitizeApiResponse(body)).toMatchSnapshot(
+      "delete-current-member-promotes-next.json",
+    );
   });
 });

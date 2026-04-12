@@ -143,7 +143,11 @@ tasks:
     silent: true
 
   update-snapshots:
-    desc: Regenerates snapshot golden files for Go tests
+    desc: Regenerates snapshot golden files for Go and E2E tests
+    deps: [build:e2e, install:e2e]
     cmds:
       - UPDATE_SNAPSHOTS=true go test ./...
+      - cd e2e && npx playwright test --update-snapshots
+    env:
+      E2E_IMAGE: rota-e2e:latest
     silent: true

@@ -1,0 +1,37 @@
+{
+  "links": {
+    "self": "http://localhost:TEST_PORT/api/rotations/<<GENERATED_ID>>"
+  },
+  "data": {
+    "type": "rotations",
+    "id": "<<GENERATED_ID>>",
+    "links": {
+      "self": "http://localhost:TEST_PORT/api/rotations/<<GENERATED_ID>>",
+      "schedule": "http://localhost:TEST_PORT/api/rotations/<<GENERATED_ID>>/schedule"
+    },
+    "attributes": {
+      "name": "Infra On-Call",
+      "cadence": {
+        "weekly": {
+          "day": "monday",
+          "time": "09:00",
+          "timeZone": "America/Los_Angeles"
+        }
+      }
+    },
+    "relationships": {
+      "currentMember": {
+        "data": null
+      },
+      "scheduledMember": {
+        "data": null
+      },
+      "members": {
+        "data": []
+      },
+      "overrides": {
+        "data": []
+      }
+    }
+  }
+}
