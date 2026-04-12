@@ -4,4 +4,5 @@ bin/
 ui/dist
 internal/ui/dist/*
 !internal/ui/dist/.gitkeep
+.claude/worktrees
 
