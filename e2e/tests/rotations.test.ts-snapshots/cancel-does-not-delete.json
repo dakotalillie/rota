@@ -1,0 +1,33 @@
+{
+  "links": {
+    "self": "http://localhost:TEST_PORT/api/rotations"
+  },
+  "data": [
+    {
+      "type": "rotations",
+      "id": "rot_01SEED000000000000000ROT1",
+      "links": {
+        "self": "http://localhost:TEST_PORT/api/rotations/rot_01SEED000000000000000ROT1",
+        "schedule": "http://localhost:TEST_PORT/api/rotations/rot_01SEED000000000000000ROT1/schedule"
+      },
+      "attributes": {
+        "name": "Backend On-Call",
+        "cadence": {
+          "weekly": {
+            "day": "Monday",
+            "time": "09:00",
+            "timeZone": "America/Los_Angeles"
+          }
+        }
+      },
+      "relationships": {
+        "currentMember": {
+          "data": null
+        },
+        "scheduledMember": {
+          "data": null
+        }
+      }
+    }
+  ]
+}

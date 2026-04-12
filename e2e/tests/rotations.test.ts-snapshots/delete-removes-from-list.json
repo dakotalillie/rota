@@ -1,0 +1,6 @@
+{
+  "links": {
+    "self": "http://localhost:TEST_PORT/api/rotations"
+  },
+  "data": []
+}

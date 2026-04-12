@@ -1,0 +1,130 @@
+{
+  "links": {
+    "self": "http://localhost:TEST_PORT/api/rotations/rot_01SEED000000000000000ROT1"
+  },
+  "data": {
+    "type": "rotations",
+    "id": "rot_01SEED000000000000000ROT1",
+    "links": {
+      "self": "http://localhost:TEST_PORT/api/rotations/rot_01SEED000000000000000ROT1",
+      "schedule": "http://localhost:TEST_PORT/api/rotations/rot_01SEED000000000000000ROT1/schedule"
+    },
+    "attributes": {
+      "name": "Backend On-Call",
+      "cadence": {
+        "weekly": {
+          "day": "Monday",
+          "time": "09:00",
+          "timeZone": "America/Los_Angeles"
+        }
+      }
+    },
+    "relationships": {
+      "currentMember": {
+        "data": {
+          "type": "members",
+          "id": "<<GENERATED_ID>>"
+        }
+      },
+      "scheduledMember": {
+        "data": {
+          "type": "members",
+          "id": "<<GENERATED_ID>>"
+        }
+      },
+      "members": {
+        "data": [
+          {
+            "type": "members",
+            "id": "<<GENERATED_ID>>"
+          },
+          {
+            "type": "members",
+            "id": "<<GENERATED_ID>>"
+          },
+          {
+            "type": "members",
+            "id": "<<GENERATED_ID>>"
+          }
+        ]
+      },
+      "overrides": {
+        "data": []
+      }
+    }
+  },
+  "included": [
+    {
+      "type": "members",
+      "id": "<<GENERATED_ID>>",
+      "attributes": {
+        "position": 1,
+        "color": "violet"
+      },
+      "relationships": {
+        "user": {
+          "data": {
+            "type": "users",
+            "id": "<<GENERATED_ID>>"
+          }
+        }
+      }
+    },
+    {
+      "type": "users",
+      "id": "<<GENERATED_ID>>",
+      "attributes": {
+        "name": "Alice Smith",
+        "email": "alice@example.com"
+      }
+    },
+    {
+      "type": "members",
+      "id": "<<GENERATED_ID>>",
+      "attributes": {
+        "position": 2,
+        "color": "sky"
+      },
+      "relationships": {
+        "user": {
+          "data": {
+            "type": "users",
+            "id": "<<GENERATED_ID>>"
+          }
+        }
+      }
+    },
+    {
+      "type": "users",
+      "id": "<<GENERATED_ID>>",
+      "attributes": {
+        "name": "Bob Jones",
+        "email": "bob@example.com"
+      }
+    },
+    {
+      "type": "members",
+      "id": "<<GENERATED_ID>>",
+      "attributes": {
+        "position": 3,
+        "color": "emerald"
+      },
+      "relationships": {
+        "user": {
+          "data": {
+            "type": "users",
+            "id": "<<GENERATED_ID>>"
+          }
+        }
+      }
+    },
+    {
+      "type": "users",
+      "id": "<<GENERATED_ID>>",
+      "attributes": {
+        "name": "Carol White",
+        "email": "carol@example.com"
+      }
+    }
+  ]
+}

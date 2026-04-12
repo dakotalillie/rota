@@ -1,6 +1,9 @@
 import * as path from "path";
 
 import { expect, test } from "../fixtures";
+import { sanitizeApiResponse } from "../snapshot-utils";
+
+const SEED_ROT_ID = "rot_01SEED000000000000000ROT1";
 
 test.describe("worker", () => {
   test.use({
@@ -11,6 +14,7 @@ test.describe("worker", () => {
     page,
     serverUrl,
     setTime,
+    api,
   }) => {
     // Set time to just before the handoff (Monday 2026-04-06 08:30 PDT = 15:30 UTC)
     setTime("2026-04-06T15:30:00Z");
@@ -21,6 +25,12 @@ test.describe("worker", () => {
     await expect(
       page.getByRole("heading", { name: "Alice Smith", level: 2 }),
     ).toBeVisible();
+
+    const beforeRes = await api("GET", `/api/rotations/${SEED_ROT_ID}`);
+    const beforeBody = await beforeRes.json();
+    expect(sanitizeApiResponse(beforeBody)).toMatchSnapshot(
+      "before-handoff.json",
+    );
 
     // Advance time to after the handoff (Monday 2026-04-06 09:30 PDT = 16:30 UTC)
     setTime("2026-04-06T16:30:00Z");
@@ -36,5 +46,11 @@ test.describe("worker", () => {
     await expect(
       page.getByRole("heading", { name: "Bob Jones", level: 2 }),
     ).toBeVisible();
+
+    const afterRes = await api("GET", `/api/rotations/${SEED_ROT_ID}`);
+    const afterBody = await afterRes.json();
+    expect(sanitizeApiResponse(afterBody)).toMatchSnapshot(
+      "after-handoff.json",
+    );
   });
 });
