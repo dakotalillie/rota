@@ -10,10 +10,12 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
+	port := envOr("PORT", "8080")
+
 	return &Config{
-		Hostname:         envOr("HOSTNAME", "http://localhost:5173"),
+		Hostname:         envOr("HOSTNAME", "http://localhost:"+port),
 		DatabasePath:     envOr("DATABASE_PATH", "rota.db"),
-		Port:             envOr("PORT", "8080"),
+		Port:             port,
 		TimeOverrideFile: os.Getenv("TIME_OVERRIDE_FILE"),
 	}, nil
 }
