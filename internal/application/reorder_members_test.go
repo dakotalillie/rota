@@ -28,6 +28,8 @@ func (f *fakeRotationRepoSequenced) Create(_ context.Context, rot *domain.Rotati
 	return rot, nil
 }
 
+func (f *fakeRotationRepoSequenced) Delete(_ context.Context, _ string) error { return nil }
+
 func (f *fakeRotationRepoSequenced) GetByID(_ context.Context, _ string) (*domain.Rotation, error) {
 	if f.idx >= len(f.results) {
 		return nil, errors.New("unexpected extra GetByID call")

@@ -44,6 +44,26 @@ func (r *RotationRepository) Create(ctx context.Context, rot *domain.Rotation) (
 	return rot, nil
 }
 
+func (r *RotationRepository) Delete(ctx context.Context, id string) error {
+	result, err := dbFromContext(ctx, r.db).ExecContext(ctx,
+		`DELETE FROM rotations WHERE id = ?`,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return domain.ErrRotationNotFound
+	}
+
+	return nil
+}
+
 func (r *RotationRepository) GetByID(ctx context.Context, id string) (*domain.Rotation, error) {
 	row := dbFromContext(ctx, r.db).QueryRowContext(ctx, `
 		SELECT r.id, r.name, r.weekly_day, r.weekly_time, r.weekly_timezone,
