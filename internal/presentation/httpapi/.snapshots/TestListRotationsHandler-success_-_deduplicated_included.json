@@ -24,7 +24,10 @@
           }
         },
         "scheduledMember": {
-          "data": null
+          "data": {
+            "type": "members",
+            "id": "mem_01JQGF0000000000000000000"
+          }
         }
       }
     },
@@ -49,7 +52,10 @@
           }
         },
         "scheduledMember": {
-          "data": null
+          "data": {
+            "type": "members",
+            "id": "mem_01JQGF0000000000000000000"
+          }
         }
       }
     }
