@@ -44,8 +44,6 @@ changelog:
 
 dockers_v2:
   - id: rota
-    ids:
-      - rota
     dockerfile: Dockerfile
     images:
       - dakotalillie/rota
@@ -55,6 +53,8 @@ dockers_v2:
     platforms:
       - linux/amd64
       - linux/arm64
+    build_args:
+      - VERSION={{ .Version }}
     labels:
       org.opencontainers.image.title: "{{ .ProjectName }}"
       org.opencontainers.image.version: "{{ .Version }}"

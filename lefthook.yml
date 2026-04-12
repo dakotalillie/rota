@@ -22,5 +22,5 @@ pre-commit:
       glob: "e2e/**/*.ts"
       run: task lint:e2e
     test-e2e:
-      glob: "{e2e/**/*.ts,ui/**/*.{ts,tsx},internal/**/*.go,cmd/**/*.go}"
+      glob: "{e2e/**/*.ts,ui/**/*.{ts,tsx},internal/**/*.go,cmd/**/*.go,Taskfile.yml,Dockerfile}"
       run: task test:e2e
