@@ -1,2 +1,0 @@
-{"links":{"self":"http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000/members"},"errors":[{"status":"422","title":"Unprocessable Entity","detail":"The provided members do not match the rotation's current members"}]}
-

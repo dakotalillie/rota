@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/dakotalillie/rota/internal/application"
 	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/dakotalillie/rota/internal/presentation/httpapi"
@@ -80,7 +79,7 @@ func TestCreateRotationHandler(t *testing.T) {
 			handler.Handle(w, r)
 
 			require.Equal(t, tt.wantStatusCode, w.Code)
-			cupaloy.SnapshotT(t, w.Body.String())
+			snapshotJSON(t, w.Body.String())
 		})
 	}
 }

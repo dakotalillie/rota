@@ -1,0 +1,14 @@
+{
+  "links": {
+    "self": "http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000/schedule"
+  },
+  "data": [],
+  "errors": [
+    {
+      "status": "422",
+      "title": "Unprocessable Entity",
+      "detail": "rotation has no weekly cadence"
+    }
+  ]
+}
+
