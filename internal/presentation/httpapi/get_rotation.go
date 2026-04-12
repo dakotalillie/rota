@@ -56,8 +56,9 @@ func (h *GetRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			Self: h.hostname + r.URL.Path,
 		},
 		Data: &Rotation{
-			Type: "rotations",
-			ID:   rotation.ID,
+			Type:  "rotations",
+			ID:    rotation.ID,
+			Links: RotationLinks{Self: h.hostname + r.URL.Path, Schedule: h.hostname + r.URL.Path + "/schedule"},
 			Attributes: RotationAttributes{
 				Name: rotation.Name,
 				Cadence: RotationCadence{

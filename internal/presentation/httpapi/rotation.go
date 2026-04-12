@@ -3,8 +3,14 @@ package httpapi
 type Rotation struct {
 	Type          string                `json:"type"`
 	ID            string                `json:"id"`
+	Links         RotationLinks         `json:"links"`
 	Attributes    RotationAttributes    `json:"attributes"`
 	Relationships RotationRelationships `json:"relationships"`
+}
+
+type RotationLinks struct {
+	Self     string `json:"self"`
+	Schedule string `json:"schedule"`
 }
 
 type RotationRelationships struct {

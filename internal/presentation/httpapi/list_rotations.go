@@ -48,9 +48,11 @@ func (h *ListRotationsHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	seenUsers := map[string]bool{}
 
 	for _, rot := range rotations {
+		rotURL := h.hostname + "/api/rotations/" + rot.ID
 		resource := &Rotation{
-			Type: "rotations",
-			ID:   rot.ID,
+			Type:  "rotations",
+			ID:    rot.ID,
+			Links: RotationLinks{Self: rotURL, Schedule: rotURL + "/schedule"},
 			Attributes: RotationAttributes{
 				Name: rot.Name,
 				Cadence: RotationCadence{
