@@ -66,7 +66,7 @@ export const test = base.extend<Fixtures>({
   seedFile: [undefined, { option: true }],
 
   serverUrl: async ({ _ctx, seedFile }, use) => {
-    const { dbPath, timeOverrideFile } = _ctx;
+    const { dbPath } = _ctx;
     const port = await getFreePort();
     const baseUrl = `http://localhost:${port}`;
 
