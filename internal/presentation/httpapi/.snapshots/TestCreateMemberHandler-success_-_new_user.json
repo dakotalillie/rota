@@ -1,0 +1,32 @@
+{
+  "links": {
+    "self": "http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000/members/mem_01JQGF0000000000000000001"
+  },
+  "data": {
+    "type": "members",
+    "id": "mem_01JQGF0000000000000000001",
+    "attributes": {
+      "position": 1,
+      "color": "violet"
+    },
+    "relationships": {
+      "user": {
+        "data": {
+          "type": "users",
+          "id": "usr_01JQGF0000000000000000000"
+        }
+      }
+    }
+  },
+  "included": [
+    {
+      "type": "users",
+      "id": "usr_01JQGF0000000000000000000",
+      "attributes": {
+        "name": "Alice Smith",
+        "email": "alice@example.com"
+      }
+    }
+  ]
+}
+

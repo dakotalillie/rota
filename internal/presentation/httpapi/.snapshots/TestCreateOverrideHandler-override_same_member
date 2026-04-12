@@ -1,2 +1,0 @@
-{"links":{"self":"http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000/overrides"},"errors":[{"status":"422","title":"Unprocessable Entity","detail":"Override member is already the scheduled on-call during this window"}]}
-

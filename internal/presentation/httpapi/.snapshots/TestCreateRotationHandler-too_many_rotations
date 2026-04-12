@@ -1,2 +1,0 @@
-{"links":{"self":"http://localhost:8080/api/rotations"},"errors":[{"status":"422","title":"Unprocessable Entity","detail":"maximum number of rotations reached (20)"}]}
-
