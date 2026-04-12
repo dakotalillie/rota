@@ -85,17 +85,29 @@ export const test = base.extend<Fixtures>({
 
     const containerName = `rota-e2e-${process.pid}-${Date.now()}`;
 
-    const proc: ChildProcess = spawn("docker", [
-      "run", "--rm",
-      "--name", containerName,
-      "-p", `${port}:8080`,
-      "-v", `${_ctx.tmpDir}:${CONTAINER_DATA_DIR}`,
-      "-e", `DATABASE_PATH=${CONTAINER_DATA_DIR}/rota.db`,
-      "-e", `PORT=8080`,
-      "-e", `HOSTNAME=http://localhost:${port}`,
-      "-e", `TIME_OVERRIDE_FILE=${CONTAINER_DATA_DIR}/time-override.txt`,
-      E2E_IMAGE,
-    ], { stdio: "pipe" });
+    const proc: ChildProcess = spawn(
+      "docker",
+      [
+        "run",
+        "--rm",
+        "--name",
+        containerName,
+        "-p",
+        `${port}:8080`,
+        "-v",
+        `${_ctx.tmpDir}:${CONTAINER_DATA_DIR}`,
+        "-e",
+        `DATABASE_PATH=${CONTAINER_DATA_DIR}/rota.db`,
+        "-e",
+        `PORT=8080`,
+        "-e",
+        `HOSTNAME=http://localhost:${port}`,
+        "-e",
+        `TIME_OVERRIDE_FILE=${CONTAINER_DATA_DIR}/time-override.txt`,
+        E2E_IMAGE,
+      ],
+      { stdio: "pipe" },
+    );
 
     const showLogs = process.env.E2E_SERVER_LOGS === "1";
     let stderrBuffer = "";
