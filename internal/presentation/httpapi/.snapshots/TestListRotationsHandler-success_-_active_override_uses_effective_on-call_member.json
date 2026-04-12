@@ -24,7 +24,10 @@
           }
         },
         "scheduledMember": {
-          "data": null
+          "data": {
+            "type": "members",
+            "id": "mem_01JQGF0000000000000000000"
+          }
         }
       }
     }
@@ -52,6 +55,30 @@
       "attributes": {
         "name": "Bob Jones",
         "email": "bob@example.com"
+      }
+    },
+    {
+      "type": "members",
+      "id": "mem_01JQGF0000000000000000000",
+      "attributes": {
+        "position": 1,
+        "color": "violet"
+      },
+      "relationships": {
+        "user": {
+          "data": {
+            "type": "users",
+            "id": "usr_01JQGF0000000000000000000"
+          }
+        }
+      }
+    },
+    {
+      "type": "users",
+      "id": "usr_01JQGF0000000000000000000",
+      "attributes": {
+        "name": "Alice Smith",
+        "email": "alice@example.com"
       }
     }
   ]

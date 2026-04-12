@@ -18,10 +18,16 @@
       },
       "relationships": {
         "currentMember": {
-          "data": null
+          "data": {
+            "type": "members",
+            "id": "mem_01JQGF1111111111111111111"
+          }
         },
         "scheduledMember": {
-          "data": null
+          "data": {
+            "type": "members",
+            "id": "mem_01JQGF1111111111111111111"
+          }
         }
       }
     },
@@ -46,12 +52,39 @@
           }
         },
         "scheduledMember": {
-          "data": null
+          "data": {
+            "type": "members",
+            "id": "mem_01JQGF0000000000000000000"
+          }
         }
       }
     }
   ],
   "included": [
+    {
+      "type": "members",
+      "id": "mem_01JQGF1111111111111111111",
+      "attributes": {
+        "position": 1,
+        "color": "amber"
+      },
+      "relationships": {
+        "user": {
+          "data": {
+            "type": "users",
+            "id": "usr_01JQGF1111111111111111111"
+          }
+        }
+      }
+    },
+    {
+      "type": "users",
+      "id": "usr_01JQGF1111111111111111111",
+      "attributes": {
+        "name": "Charlie Brown",
+        "email": "charlie@example.com"
+      }
+    },
     {
       "type": "members",
       "id": "mem_01JQGF0000000000000000000",

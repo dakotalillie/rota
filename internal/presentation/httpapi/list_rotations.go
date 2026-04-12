@@ -94,6 +94,37 @@ func (h *ListRotationsHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		if sm := rot.ScheduledMember; sm != nil {
+			resource.Relationships.ScheduledMember.Data = &RelationshipData{
+				Type: "members",
+				ID:   sm.ID,
+			}
+			if !seenMembers[sm.ID] {
+				seenMembers[sm.ID] = true
+				response.Included = append(response.Included, Member{
+					Type:       "members",
+					ID:         sm.ID,
+					Attributes: MemberAttributes{Position: sm.Position, Color: sm.Color},
+					Relationships: MemberRelationships{
+						User: MemberUserRelationship{
+							Data: MemberUserRelationshipData{Type: "users", ID: sm.User.ID},
+						},
+					},
+				})
+			}
+			if !seenUsers[sm.User.ID] {
+				seenUsers[sm.User.ID] = true
+				response.Included = append(response.Included, IncludedUser{
+					Type: "users",
+					ID:   sm.User.ID,
+					Attributes: IncludedUserAttributes{
+						Name:  sm.User.Name,
+						Email: sm.User.Email,
+					},
+				})
+			}
+		}
+
 		response.Data = append(response.Data, resource)
 	}
 

@@ -73,7 +73,19 @@ func TestListRotationsHandler(t *testing.T) {
 		{
 			name: "success - with current member",
 			lister: func(_ context.Context) ([]*domain.Rotation, error) {
-				return []*domain.Rotation{rot1, rot2}, nil
+				rot1WithMember := *rot1
+				rot1WithMember.ScheduledMember = &domain.Member{
+					ID:         "mem_01JQGF1111111111111111111",
+					RotationID: rot1.ID,
+					Position:   1,
+					Color:      "amber",
+					User: domain.User{
+						ID:    "usr_01JQGF1111111111111111111",
+						Name:  "Charlie Brown",
+						Email: "charlie@example.com",
+					},
+				}
+				return []*domain.Rotation{&rot1WithMember, rot2}, nil
 			},
 			wantStatusCode: http.StatusOK,
 		},
