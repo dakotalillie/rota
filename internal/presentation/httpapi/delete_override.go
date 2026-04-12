@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/dakotalillie/rota/internal/application"
@@ -25,10 +26,11 @@ type DeleteOverride = func(ctx context.Context, input application.DeleteOverride
 type DeleteOverrideHandler struct {
 	hostname       string
 	deleteOverride DeleteOverride
+	logger         *slog.Logger
 }
 
-func NewDeleteOverrideHandler(hostname string, deleteOverride DeleteOverride) *DeleteOverrideHandler {
-	return &DeleteOverrideHandler{hostname: hostname, deleteOverride: deleteOverride}
+func NewDeleteOverrideHandler(hostname string, deleteOverride DeleteOverride, logger *slog.Logger) *DeleteOverrideHandler {
+	return &DeleteOverrideHandler{hostname: hostname, deleteOverride: deleteOverride, logger: logger}
 }
 
 func (h *DeleteOverrideHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -61,9 +63,12 @@ func (h *DeleteOverrideHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		h.logger.Error("failed to delete override", "rotation_id", rotationID, "override_id", overrideID, "error", err)
 		errorResponse(http.StatusInternalServerError, "An unexpected error occurred")
 		return
 	}
+
+	h.logger.Info("override deleted", "rotation_id", rotationID, "override_id", overrideID)
 
 	w.WriteHeader(http.StatusNoContent)
 }

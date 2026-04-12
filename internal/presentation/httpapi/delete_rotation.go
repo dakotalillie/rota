@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/dakotalillie/rota/internal/application"
@@ -25,10 +26,11 @@ type DeleteRotation = func(ctx context.Context, input application.DeleteRotation
 type DeleteRotationHandler struct {
 	hostname       string
 	deleteRotation DeleteRotation
+	logger         *slog.Logger
 }
 
-func NewDeleteRotationHandler(hostname string, deleteRotation DeleteRotation) *DeleteRotationHandler {
-	return &DeleteRotationHandler{hostname: hostname, deleteRotation: deleteRotation}
+func NewDeleteRotationHandler(hostname string, deleteRotation DeleteRotation, logger *slog.Logger) *DeleteRotationHandler {
+	return &DeleteRotationHandler{hostname: hostname, deleteRotation: deleteRotation, logger: logger}
 }
 
 func (h *DeleteRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -55,9 +57,12 @@ func (h *DeleteRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		h.logger.Error("failed to delete rotation", "rotation_id", rotationID, "error", err)
 		errorResponse(http.StatusInternalServerError, "An unexpected error occurred")
 		return
 	}
+
+	h.logger.Info("rotation deleted", "rotation_id", rotationID)
 
 	w.WriteHeader(http.StatusNoContent)
 }

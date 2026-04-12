@@ -2,6 +2,8 @@ package httpapi_test
 
 import (
 	"context"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -102,7 +104,7 @@ func TestCreateMemberHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := httpapi.NewCreateMemberHandler(hostname, tt.creator, clock.New())
+			handler := httpapi.NewCreateMemberHandler(hostname, tt.creator, clock.New(), slog.New(slog.NewTextHandler(io.Discard, nil)))
 
 			r := httptest.NewRequestWithContext(t.Context(), http.MethodPost,
 				"/api/rotations/"+rotationID+"/members",

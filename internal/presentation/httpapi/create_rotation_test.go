@@ -2,6 +2,8 @@ package httpapi_test
 
 import (
 	"context"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -68,7 +70,7 @@ func TestCreateRotationHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := httpapi.NewCreateRotationHandler(hostname, tt.creator)
+			handler := httpapi.NewCreateRotationHandler(hostname, tt.creator, slog.New(slog.NewTextHandler(io.Discard, nil)))
 
 			r := httptest.NewRequestWithContext(t.Context(), http.MethodPost,
 				"/api/rotations",

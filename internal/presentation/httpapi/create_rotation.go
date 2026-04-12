@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/dakotalillie/rota/internal/application"
@@ -38,10 +39,11 @@ type CreateRotation = func(ctx context.Context, input application.CreateRotation
 type CreateRotationHandler struct {
 	hostname       string
 	createRotation CreateRotation
+	logger         *slog.Logger
 }
 
-func NewCreateRotationHandler(hostname string, createRotation CreateRotation) *CreateRotationHandler {
-	return &CreateRotationHandler{hostname: hostname, createRotation: createRotation}
+func NewCreateRotationHandler(hostname string, createRotation CreateRotation, logger *slog.Logger) *CreateRotationHandler {
+	return &CreateRotationHandler{hostname: hostname, createRotation: createRotation, logger: logger}
 }
 
 func (h *CreateRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -77,9 +79,12 @@ func (h *CreateRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		h.logger.Error("failed to create rotation", "error", err)
 		errorResponse(http.StatusInternalServerError, "An unexpected error occurred")
 		return
 	}
+
+	h.logger.Info("rotation created", "rotation_id", rotation.ID, "name", rotation.Name)
 
 	selfURL := selfBase + "/" + rotation.ID
 	w.Header().Set("Location", selfURL)

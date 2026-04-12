@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,8 +18,10 @@ import (
 	"github.com/dakotalillie/rota/internal/config"
 	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/dakotalillie/rota/internal/infrastructure/sqlite"
+	"github.com/dakotalillie/rota/internal/logging"
 	"github.com/dakotalillie/rota/internal/presentation/httpapi"
 	"github.com/dakotalillie/rota/internal/ui"
+	"github.com/pressly/goose/v3"
 )
 
 var version = "dev"
@@ -39,11 +40,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	logger := logging.NewLogger(conf.LogLevel, conf.LogFormat)
+
+	goose.SetLogger(logging.NewGooseLogger(logger))
+
 	db, err := sqlite.Open(conf.DatabasePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error opening database: %v\n", err)
+		logger.Error("failed to open database", "error", err)
 		os.Exit(1)
 	}
+	logger.Info("database opened", "path", conf.DatabasePath)
 	defer db.Close() //nolint:errcheck
 
 	var clk domain.Clock
@@ -69,17 +75,18 @@ func main() {
 		createOverrideUseCase = application.NewCreateOverrideUseCase(transactor, rotationRepo, overrideRepo)
 		deleteOverrideUseCase = application.NewDeleteOverrideUseCase(transactor, rotationRepo, overrideRepo)
 		deleteRotationUseCase = application.NewDeleteRotationUseCase(transactor, rotationRepo, memberRepo, overrideRepo, userRepo)
-		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, clk, 5*time.Second, slog.Default().With("component", "advance_rotation_worker"))
-		createRotationHandler = httpapi.NewCreateRotationHandler(conf.Hostname, createRotationUseCase.Execute)
+		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, clk, 5*time.Second, logger.With("component", "advance_rotation_worker"))
+		httpLogger            = logger.With("component", "httpapi")
+		createRotationHandler = httpapi.NewCreateRotationHandler(conf.Hostname, createRotationUseCase.Execute, httpLogger)
 		getRotationHandler    = httpapi.NewGetRotationHandler(conf.Hostname, getRotationUseCase.Execute, clk)
 		listRotationsHandler  = httpapi.NewListRotationsHandler(conf.Hostname, listRotationsUseCase.Execute, clk)
-		createMemberHandler   = httpapi.NewCreateMemberHandler(conf.Hostname, createMemberUseCase.Execute, clk)
-		reorderMembersHandler = httpapi.NewReorderMembersHandler(conf.Hostname, reorderMembersUseCase.Execute)
-		deleteMemberHandler   = httpapi.NewDeleteMemberHandler(conf.Hostname, deleteMemberUseCase.Execute, clk)
+		createMemberHandler   = httpapi.NewCreateMemberHandler(conf.Hostname, createMemberUseCase.Execute, clk, httpLogger)
+		reorderMembersHandler = httpapi.NewReorderMembersHandler(conf.Hostname, reorderMembersUseCase.Execute, httpLogger)
+		deleteMemberHandler   = httpapi.NewDeleteMemberHandler(conf.Hostname, deleteMemberUseCase.Execute, clk, httpLogger)
 		getScheduleHandler    = httpapi.NewGetScheduleHandler(conf.Hostname, getScheduleUseCase.Execute, clk)
-		createOverrideHandler = httpapi.NewCreateOverrideHandler(conf.Hostname, createOverrideUseCase.Execute)
-		deleteOverrideHandler = httpapi.NewDeleteOverrideHandler(conf.Hostname, deleteOverrideUseCase.Execute)
-		deleteRotationHandler = httpapi.NewDeleteRotationHandler(conf.Hostname, deleteRotationUseCase.Execute)
+		createOverrideHandler = httpapi.NewCreateOverrideHandler(conf.Hostname, createOverrideUseCase.Execute, httpLogger)
+		deleteOverrideHandler = httpapi.NewDeleteOverrideHandler(conf.Hostname, deleteOverrideUseCase.Execute, httpLogger)
+		deleteRotationHandler = httpapi.NewDeleteRotationHandler(conf.Hostname, deleteRotationUseCase.Execute, httpLogger)
 	)
 
 	mux := http.NewServeMux()
@@ -96,7 +103,7 @@ func main() {
 
 	uiFS, err := fs.Sub(ui.FS, "dist")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error loading embedded UI: %v\n", err)
+		logger.Error("failed to load embedded UI", "error", err)
 		os.Exit(1)
 	}
 	fileServer := http.FileServerFS(uiFS)
@@ -112,7 +119,8 @@ func main() {
 		fileServer.ServeHTTP(w, r)
 	})
 
-	server := &http.Server{Addr: ":" + conf.Port, Handler: mux}
+	handler := httpapi.RequestLogger(logger, mux)
+	server := &http.Server{Addr: ":" + conf.Port, Handler: handler}
 
 	workerCtx, cancelWorker := context.WithCancel(context.Background())
 	defer cancelWorker()
@@ -121,6 +129,8 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
+	logger.Info("server starting", "port", conf.Port)
+
 	errCh := make(chan error, 1)
 	go func() { errCh <- server.ListenAndServe() }()
 
@@ -128,12 +138,12 @@ func main() {
 	case <-quit:
 		cancelWorker()
 		if err := server.Shutdown(context.Background()); err != nil {
-			fmt.Fprintf(os.Stderr, "Error shutting down server: %v\n", err)
+			logger.Error("failed to shut down server", "error", err)
 			os.Exit(1)
 		}
 	case err := <-errCh:
 		if !errors.Is(err, http.ErrServerClosed) {
-			fmt.Fprintf(os.Stderr, "Error running server: %v\n", err)
+			logger.Error("server error", "error", err)
 			os.Exit(1)
 		}
 	}

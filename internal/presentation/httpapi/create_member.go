@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/dakotalillie/rota/internal/application"
@@ -55,10 +56,11 @@ type CreateMemberHandler struct {
 	hostname     string
 	createMember CreateMember
 	clock        domain.Clock
+	logger       *slog.Logger
 }
 
-func NewCreateMemberHandler(hostname string, createMember CreateMember, clock domain.Clock) *CreateMemberHandler {
-	return &CreateMemberHandler{hostname: hostname, createMember: createMember, clock: clock}
+func NewCreateMemberHandler(hostname string, createMember CreateMember, clock domain.Clock, logger *slog.Logger) *CreateMemberHandler {
+	return &CreateMemberHandler{hostname: hostname, createMember: createMember, clock: clock, logger: logger}
 }
 
 func (h *CreateMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -113,9 +115,12 @@ func (h *CreateMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		h.logger.Error("failed to add member", "rotation_id", rotationID, "error", err)
 		errorResponse(http.StatusInternalServerError, "An unexpected error occurred")
 		return
 	}
+
+	h.logger.Info("member added", "rotation_id", rotationID, "member_id", member.ID)
 
 	selfURL := selfBase + "/" + member.ID
 	w.Header().Set("Location", selfURL)

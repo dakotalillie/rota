@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/dakotalillie/rota/internal/application"
@@ -26,10 +27,11 @@ type DeleteMemberHandler struct {
 	hostname     string
 	deleteMember DeleteMember
 	clock        domain.Clock
+	logger       *slog.Logger
 }
 
-func NewDeleteMemberHandler(hostname string, deleteMember DeleteMember, clock domain.Clock) *DeleteMemberHandler {
-	return &DeleteMemberHandler{hostname: hostname, deleteMember: deleteMember, clock: clock}
+func NewDeleteMemberHandler(hostname string, deleteMember DeleteMember, clock domain.Clock, logger *slog.Logger) *DeleteMemberHandler {
+	return &DeleteMemberHandler{hostname: hostname, deleteMember: deleteMember, clock: clock, logger: logger}
 }
 
 func (h *DeleteMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -63,9 +65,12 @@ func (h *DeleteMemberHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		h.logger.Error("failed to remove member", "rotation_id", rotationID, "member_id", memberID, "error", err)
 		errorResponse(http.StatusInternalServerError, "An unexpected error occurred")
 		return
 	}
+
+	h.logger.Info("member removed", "rotation_id", rotationID, "member_id", memberID)
 
 	w.WriteHeader(http.StatusNoContent)
 }

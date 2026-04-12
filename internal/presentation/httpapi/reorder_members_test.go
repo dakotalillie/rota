@@ -3,6 +3,8 @@ package httpapi_test
 import (
 	"context"
 	"errors"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -91,7 +93,7 @@ func TestReorderMembersHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := httpapi.NewReorderMembersHandler(hostname, tt.reorderer)
+			handler := httpapi.NewReorderMembersHandler(hostname, tt.reorderer, slog.New(slog.NewTextHandler(io.Discard, nil)))
 
 			r := httptest.NewRequestWithContext(t.Context(), http.MethodPut,
 				"/api/rotations/"+rotationID+"/members",
