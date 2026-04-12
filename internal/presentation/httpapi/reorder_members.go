@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sort"
 
@@ -37,10 +38,11 @@ type ReorderMembers = func(ctx context.Context, input application.ReorderMembers
 type ReorderMembersHandler struct {
 	hostname       string
 	reorderMembers ReorderMembers
+	logger         *slog.Logger
 }
 
-func NewReorderMembersHandler(hostname string, reorderMembers ReorderMembers) *ReorderMembersHandler {
-	return &ReorderMembersHandler{hostname: hostname, reorderMembers: reorderMembers}
+func NewReorderMembersHandler(hostname string, reorderMembers ReorderMembers, logger *slog.Logger) *ReorderMembersHandler {
+	return &ReorderMembersHandler{hostname: hostname, reorderMembers: reorderMembers, logger: logger}
 }
 
 func (h *ReorderMembersHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -83,9 +85,12 @@ func (h *ReorderMembersHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		h.logger.Error("failed to reorder members", "rotation_id", rotationID, "error", err)
 		errorResponse(http.StatusInternalServerError, "An unexpected error occurred")
 		return
 	}
+
+	h.logger.Info("members reordered", "rotation_id", rotationID)
 
 	members := make([]Member, 0, len(rotation.Members))
 	seenUsers := map[string]bool{}

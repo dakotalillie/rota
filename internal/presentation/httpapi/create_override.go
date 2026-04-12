@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -80,10 +81,11 @@ type CreateOverride = func(ctx context.Context, input application.CreateOverride
 type CreateOverrideHandler struct {
 	hostname       string
 	createOverride CreateOverride
+	logger         *slog.Logger
 }
 
-func NewCreateOverrideHandler(hostname string, createOverride CreateOverride) *CreateOverrideHandler {
-	return &CreateOverrideHandler{hostname: hostname, createOverride: createOverride}
+func NewCreateOverrideHandler(hostname string, createOverride CreateOverride, logger *slog.Logger) *CreateOverrideHandler {
+	return &CreateOverrideHandler{hostname: hostname, createOverride: createOverride, logger: logger}
 }
 
 func (h *CreateOverrideHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -155,9 +157,12 @@ func (h *CreateOverrideHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		h.logger.Error("failed to create override", "rotation_id", rotationID, "error", err)
 		errorResponse(http.StatusInternalServerError, "An unexpected error occurred")
 		return
 	}
+
+	h.logger.Info("override created", "rotation_id", rotationID, "override_id", override.ID)
 
 	selfURL := selfBase + "/" + override.ID
 	w.Header().Set("Location", selfURL)
