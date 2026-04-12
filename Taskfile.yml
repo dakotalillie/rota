@@ -10,12 +10,17 @@ tasks:
       - go build -ldflags "-X main.version=$(git describe --tags --always --dirty)" -o bin/rota cmd/server/main.go
 
   build:e2e:
-    desc: Builds the server and seed binaries for E2E tests
-    deps: [build]
+    desc: Builds the seed binary and Docker image for E2E tests
     cmds:
       - mkdir -p e2e/bin
-      - cp bin/rota e2e/bin/server
       - go build -o e2e/bin/seed internal/cmd/seed/main.go
+      - docker build -t rota-e2e:latest .
+    silent: true
+
+  clean:e2e:
+    desc: Removes the E2E Docker image
+    cmds:
+      - docker rmi rota-e2e:latest 2>/dev/null || true
     silent: true
 
   build:ui:
@@ -120,6 +125,8 @@ tasks:
     dir: e2e
     cmds:
       - npx playwright test
+    env:
+      E2E_IMAGE: rota-e2e:latest
     silent: true
 
   test:server:

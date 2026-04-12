@@ -7,20 +7,20 @@ pre-commit:
   parallel: true
   commands:
     lint-server:
-      glob: "**/*.go"
+      glob: "{*.go,**/*.go}"
       run: task lint:server
     test-server:
-      glob: "**/*.go"
+      glob: "{*.go,**/*.go}"
       run: task test:server
     lint-ui:
-      glob: "ui/**/*.{ts,tsx}"
+      glob: "{ui/*.{ts,tsx},ui/**/*.{ts,tsx}}"
       run: task lint:ui
     test-ui:
-      glob: "ui/**/*.{ts,tsx}"
+      glob: "{ui/*.{ts,tsx},ui/**/*.{ts,tsx}}"
       run: task test:ui
     lint-e2e:
-      glob: "e2e/**/*.ts"
+      glob: "{e2e/*.ts,e2e/**/*.ts}"
       run: task lint:e2e
     test-e2e:
-      glob: "{e2e/**/*.ts,ui/**/*.{ts,tsx},internal/**/*.go,cmd/**/*.go}"
+      glob: "{e2e/*.ts,e2e/**/*.ts,ui/*.{ts,tsx},ui/**/*.{ts,tsx},internal/**/*.go,cmd/**/*.go,Taskfile.yml,Dockerfile}"
       run: task test:e2e

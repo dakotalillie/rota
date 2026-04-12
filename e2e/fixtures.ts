@@ -5,8 +5,9 @@ import * as net from "net";
 import * as os from "os";
 import * as path from "path";
 
-const SERVER_BINARY = path.resolve(__dirname, "bin/server");
 const SEED_BINARY = path.resolve(__dirname, "bin/seed");
+const E2E_IMAGE = process.env.E2E_IMAGE || "rota-e2e:latest";
+const CONTAINER_DATA_DIR = "/data";
 
 function getFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -24,7 +25,7 @@ function getFreePort(): Promise<number> {
   });
 }
 
-async function waitForServer(url: string, timeout = 10_000): Promise<void> {
+async function waitForServer(url: string, timeout = 15_000): Promise<void> {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     try {
@@ -65,7 +66,7 @@ export const test = base.extend<Fixtures>({
   seedFile: [undefined, { option: true }],
 
   serverUrl: async ({ _ctx, seedFile }, use) => {
-    const { dbPath, timeOverrideFile } = _ctx;
+    const { dbPath } = _ctx;
     const port = await getFreePort();
     const baseUrl = `http://localhost:${port}`;
 
@@ -82,16 +83,31 @@ export const test = base.extend<Fixtures>({
       }
     }
 
-    const proc: ChildProcess = spawn(SERVER_BINARY, [], {
-      env: {
-        ...process.env,
-        DATABASE_PATH: dbPath,
-        PORT: String(port),
-        HOSTNAME: baseUrl,
-        TIME_OVERRIDE_FILE: timeOverrideFile,
-      },
-      stdio: "pipe",
-    });
+    const containerName = `rota-e2e-${process.pid}-${Date.now()}`;
+
+    const proc: ChildProcess = spawn(
+      "docker",
+      [
+        "run",
+        "--rm",
+        "--name",
+        containerName,
+        "-p",
+        `${port}:8080`,
+        "-v",
+        `${_ctx.tmpDir}:${CONTAINER_DATA_DIR}`,
+        "-e",
+        `DATABASE_PATH=${CONTAINER_DATA_DIR}/rota.db`,
+        "-e",
+        `PORT=8080`,
+        "-e",
+        `HOSTNAME=http://localhost:${port}`,
+        "-e",
+        `TIME_OVERRIDE_FILE=${CONTAINER_DATA_DIR}/time-override.txt`,
+        E2E_IMAGE,
+      ],
+      { stdio: "pipe" },
+    );
 
     const showLogs = process.env.E2E_SERVER_LOGS === "1";
     let stderrBuffer = "";
