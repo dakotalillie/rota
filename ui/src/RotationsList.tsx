@@ -1,6 +1,6 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "./Button";
@@ -62,6 +62,10 @@ function RotationsList() {
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   useEffect(() => {
     fetch("/api/rotations")
       .then((res) => {
@@ -115,6 +119,40 @@ function RotationsList() {
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") void handleCreate();
+  }
+
+  function handleDeleteOpenChange(open: boolean) {
+    if (!open) {
+      setDeletingId(null);
+      setDeleteError(null);
+    }
+  }
+
+  async function handleDeleteConfirm() {
+    if (!deletingId) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/rotations/${deletingId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { errors?: { detail?: string }[] };
+        const detail = body.errors?.[0]?.detail ?? `HTTP ${res.status}`;
+        setDeleteError(detail);
+        return;
+      }
+      setResponse((prev) =>
+        prev
+          ? { ...prev, data: prev.data.filter((r) => r.id !== deletingId) }
+          : prev,
+      );
+      setDeletingId(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -172,6 +210,46 @@ function RotationsList() {
         <p className="text-sm text-neutral-500">Loading…</p>
       )}
 
+      <Dialog.Root
+        open={deletingId !== null}
+        onOpenChange={handleDeleteOpenChange}
+      >
+        <Dialog.Portal>
+          <Dialog.Backdrop className="fixed inset-0 bg-black/40 dark:bg-black/60" />
+          <Dialog.Popup className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm rounded-xl border border-border bg-background p-6 shadow-lg space-y-4 outline-none">
+            <Dialog.Title className="text-base font-semibold">
+              Delete rotation?
+            </Dialog.Title>
+            <p className="text-sm text-neutral-500">
+              This will permanently delete{" "}
+              <span className="font-medium text-foreground">
+                {
+                  response?.data.find((r) => r.id === deletingId)?.attributes
+                    .name
+                }
+              </span>
+              .
+            </p>
+            {deleteError && (
+              <p className="text-sm text-red-500">{deleteError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Dialog.Close render={<Button variant="outline" size="sm" />}>
+                Cancel
+              </Dialog.Close>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={deleting}
+                onClick={() => void handleDeleteConfirm()}
+              >
+                Delete
+              </Button>
+            </div>
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
+
       {response && (
         <div className="space-y-2">
           {response.data.length === 0 && (
@@ -180,32 +258,46 @@ function RotationsList() {
           {response.data.map((rotation) => {
             const memberName = currentMemberName(rotation, response.included);
             return (
-              <Link
+              <div
                 key={rotation.id}
-                to="/rotations/$rotationId"
-                params={{ rotationId: rotation.id }}
-                className="block rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
+                className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
               >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
+                <Link
+                  to="/rotations/$rotationId"
+                  params={{ rotationId: rotation.id }}
+                  className="flex-1 min-w-0 px-4 py-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
                     <p className="font-medium truncate">
                       {rotation.attributes.name}
                     </p>
+                    <span className="shrink-0 text-sm text-neutral-500">
+                      {memberName ? (
+                        <>
+                          <span className="text-neutral-400 mr-1">
+                            On call:
+                          </span>
+                          {memberName}
+                        </>
+                      ) : (
+                        <span className="text-neutral-400">
+                          No current member
+                        </span>
+                      )}
+                    </span>
                   </div>
-                  <div className="shrink-0 text-sm text-neutral-500">
-                    {memberName ? (
-                      <span>
-                        <span className="text-neutral-400 mr-1">On call:</span>
-                        {memberName}
-                      </span>
-                    ) : (
-                      <span className="text-neutral-400">
-                        No current member
-                      </span>
-                    )}
-                  </div>
+                </Link>
+                <div className="px-2">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Delete ${rotation.attributes.name}`}
+                    onClick={() => setDeletingId(rotation.id)}
+                  >
+                    <Trash2 />
+                  </Button>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
