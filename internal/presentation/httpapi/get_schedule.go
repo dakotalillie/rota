@@ -20,7 +20,8 @@ type GetScheduleResponse struct {
 }
 
 type GetScheduleResponseLinks struct {
-	Self string `json:"self"`
+	Self     string `json:"self"`
+	Rotation string `json:"rotation"`
 }
 
 type GetSchedule = func(ctx context.Context, rotationID string, now time.Time, numWeeks int) ([]domain.ScheduleBlock, error)
@@ -43,7 +44,7 @@ func (h *GetScheduleHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		n, err := strconv.Atoi(weeksParam)
 		if err != nil || n < 1 || n > 10 {
 			response := GetScheduleResponse{
-				Links:  GetScheduleResponseLinks{Self: h.hostname + r.URL.Path},
+				Links:  GetScheduleResponseLinks{Self: h.hostname + r.URL.Path, Rotation: h.hostname + "/api/rotations/" + rotationID},
 				Data:   []ScheduleBlock{},
 				Errors: []ErrorObject{{Status: "400", Title: "Bad Request", Detail: fmt.Sprintf("weeks must be an integer between 1 and 10, got %q", weeksParam)}},
 			}
@@ -57,7 +58,7 @@ func (h *GetScheduleHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	blocks, err := h.getSchedule(r.Context(), rotationID, h.clock.Now(), numWeeks)
 	if errors.Is(err, domain.ErrRotationNotFound) {
 		response := GetScheduleResponse{
-			Links:  GetScheduleResponseLinks{Self: h.hostname + r.URL.Path},
+			Links:  GetScheduleResponseLinks{Self: h.hostname + r.URL.Path, Rotation: h.hostname + "/api/rotations/" + rotationID},
 			Data:   []ScheduleBlock{},
 			Errors: []ErrorObject{{Status: "404", Title: "Not Found", Detail: "Rotation not found"}},
 		}
@@ -67,7 +68,7 @@ func (h *GetScheduleHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		response := GetScheduleResponse{
-			Links:  GetScheduleResponseLinks{Self: h.hostname + r.URL.Path},
+			Links:  GetScheduleResponseLinks{Self: h.hostname + r.URL.Path, Rotation: h.hostname + "/api/rotations/" + rotationID},
 			Data:   []ScheduleBlock{},
 			Errors: []ErrorObject{{Status: "422", Title: "Unprocessable Entity", Detail: err.Error()}},
 		}
@@ -126,7 +127,7 @@ func (h *GetScheduleHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := GetScheduleResponse{
-		Links:    GetScheduleResponseLinks{Self: h.hostname + r.URL.Path},
+		Links:    GetScheduleResponseLinks{Self: h.hostname + r.URL.Path, Rotation: h.hostname + "/api/rotations/" + rotationID},
 		Data:     data,
 		Included: included,
 	}

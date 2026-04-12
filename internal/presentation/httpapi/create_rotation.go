@@ -87,8 +87,9 @@ func (h *CreateRotationHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(CreateRotationResponse{
 		Links: CreateRotationResponseLinks{Self: selfURL},
 		Data: &Rotation{
-			Type: "rotations",
-			ID:   rotation.ID,
+			Type:  "rotations",
+			ID:    rotation.ID,
+			Links: RotationLinks{Self: selfURL, Schedule: selfURL + "/schedule"},
 			Attributes: RotationAttributes{
 				Name: rotation.Name,
 				Cadence: RotationCadence{

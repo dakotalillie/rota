@@ -6,6 +6,10 @@
     {
       "type": "rotations",
       "id": "rot_01JQGF1111111111111111111",
+      "links": {
+        "self": "http://localhost:8080/api/rotations/rot_01JQGF1111111111111111111",
+        "schedule": "http://localhost:8080/api/rotations/rot_01JQGF1111111111111111111/schedule"
+      },
       "attributes": {
         "name": "Database On-Call",
         "cadence": {

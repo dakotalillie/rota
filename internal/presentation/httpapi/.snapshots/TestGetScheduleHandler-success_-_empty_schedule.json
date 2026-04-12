@@ -1,6 +1,7 @@
 {
   "links": {
-    "self": "http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000/schedule"
+    "self": "http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000/schedule",
+    "rotation": "http://localhost:8080/api/rotations/rot_01JQGF0000000000000000000"
   },
   "data": []
 }
