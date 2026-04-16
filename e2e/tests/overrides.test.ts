@@ -72,6 +72,39 @@ test.describe("overrides", () => {
     await expect(replacesPanel).not.toContainText("Carol White");
   });
 
+  test("allows override by current member during a future cycle week", async ({
+    page,
+    serverUrl,
+    setTime,
+  }) => {
+    setTime("2026-04-07T12:00:00Z");
+    await page.goto(`${serverUrl}/rotations`);
+
+    await page.getByText("Platform On-Call").click();
+    await page.getByRole("button", { name: "Settings" }).click();
+
+    await page.getByRole("button", { name: "Add override" }).click();
+
+    const dialog = page.getByRole("dialog");
+    // Alice is currently on-call (Apr 6–13). Bob covers Apr 13–20, Carol covers
+    // Apr 20–27. Pulling Alice back in to cover part of Carol's week must not
+    // be rejected as a self-assign.
+    await dialog.getByLabel("Override start").fill("2026-04-22T09:00");
+    await dialog.getByLabel("Override end").fill("2026-04-24T09:00");
+    await dialog
+      .getByLabel("Override member")
+      .selectOption({ label: "Alice Smith" });
+
+    const replacesPanel = dialog.locator("text=Replaces").locator("..");
+    await expect(replacesPanel).toContainText("Carol White");
+
+    await dialog.getByRole("button", { name: "Add override" }).click();
+
+    await expect(
+      page.getByRole("button", { name: "Remove override" }),
+    ).toBeVisible();
+  });
+
   test("create an override and verify it appears", async ({
     page,
     serverUrl,

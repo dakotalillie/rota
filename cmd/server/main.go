@@ -72,7 +72,7 @@ func main() {
 		reorderMembersUseCase = application.NewReorderMembersUseCase(transactor, rotationRepo, memberRepo)
 		deleteMemberUseCase   = application.NewDeleteMemberUseCase(transactor, rotationRepo, memberRepo, overrideRepo, userRepo)
 		getScheduleUseCase    = application.NewGetScheduleUseCase(rotationRepo, overrideRepo)
-		createOverrideUseCase = application.NewCreateOverrideUseCase(transactor, rotationRepo, overrideRepo)
+		createOverrideUseCase = application.NewCreateOverrideUseCase(transactor, rotationRepo, overrideRepo, clk)
 		deleteOverrideUseCase = application.NewDeleteOverrideUseCase(transactor, rotationRepo, overrideRepo)
 		deleteRotationUseCase = application.NewDeleteRotationUseCase(transactor, rotationRepo, memberRepo, overrideRepo, userRepo)
 		worker                = application.NewAdvanceRotationWorker(rotationRepo, memberRepo, clk, 5*time.Second, logger.With("component", "advance_rotation_worker"))

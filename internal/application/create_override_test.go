@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dakotalillie/rota/internal/application"
+	"github.com/dakotalillie/rota/internal/clock"
 	"github.com/dakotalillie/rota/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -109,6 +110,7 @@ func TestCreateOverrideUseCase_Execute(t *testing.T) {
 				&fakeTransactor{},
 				&tc.rotationRepo,
 				&tc.overrideRepo,
+				clock.New(),
 			)
 
 			got, err := uc.Execute(context.Background(), tc.input)

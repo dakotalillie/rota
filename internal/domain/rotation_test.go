@@ -449,3 +449,102 @@ func TestSchedule_OverridePastBlocksFiltered(t *testing.T) {
 		t.Fatal("expected returned block to be a regular block")
 	}
 }
+
+func TestValidateOverride_MemberNotInRotation(t *testing.T) {
+	r := newWeeklyRotation("Monday", "09:00", "UTC", []domain.Member{alice, bob}, &alice)
+	start := time.Date(2024, 1, 15, 9, 0, 0, 0, time.UTC)
+	end := start.AddDate(0, 0, 1)
+
+	err := r.ValidateOverride("m99", fixedNow, start, end)
+	if err != domain.ErrMemberNotFound {
+		t.Fatalf("expected ErrMemberNotFound, got %v", err)
+	}
+}
+
+func TestValidateOverride_NoActiveSchedule(t *testing.T) {
+	r := domain.Rotation{Members: []domain.Member{alice}}
+	start := fixedNow
+	end := fixedNow.Add(time.Hour)
+
+	if err := r.ValidateOverride(alice.ID, fixedNow, start, end); err != nil {
+		t.Fatalf("expected nil (no weekly cadence), got %v", err)
+	}
+}
+
+func TestValidateOverride_CurrentScheduledMemberInWindow(t *testing.T) {
+	// Alice is on-call for the week containing `fixedNow`. Trying to override
+	// that window with Alice herself is a self-assign.
+	r := newWeeklyRotation("Monday", "09:00", "UTC", []domain.Member{alice, bob, charlie}, &alice)
+	start := time.Date(2024, 1, 9, 9, 0, 0, 0, time.UTC)
+	end := time.Date(2024, 1, 10, 9, 0, 0, 0, time.UTC)
+
+	err := r.ValidateOverride(alice.ID, fixedNow, start, end)
+	if err != domain.ErrOverrideSameMember {
+		t.Fatalf("expected ErrOverrideSameMember, got %v", err)
+	}
+}
+
+func TestValidateOverride_OtherMemberInCurrentWindow(t *testing.T) {
+	r := newWeeklyRotation("Monday", "09:00", "UTC", []domain.Member{alice, bob, charlie}, &alice)
+	start := time.Date(2024, 1, 9, 9, 0, 0, 0, time.UTC)
+	end := time.Date(2024, 1, 10, 9, 0, 0, 0, time.UTC)
+
+	if err := r.ValidateOverride(bob.ID, fixedNow, start, end); err != nil {
+		t.Fatalf("expected nil, got %v", err)
+	}
+}
+
+func TestValidateOverride_CurrentMemberOverridingFutureCycleWeek(t *testing.T) {
+	// Regression: `start` is inside a future cycle week where Bob is naturally
+	// scheduled. Pulling Alice (the *current* on-call) back in must not be
+	// rejected — the old implementation anchored ScheduledMember to whichever
+	// week contained `start` and erroneously flagged this as a self-assign.
+	r := newWeeklyRotation("Monday", "09:00", "UTC", []domain.Member{alice, bob, charlie}, &alice)
+	start := time.Date(2024, 1, 16, 9, 0, 0, 0, time.UTC) // Bob's week
+	end := time.Date(2024, 1, 17, 9, 0, 0, 0, time.UTC)
+
+	if err := r.ValidateOverride(alice.ID, fixedNow, start, end); err != nil {
+		t.Fatalf("expected nil (Alice is not scheduled that week), got %v", err)
+	}
+}
+
+func TestValidateOverride_FutureCycleMatchesProposedMember(t *testing.T) {
+	// Bob is naturally on-call Jan 15–22. Proposing Bob as the override for
+	// that window must be rejected as a self-assign.
+	r := newWeeklyRotation("Monday", "09:00", "UTC", []domain.Member{alice, bob, charlie}, &alice)
+	start := time.Date(2024, 1, 16, 9, 0, 0, 0, time.UTC)
+	end := time.Date(2024, 1, 17, 9, 0, 0, 0, time.UTC)
+
+	err := r.ValidateOverride(bob.ID, fixedNow, start, end)
+	if err != domain.ErrOverrideSameMember {
+		t.Fatalf("expected ErrOverrideSameMember, got %v", err)
+	}
+}
+
+func TestValidateOverride_ExistingOverrideDisplacesNaturalOnCall(t *testing.T) {
+	// Bob is naturally on-call Jan 15–22, but an existing override replaces
+	// him with Charlie for that week. Proposing Bob as a new override for the
+	// displaced window must succeed (Bob is no longer effectively on-call).
+	r := newWeeklyRotation("Monday", "09:00", "UTC", []domain.Member{alice, bob, charlie}, &alice)
+	bobWeekStart := time.Date(2024, 1, 15, 9, 0, 0, 0, time.UTC)
+	r.Overrides = []domain.Override{{
+		ID:     "ovr_1",
+		Member: charlie,
+		Start:  bobWeekStart,
+		End:    bobWeekStart.AddDate(0, 0, 7),
+	}}
+
+	start := bobWeekStart.AddDate(0, 0, 1)
+	end := bobWeekStart.AddDate(0, 0, 2)
+
+	if err := r.ValidateOverride(bob.ID, fixedNow, start, end); err != nil {
+		t.Fatalf("expected nil (Bob is displaced by existing override), got %v", err)
+	}
+
+	// Symmetrically, proposing Charlie (the override's effective on-call) must
+	// be rejected.
+	err := r.ValidateOverride(charlie.ID, fixedNow, start, end)
+	if err != domain.ErrOverrideSameMember {
+		t.Fatalf("expected ErrOverrideSameMember for Charlie, got %v", err)
+	}
+}
