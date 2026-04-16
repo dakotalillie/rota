@@ -18,17 +18,20 @@ type CreateOverrideUseCase struct {
 	transactor   Transactor
 	rotationRepo domain.RotationRepository
 	overrideRepo domain.OverrideRepository
+	clock        domain.Clock
 }
 
 func NewCreateOverrideUseCase(
 	transactor Transactor,
 	rotationRepo domain.RotationRepository,
 	overrideRepo domain.OverrideRepository,
+	clock domain.Clock,
 ) *CreateOverrideUseCase {
 	return &CreateOverrideUseCase{
 		transactor:   transactor,
 		rotationRepo: rotationRepo,
 		overrideRepo: overrideRepo,
+		clock:        clock,
 	}
 }
 
@@ -40,7 +43,7 @@ func (uc *CreateOverrideUseCase) Execute(ctx context.Context, input CreateOverri
 			return err
 		}
 
-		if err := rotation.ValidateOverride(input.MemberID, input.Start, input.End); err != nil {
+		if err := rotation.ValidateOverride(input.MemberID, uc.clock.Now(), input.Start, input.End); err != nil {
 			return err
 		}
 

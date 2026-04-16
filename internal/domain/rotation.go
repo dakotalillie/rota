@@ -214,7 +214,11 @@ func parseHandoffTime(s string) (hour, minute int, err error) {
 // member during [start, end). It returns ErrMemberNotFound if memberID is not in
 // this rotation's member list, and ErrOverrideSameMember if the member is already
 // the scheduled on-call for any block that overlaps the requested window.
-func (r *Rotation) ValidateOverride(memberID string, start, end time.Time) error {
+//
+// `now` must be the current time: Schedule anchors the currently-scheduled
+// member to the week containing its `now` argument, so passing anything other
+// than the real clock would phase-shift the computed cycle.
+func (r *Rotation) ValidateOverride(memberID string, now, start, end time.Time) error {
 	memberInRotation := false
 	for _, m := range r.Members {
 		if m.ID == memberID {
@@ -231,9 +235,12 @@ func (r *Rotation) ValidateOverride(memberID string, start, end time.Time) error
 		return nil
 	}
 
-	// Generate enough blocks to cover the entire [start, end) window.
-	numWeeks := int(end.Sub(start).Hours()/168) + 2
-	blocks, err := r.Schedule(start, numWeeks)
+	// Generate enough blocks to cover everything from `now` through `end`.
+	numWeeks := int(end.Sub(now).Hours()/168) + 2
+	if numWeeks < 1 {
+		numWeeks = 1
+	}
+	blocks, err := r.Schedule(now, numWeeks)
 	if err != nil {
 		return err
 	}
