@@ -8,8 +8,6 @@ type AppState = {
   setMembers: (members: Member[]) => void;
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
-  scheduledMemberId: string | null;
-  setScheduledMemberId: (scheduledMemberId: string | null) => void;
 };
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -17,9 +15,6 @@ const AppStateContext = createContext<AppState | null>(null);
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [overrides, setOverrides] = useState<Override[]>([]);
-  const [scheduledMemberId, setScheduledMemberId] = useState<string | null>(
-    null,
-  );
 
   return (
     <AppStateContext.Provider
@@ -28,8 +23,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         setMembers,
         overrides,
         setOverrides,
-        scheduledMemberId,
-        setScheduledMemberId,
       }}
     >
       {children}

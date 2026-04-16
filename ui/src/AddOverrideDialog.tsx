@@ -4,11 +4,10 @@ import { useParams } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Plus, X } from "lucide-react";
 import { useState } from "react";
 
-import { useAppState } from "./AppStateContext";
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
 import { Input } from "./Input";
-import type { Member, Override } from "./types";
+import type { Member, Override, TimeSegment } from "./types";
 import {
   computeOverrideReplacements,
   formatDateTimeRange,
@@ -33,14 +32,15 @@ type AddOverrideDialogProps = {
   members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
+  schedule: TimeSegment[];
 };
 
 function AddOverrideDialog({
   members,
   overrides,
   setOverrides,
+  schedule,
 }: AddOverrideDialogProps) {
-  const { scheduledMemberId } = useAppState();
   const { rotationId } = useParams({ strict: false });
   const [open, setOpen] = useState(false);
   const [overrideStart, setOverrideStart] = useState("");
@@ -69,13 +69,7 @@ function AddOverrideDialog({
     new Date(overrideEnd) > new Date(overrideStart) &&
     validMemberId;
   const formReplacements = overrideValid
-    ? computeOverrideReplacements(
-        members,
-        overrides,
-        overrideStart,
-        overrideEnd,
-        scheduledMemberId,
-      )
+    ? computeOverrideReplacements(schedule, overrideStart, overrideEnd)
     : [];
   const overrideSelfAssign = formReplacements.some(
     (seg) => seg.member.id === validMemberId,

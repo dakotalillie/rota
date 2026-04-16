@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import type { Member } from "./types";
-import { buildTimeline, cn, formatDateTimeRange, initials } from "./utils";
+import type { Member, TimeSegment } from "./types";
+import {
+  cn,
+  computeOverrideReplacements,
+  formatDateTimeRange,
+  initials,
+} from "./utils";
 
 describe("cn", () => {
   it("joins class strings", () => {
@@ -61,48 +66,96 @@ describe("initials", () => {
   });
 });
 
-describe("buildTimeline", () => {
-  const members: Member[] = [
+describe("computeOverrideReplacements", () => {
+  const alice: Member = {
+    id: "mem_1",
+    userId: "usr_1",
+    name: "Alice Adams",
+    email: "alice@example.com",
+    color: "bg-violet-500",
+    lightColor: "bg-violet-50",
+    darkColor: "dark:bg-violet-950/50",
+    textColor: "text-white",
+  };
+
+  const bob: Member = {
+    id: "mem_2",
+    userId: "usr_2",
+    name: "Bob Brown",
+    email: "bob@example.com",
+    color: "bg-sky-500",
+    lightColor: "bg-sky-50",
+    darkColor: "dark:bg-sky-950/50",
+    textColor: "text-white",
+  };
+
+  const schedule: TimeSegment[] = [
     {
-      id: "mem_1",
-      userId: "usr_1",
-      name: "Alice Adams",
-      email: "alice@example.com",
-      color: "bg-violet-500",
-      lightColor: "bg-violet-50",
-      darkColor: "dark:bg-violet-950/50",
-      textColor: "text-white",
+      start: new Date("2026-04-06T16:00:00Z"),
+      end: new Date("2026-04-13T16:00:00Z"),
+      member: alice,
+      isOverride: false,
     },
     {
-      id: "mem_2",
-      userId: "usr_2",
-      name: "Bob Brown",
-      email: "bob@example.com",
-      color: "bg-sky-500",
-      lightColor: "bg-sky-50",
-      darkColor: "dark:bg-sky-950/50",
-      textColor: "text-white",
-    },
-    {
-      id: "mem_3",
-      userId: "usr_3",
-      name: "Casey Clark",
-      email: "casey@example.com",
-      color: "bg-emerald-500",
-      lightColor: "bg-emerald-50",
-      darkColor: "dark:bg-emerald-950/50",
-      textColor: "text-white",
+      start: new Date("2026-04-13T16:00:00Z"),
+      end: new Date("2026-04-20T16:00:00Z"),
+      member: bob,
+      isOverride: false,
     },
   ];
 
-  it("starts the timeline from the scheduled member instead of index zero", () => {
-    const timeline = buildTimeline(members, [], 3, "mem_2");
+  it("returns empty array for invalid dates", () => {
+    expect(
+      computeOverrideReplacements(schedule, "not-a-date", "2026-04-10"),
+    ).toEqual([]);
+    expect(
+      computeOverrideReplacements(schedule, "2026-04-10", "not-a-date"),
+    ).toEqual([]);
+  });
 
-    expect(timeline).toHaveLength(3);
-    expect(timeline.map((segment) => segment.member.id)).toEqual([
-      "mem_2",
-      "mem_3",
-      "mem_1",
-    ]);
+  it("returns empty array when end is not after start", () => {
+    expect(
+      computeOverrideReplacements(
+        schedule,
+        "2026-04-10T09:00",
+        "2026-04-09T09:00",
+      ),
+    ).toEqual([]);
+  });
+
+  it("returns empty array for empty strings", () => {
+    expect(
+      computeOverrideReplacements(schedule, "", "2026-04-10T09:00"),
+    ).toEqual([]);
+    expect(
+      computeOverrideReplacements(schedule, "2026-04-10T09:00", ""),
+    ).toEqual([]);
+  });
+
+  it("clips overlapping segments to the override window", () => {
+    const results = computeOverrideReplacements(
+      schedule,
+      "2026-04-09T09:00:00Z",
+      "2026-04-15T09:00:00Z",
+    );
+
+    expect(results).toHaveLength(2);
+    expect(results[0].member.id).toBe("mem_1");
+    expect(results[0].start).toEqual(new Date("2026-04-09T09:00:00Z"));
+    expect(results[0].end).toEqual(new Date("2026-04-13T16:00:00Z"));
+    expect(results[1].member.id).toBe("mem_2");
+    expect(results[1].start).toEqual(new Date("2026-04-13T16:00:00Z"));
+    expect(results[1].end).toEqual(new Date("2026-04-15T09:00:00Z"));
+  });
+
+  it("skips non-overlapping segments", () => {
+    const results = computeOverrideReplacements(
+      schedule,
+      "2026-04-14T00:00:00Z",
+      "2026-04-16T00:00:00Z",
+    );
+
+    expect(results).toHaveLength(1);
+    expect(results[0].member.id).toBe("mem_2");
   });
 });

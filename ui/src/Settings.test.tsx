@@ -57,40 +57,23 @@ function createDeferredResponse() {
 function SeedState({
   members,
   overrides,
-  scheduledMemberId,
 }: {
   members: Member[];
   overrides: Override[];
-  scheduledMemberId?: string | null;
 }) {
-  const { setMembers, setOverrides, setScheduledMemberId } = useAppState();
+  const { setMembers, setOverrides } = useAppState();
 
   useLayoutEffect(() => {
     setMembers(members);
     setOverrides(overrides);
-    setScheduledMemberId(scheduledMemberId ?? null);
-  }, [
-    members,
-    overrides,
-    scheduledMemberId,
-    setMembers,
-    setOverrides,
-    setScheduledMemberId,
-  ]);
+  }, [members, overrides, setMembers, setOverrides]);
 
   return null;
-}
-
-function ScheduledMemberObserver() {
-  const { scheduledMemberId } = useAppState();
-
-  return <span data-testid="scheduled-member-id">{scheduledMemberId}</span>;
 }
 
 function renderSettings(options?: {
   initialMembers?: Member[];
   initialOverrides?: Override[];
-  initialScheduledMemberId?: string | null;
 }) {
   render(
     <AppStateProvider>
@@ -98,10 +81,8 @@ function renderSettings(options?: {
         <SeedState
           members={options.initialMembers ?? []}
           overrides={options.initialOverrides ?? []}
-          scheduledMemberId={options.initialScheduledMemberId}
         />
       ) : null}
-      <ScheduledMemberObserver />
       <Settings />
     </AppStateProvider>,
   );
@@ -114,9 +95,6 @@ function createRotationResponse(withOverrides = true) {
       id: "rot_123",
       attributes: { name: "Platform On-Call" },
       relationships: {
-        scheduledMember: {
-          data: { id: "mem_2" },
-        },
         members: {
           data: [{ id: "mem_1" }, { id: "mem_2" }],
         },
@@ -165,6 +143,8 @@ function createRotationResponse(withOverrides = true) {
   };
 }
 
+const scheduleResponse = { data: [] };
+
 describe("Settings", () => {
   afterEach(() => {
     cleanup();
@@ -172,40 +152,53 @@ describe("Settings", () => {
   });
 
   it("hydrates members and overrides from a single rotation response", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify(createRotationResponse(true)), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation((url) => {
+        const body = String(url).endsWith("/schedule")
+          ? scheduleResponse
+          : createRotationResponse(true);
+        return Promise.resolve(
+          new Response(JSON.stringify(body), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+      });
 
     renderSettings();
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
     expect(fetchMock).toHaveBeenCalledWith("/api/rotations/rot_123");
+    expect(fetchMock).toHaveBeenCalledWith("/api/rotations/rot_123/schedule");
 
     await screen.findByText("Apr 7, 9:00 AM – Apr 14, 9:00 AM");
     expect(screen.getAllByText("Alice Adams").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Bob Brown").length).toBeGreaterThan(1);
-    expect(screen.getByText("Replaces:")).toBeTruthy();
-    expect(screen.getByTestId("scheduled-member-id").textContent).toBe("mem_2");
     expect(screen.queryByText("No overrides scheduled.")).toBeNull();
   });
 
   it("shows an empty overrides state when the response has no overrides", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify(createRotationResponse(false)), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation((url) => {
+        const body = String(url).endsWith("/schedule")
+          ? scheduleResponse
+          : createRotationResponse(false);
+        return Promise.resolve(
+          new Response(JSON.stringify(body), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+      });
 
     renderSettings();
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     await screen.findByText("Alice Adams");
@@ -220,14 +213,10 @@ describe("Settings", () => {
     renderSettings({
       initialMembers: staleMembers,
       initialOverrides: staleOverrides,
-      initialScheduledMemberId: "mem_stale",
     });
 
     await screen.findAllByText("Stale Member");
     expect(screen.getByText("Apr 1, 9:00 AM – Apr 2, 9:00 AM")).toBeTruthy();
-    expect(screen.getByTestId("scheduled-member-id").textContent).toBe(
-      "mem_stale",
-    );
 
     deferred.resolve(
       new Response(
@@ -246,6 +235,5 @@ describe("Settings", () => {
 
     expect(screen.queryByText("Stale Member")).toBeNull();
     expect(screen.queryByText("Apr 1, 9:00 AM – Apr 2, 9:00 AM")).toBeNull();
-    expect(screen.getByTestId("scheduled-member-id").textContent).toBe("");
   });
 });

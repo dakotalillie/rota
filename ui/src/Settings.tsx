@@ -8,20 +8,26 @@ import { colorsForName } from "./colorPalette";
 import Members from "./Members";
 import Overrides from "./Overrides";
 import PageHeader from "./PageHeader";
-import type { Member, Override } from "./types";
+import type { Member, Override, TimeSegment } from "./types";
+import {
+  type ApiMember,
+  type ApiScheduleBlock,
+  type ApiUser,
+  buildTimelineFromSchedule,
+} from "./utils";
 
 type Cadence = {
   weekly?: { day: string; time: string; timeZone: string };
 };
 
-type ApiMember = {
+type ApiMemberSettings = {
   type: "members";
   id: string;
   attributes: { position: number; color: string };
   relationships: { user: { data: { id: string } } };
 };
 
-type ApiUser = {
+type ApiUserSettings = {
   type: "users";
   id: string;
   attributes: { name: string; email: string };
@@ -40,24 +46,29 @@ type GetRotationResponse = {
     relationships: {
       members: { data: { id: string }[] };
       overrides: { data: { id: string }[] };
-      scheduledMember?: { data: { id: string } | null };
     };
   };
-  included?: (ApiMember | ApiUser | ApiOverride)[];
+  included?: (ApiMemberSettings | ApiUserSettings | ApiOverride)[];
+  errors?: { detail?: string }[];
+};
+
+type GetScheduleResponse = {
+  data: ApiScheduleBlock[];
+  included?: (ApiMember | ApiUser)[];
   errors?: { detail?: string }[];
 };
 
 type IncludedMaps = {
-  memberMap: Map<string, ApiMember>;
-  userMap: Map<string, ApiUser>;
+  memberMap: Map<string, ApiMemberSettings>;
+  userMap: Map<string, ApiUserSettings>;
   overrideMap: Map<string, ApiOverride>;
 };
 
 function buildIncludedMaps(
-  included: (ApiMember | ApiUser | ApiOverride)[],
+  included: (ApiMemberSettings | ApiUserSettings | ApiOverride)[],
 ): IncludedMaps {
-  const memberMap = new Map<string, ApiMember>();
-  const userMap = new Map<string, ApiUser>();
+  const memberMap = new Map<string, ApiMemberSettings>();
+  const userMap = new Map<string, ApiUserSettings>();
   const overrideMap = new Map<string, ApiOverride>();
 
   for (const item of included) {
@@ -161,6 +172,7 @@ function Settings() {
   const { rotationId } = useParams({ from: "/rotations/$rotationId/settings" });
   const [rotationName, setRotationName] = useState<string | null>(null);
   const [cadence, setCadence] = useState<Cadence | null>(null);
+  const [schedule, setSchedule] = useState<TimeSegment[]>([]);
 
   useBreadcrumbs([
     { label: "Rotations", to: "/rotations" },
@@ -172,8 +184,7 @@ function Settings() {
     { label: "Settings" },
   ]);
 
-  const { members, setMembers, overrides, setOverrides, setScheduledMemberId } =
-    useAppState();
+  const { members, setMembers, overrides, setOverrides } = useAppState();
 
   useEffect(() => {
     let cancelled = false;
@@ -184,37 +195,46 @@ function Settings() {
       setCadence(null);
       setMembers([]);
       setOverrides([]);
-      setScheduledMemberId(null);
+      setSchedule([]);
     }
 
     void (async () => {
       try {
-        const res = await fetch(`/api/rotations/${rotationId}`);
-        const body = (await res.json()) as GetRotationResponse;
-        if (!res.ok || !body.data) {
+        const [rotationRes, scheduleRes] = await Promise.all([
+          fetch(`/api/rotations/${rotationId}`).then((res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json() as Promise<GetRotationResponse>;
+          }),
+          fetch(`/api/rotations/${rotationId}/schedule`).then((res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json() as Promise<GetScheduleResponse>;
+          }),
+        ]);
+
+        if (!rotationRes.data) {
           clearState();
           return;
         }
 
         if (cancelled) return;
 
-        const includedMaps = buildIncludedMaps(body.included ?? []);
+        const includedMaps = buildIncludedMaps(rotationRes.included ?? []);
         const loadedMembers = loadMembers(
-          body.data.relationships.members.data,
+          rotationRes.data.relationships.members.data,
           includedMaps,
         );
         const loadedOverrides = loadOverrides(
-          body.data.relationships.overrides.data,
+          rotationRes.data.relationships.overrides.data,
           includedMaps,
         );
-        const scheduledMemberId =
-          body.data.relationships.scheduledMember?.data?.id ?? null;
 
-        setRotationName(body.data.attributes.name);
-        setCadence(body.data.attributes.cadence);
+        setRotationName(rotationRes.data.attributes.name);
+        setCadence(rotationRes.data.attributes.cadence);
         setMembers(loadedMembers);
         setOverrides(loadedOverrides);
-        setScheduledMemberId(scheduledMemberId);
+        setSchedule(
+          buildTimelineFromSchedule(scheduleRes.data, scheduleRes.included),
+        );
       } catch {
         clearState();
       }
@@ -223,7 +243,7 @@ function Settings() {
     return () => {
       cancelled = true;
     };
-  }, [rotationId, setMembers, setOverrides, setScheduledMemberId]);
+  }, [rotationId, setMembers, setOverrides]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
@@ -248,6 +268,7 @@ function Settings() {
         members={members}
         overrides={overrides}
         setOverrides={setOverrides}
+        schedule={schedule}
       />
     </div>
   );
