@@ -1,15 +1,21 @@
 import AddOverrideDialog from "./AddOverrideDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "./Card";
 import OverridesList from "./OverridesList";
-import type { Member, Override } from "./types";
+import type { Member, Override, TimeSegment } from "./types";
 
 type OverridesProps = {
   members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
+  schedule: TimeSegment[];
 };
 
-function Overrides({ members, overrides, setOverrides }: OverridesProps) {
+function Overrides({
+  members,
+  overrides,
+  setOverrides,
+  schedule,
+}: OverridesProps) {
   return (
     <Card className="shadow-sm border-border bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -18,6 +24,7 @@ function Overrides({ members, overrides, setOverrides }: OverridesProps) {
           members={members}
           overrides={overrides}
           setOverrides={setOverrides}
+          schedule={schedule}
         />
       </CardHeader>
       <CardContent>
@@ -30,6 +37,7 @@ function Overrides({ members, overrides, setOverrides }: OverridesProps) {
             members={members}
             overrides={overrides}
             setOverrides={setOverrides}
+            schedule={schedule}
           />
         )}
       </CardContent>

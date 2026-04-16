@@ -4,32 +4,17 @@ import { useEffect, useState } from "react";
 
 import { useBreadcrumbs } from "./BreadcrumbContext";
 import { Button } from "./Button";
-import { colorsForName } from "./colorPalette";
 import HomeHero from "./OnCallHero";
 import OnCallHeroEmpty from "./OnCallHeroEmpty";
 import PageHeader from "./PageHeader";
 import Schedule from "./Schedule";
-import type { Member, TimeSegment } from "./types";
-
-interface ApiMember {
-  type: "members";
-  id: string;
-  attributes: { position: number; color: string };
-  relationships: { user: { data: { type: "users"; id: string } } };
-}
-
-interface ApiUser {
-  type: "users";
-  id: string;
-  attributes: { name: string; email: string };
-}
-
-interface ApiScheduleBlock {
-  type: "scheduleBlocks";
-  id: string;
-  attributes: { start: string; end: string; isOverride: boolean };
-  relationships: { member: { data: { type: "members"; id: string } } };
-}
+import type { TimeSegment } from "./types";
+import {
+  type ApiMember,
+  type ApiScheduleBlock,
+  type ApiUser,
+  buildTimelineFromSchedule,
+} from "./utils";
 
 interface GetRotationResponse {
   data?: {
@@ -45,56 +30,6 @@ interface GetScheduleResponse {
   data: ApiScheduleBlock[];
   included?: (ApiMember | ApiUser)[];
   errors?: { detail?: string }[];
-}
-
-function buildTimelineFromSchedule(
-  data: ApiScheduleBlock[],
-  included: (ApiMember | ApiUser)[] | undefined,
-): TimeSegment[] {
-  const userMap = new Map<string, ApiUser>();
-  const memberMap = new Map<string, ApiMember>();
-
-  for (const item of included ?? []) {
-    if (item.type === "users") userMap.set(item.id, item);
-    if (item.type === "members") memberMap.set(item.id, item);
-  }
-
-  const members = new Map<string, Member>();
-
-  for (const block of data) {
-    const memberId = block.relationships.member.data.id;
-    if (!members.has(memberId)) {
-      const apiMember = memberMap.get(memberId);
-      const userId = apiMember?.relationships.user.data.id;
-      if (!userId) continue;
-      const user = userMap.get(userId);
-      if (!user) continue;
-      members.set(memberId, {
-        id: memberId,
-        userId,
-        name: user.attributes.name,
-        email: user.attributes.email,
-        ...colorsForName(apiMember.attributes.color),
-      });
-    }
-  }
-
-  return data.map((block) => {
-    const memberId = block.relationships.member.data.id;
-    const member = members.get(memberId) ?? {
-      id: memberId,
-      userId: "",
-      name: "Unknown",
-      email: "",
-      ...colorsForName(""),
-    };
-    return {
-      start: new Date(block.attributes.start),
-      end: new Date(block.attributes.end),
-      member,
-      isOverride: block.attributes.isOverride,
-    };
-  });
 }
 
 function RotationDetail() {

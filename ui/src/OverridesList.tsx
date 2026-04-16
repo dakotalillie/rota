@@ -2,10 +2,9 @@ import { useParams } from "@tanstack/react-router";
 import { ArrowRight, X } from "lucide-react";
 import { useState } from "react";
 
-import { useAppState } from "./AppStateContext";
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { Button } from "./Button";
-import type { Member, Override } from "./types";
+import type { Member, Override, TimeSegment } from "./types";
 import {
   computeOverrideReplacements,
   formatDateTimeRange,
@@ -16,14 +15,15 @@ type OverridesListProps = {
   members: Member[];
   overrides: Override[];
   setOverrides: (overrides: Override[]) => void;
+  schedule: TimeSegment[];
 };
 
 function OverridesList({
   members,
   overrides,
   setOverrides,
+  schedule,
 }: OverridesListProps) {
-  const { scheduledMemberId } = useAppState();
   const { rotationId } = useParams({ strict: false });
   const [deletingOverrideId, setDeletingOverrideId] = useState<string | null>(
     null,
@@ -71,13 +71,10 @@ function OverridesList({
       {overrides.map((override) => {
         const member = members.find((m) => m.id === override.memberId);
         if (!member) return null;
-        const baseOverrides = overrides.filter((o) => o.id !== override.id);
         const replacements = computeOverrideReplacements(
-          members,
-          baseOverrides,
+          schedule,
           override.start,
           override.end,
-          scheduledMemberId,
         );
         return (
           <div
